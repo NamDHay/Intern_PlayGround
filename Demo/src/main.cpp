@@ -1,14 +1,25 @@
-
+void TaskWiFi(void *pvParameter);
 #define LOG(x) {Serial.print(x);}
 #define LOGLN(x) {Serial.println(x);}
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 #include <WiFi.h>
+#include <SPIFFS.h>
+#include "Filesystem.h"
+#include <DNSServer.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
-#include <SPIFFS.h>
 
+#define MAX_CLIENTS 4
+#define WIFI_CHANNEL 6
+
+const IPAddress localIP(192, 168, 4, 1);		
+const IPAddress gatewayIP(192, 168, 4, 1);	   
+const IPAddress subnetMask(255, 255, 255, 0);
+const String localIPURL = "http://192.168.4.1";
 
 struct Settings
 {
@@ -18,42 +29,41 @@ struct Settings
 
 
 
-#include "Filesystem.h"
+
 #include "fileproccess.h"
-// #define example
 
-
-
-// STA Mode
-const char* ssid_STA = "iSoft";
-const char* password_STA = "i-soft@123";
 // AP Mode
 const char* ssid_AP = "NODE_IOT";
 const char* password_AP = "123456789";
 
 short timeout = 0;
-bool runMode = false;
+
 
 String header;
 String HTML = "\
 <!DOCTYPE html>\
 <html>\
 <body><CENTER>\
-<h2>Cai dat Wifi</h2>\
+<h1>WIFI SETTING</h1></CENTER>\
 <form action=\"/get\">\
-  <label for=\"fname\">ten wifi:</label><br>\
-  <input type=\"text\" id=\"ssid\" name=\"ssid\" placeholder=\"ten wifi\"><br>\
-  <label for=\"lname\">mat khau wifi:</label><br>\
-  <input type=\"text\" id=\"pass\" name=\"pass\" placeholder=\"pass wifi\"><br><br>\
-  <input type=\"submit\" value=\"Luu\">\
-</form> </CENTER>\
+  <label for=\"fname\">SSID:</label><br>\
+  <input type=\"text\" id=\"ssid\" name=\"ssid\" placeholder=\"Wifi Name\"><br>\
+  <label for=\"lname\">PASSWORD:</label><br>\
+  <input type=\"text\" id=\"pass\" name=\"pass\" placeholder=\"Wifi Pass\"><br><br>\
+  <input type=\"submit\" value=\"SAVE\">\
+</form>\
 </body>\
 </html>\
 ";
 const char* SSID_ = "ssid";
 const char* PASS_ = "pass";
 
+DNSServer dnsServer;
 AsyncWebServer server(80);
+void setUpDNSServer(DNSServer &dnsServer, const IPAddress &localIP) {
+	dnsServer.setTTL(3600);
+	dnsServer.start(53, "*", localIP);
+}
 void accessPointMode(){
   WiFi.mode(WIFI_AP);
   Serial.println("Configuring access point!");
@@ -61,9 +71,7 @@ void accessPointMode(){
   IPAddress IP = WiFi.softAPIP();
   Serial.print("AP IP address: ");
   Serial.println(IP);
-  runMode = true;
-
-    server.begin();
+  server.begin();
 }//accessPointMode
 void Switch(){
   while(WiFi.status() != WL_CONNECTED){
@@ -76,7 +84,7 @@ void Switch(){
       break;
     }
   }
-}
+}//Switch
 void stationMode(){
   Serial.println();
   Serial.println();
@@ -86,62 +94,106 @@ void stationMode(){
   unsigned long start = millis();
   WiFi.mode(WIFI_STA);
   WiFi.begin(settings.ssid,settings.pass);
-  // while(WiFi.status() != WL_CONNECTED && millis()-start < 10000){
-  //   Serial.println(".");
-  // }
   if(WiFi.status() != WL_CONNECTED)
   {
-    runMode = true;
     Switch();
   }
   else {
-    
     Serial.println(WiFi.localIP());
   }
-  
     Serial.println(WiFi.localIP());
     server.begin();
-}
+}//stationMode
 void WebInit(){
-      server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-        request->send(200, "text/html", HTML);
-    });
-    
+    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+      request->send(200, "text/html", HTML);
+    });  
     server.on("/reset", HTTP_GET, [](AsyncWebServerRequest *request){
-        ESP.restart();
-        request->send(200, "text/plain", "reset done");
+      ESP.restart();
+      request->send(200, "text/plain", "reset done");
     });
     server.on("/get", HTTP_GET, [] (AsyncWebServerRequest *request) {
         String Ssid;
         String Pass;
         if (request->hasParam(SSID_)) {
-            Ssid = request->getParam(SSID_)->value();
-        } else {
-            Ssid = "khong co SSID";
+          Ssid = request->getParam(SSID_)->value();
+        } 
+        else {
+          Ssid = "khong co SSID";
         }
         settings.ssid = Ssid;
         if (request->hasParam(PASS_)) {
-            Pass = request->getParam(PASS_)->value();
-        } else {
-            Pass = "khong co SSID";
+          Pass = request->getParam(PASS_)->value();
+        } 
+        else {
+          Pass = "khong co SSID";
         }
         settings.pass = Pass;
         
-        request->send(200, "text/plain", "Hello, GET: " + Ssid + "|" + Pass);
+        request->send(200, "text/plain", Ssid + "|" + Pass);
         writeSetting();
     });
-    
+}//WebInit
+void setUpWebserver(AsyncWebServer &server, const IPAddress &localIP) {
+	
+	// Required
+	server.on("/connecttest.txt", [](AsyncWebServerRequest *request) { request->redirect("http://logout.net"); });	// windows 11 captive portal workaround
+	server.on("/wpad.dat", [](AsyncWebServerRequest *request) { request->send(404); });								// Honestly don't understand what this is but a 404 stops win 10 keep calling this repeatedly and panicking the esp32 :)
+
+	// Background responses: Probably not all are Required, but some are. Others might speed things up?
+	// A Tier (commonly used by modern systems)
+	server.on("/generate_204", [](AsyncWebServerRequest *request) { request->redirect(localIPURL); });		   // android captive portal redirect
+	server.on("/redirect", [](AsyncWebServerRequest *request) { request->redirect(localIPURL); });			   // microsoft redirect
+	server.on("/hotspot-detect.html", [](AsyncWebServerRequest *request) { request->redirect(localIPURL); });  // apple call home
+	server.on("/canonical.html", [](AsyncWebServerRequest *request) { request->redirect(localIPURL); });	   // firefox captive portal call home
+	server.on("/success.txt", [](AsyncWebServerRequest *request) { request->send(200); });					   // firefox captive portal call home
+	server.on("/ncsi.txt", [](AsyncWebServerRequest *request) { request->redirect(localIPURL); });			   // windows call home
+
+	// return 404 to webpage icon
+	server.on("/favicon.ico", [](AsyncWebServerRequest *request) { request->send(404); });	// webpage icon
+
+	// Serve Basic HTML Page
+	server.on("/", HTTP_ANY, [](AsyncWebServerRequest *request) {
+		AsyncWebServerResponse *response = request->beginResponse(200, "text/html", HTML);
+		response->addHeader("Cache-Control", "public,max-age=31536000");  // save this file to cache for 1 year (unless you refresh)
+		request->send(response);
+		Serial.println("Served Basic HTML Page");
+	});
+
+	// the catch all
+	server.onNotFound([](AsyncWebServerRequest *request) {
+		request->redirect(localIPURL);
+		Serial.print("onnotfound ");
+		Serial.print(request->host());	// This gives some insight into whatever was being requested on the serial monitor
+		Serial.print(" ");
+		Serial.print(request->url());
+		Serial.print(" sent redirect to " + localIPURL + "\n");
+	});
 }
+
 void setup() {
   Serial.begin(115200);
   SPIFFS_Init();
   stationMode();
-  
+  setUpDNSServer(dnsServer, WiFi.softAPIP());
+  setUpWebserver(server, WiFi.softAPIP());
   WebInit();
-  #ifdef example
-  fileproccess_example();
-  #endif//example
-}
-void loop() {
 
-}// loop()
+  xTaskCreatePinnedToCore(TaskWiFi, "WiFi", 20000, NULL, 1, NULL, 1);
+
+}
+void loop(){
+  dnsServer.processNextRequest();
+  delay(30);
+}
+
+void TaskWiFi(void *pvParameter){
+  static long realtime = millis();
+  static long Timedelay= 1;
+  for(;;){
+    if(millis()-realtime>Timedelay){realtime = millis();
+    
+    }  
+  }
+}
+

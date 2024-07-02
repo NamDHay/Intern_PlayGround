@@ -21,7 +21,7 @@ void writefile(String filename, String content){
   file.print(content);
   Serial.println(content);
   file.close();
-}
+}//writefile
 
 void writeafile(String filename, String content){
   File file = SPIFFS.open(filename, "a");
@@ -29,12 +29,11 @@ void writeafile(String filename, String content){
   file.print(content);
   Serial.println(content);
   file.close();
-}
-
+}//writeafile
 
 void SPIFFS_Init(){
   if(!SPIFFS.begin(true)){
     Serial.println("An error occurred while mounting SPIFFS");
     return;
   }
-}
+}//SPIFFS_Init
