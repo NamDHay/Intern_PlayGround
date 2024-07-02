@@ -6,18 +6,12 @@ void setup() {
   loadSetting();
   WifiConnect();
   WebInit();
-      // Serial.println("ESP free heep: " + ESP.getFreeHeap());
+  TaskHandle_t *taskHandlePortal = GetPortalTaskHandle();
+  xTaskCreatePinnedToCore(TaskPortal, "TaskPortal", 10000, NULL, 1, taskHandlePortal, 1);
   xTaskCreatePinnedToCore(TaskOnlineManager,"TaskOnlineManager",10000,NULL,2,NULL,1);
+  xTaskCreatePinnedToCore(TaskSocketHandle,"TaskOnlineManager",10000,NULL,1,NULL,1);
 }
 
 void loop(){
-  //Nothing here
-  static long taskStartTime = millis();
-  if(millis() - taskStartTime > 10000){
-    Serial.println("ESP free Heap: ");
-    Serial.println(ESP.getFreeHeap());
-    Serial.println("ESP free RAM: ");
-    Serial.println(ESP.getFreePsram());
-    taskStartTime = millis();
-  }
+  //Nothing Here
 }
