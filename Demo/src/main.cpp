@@ -1,4 +1,4 @@
-void TaskWiFi(void *pvParameter);
+
 #define LOG(x) {Serial.print(x);}
 #define LOGLN(x) {Serial.println(x);}
 
@@ -12,6 +12,9 @@ void TaskWiFi(void *pvParameter);
 #include <DNSServer.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
+
+void TaskWiFi(void *pvParameter);
+void TaskCaptivePortal(void *pvParameter);
 
 #define MAX_CLIENTS 4
 #define WIFI_CHANNEL 6
@@ -180,12 +183,9 @@ void setup() {
   WebInit();
 
   xTaskCreatePinnedToCore(TaskWiFi, "WiFi", 20000, NULL, 1, NULL, 1);
-
+  xTaskCreatePinnedToCore(TaskCaptivePortal, "CaptivePortal",2000,NULL, 2, NULL, 1);
 }
-void loop(){
-  dnsServer.processNextRequest();
-  delay(30);
-}
+void loop(){}
 
 void TaskWiFi(void *pvParameter){
   static long realtime = millis();
@@ -194,6 +194,12 @@ void TaskWiFi(void *pvParameter){
     if(millis()-realtime>Timedelay){realtime = millis();
     
     }  
+  }
+}
+void TaskCaptivePortal(void *pvParameter){
+  for(;;){
+    dnsServer.processNextRequest();
+    vTaskDelay(30/portTICK_PERIOD_MS);
   }
 }
 
