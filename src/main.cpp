@@ -1,25 +1,23 @@
 #include <main.h>
 
-void fileproccess_example(){
-  writefile("/data.txt", "hello file data.txt\n",0);
-  Serial.println(readfile("/data.txt"));
-  writefile("/data.txt", " 123\n",1);
-  Serial.println(readfile("/data.txt"));
-  for (byte i = 0; i < 10; i++)
-  {
-    String content = String(i) + " | " ;
-    writefile("/data.txt", content,1);
-  }
-  Serial.println(readfile("/data.txt"));
-}
-
 void setup() {
   Serial.begin(115200);
-  WifiConnect();
   SPIFFS_Init();
-  fileproccess_example();
+  loadSetting();
+  WifiConnect();
+  WebInit();
+      // Serial.println("ESP free heep: " + ESP.getFreeHeap());
+  xTaskCreatePinnedToCore(TaskOnlineManager,"TaskOnlineManager",10000,NULL,2,NULL,1);
 }
 
-void loop() {
-  //Nothing Here
+void loop(){
+  //Nothing here
+  static long taskStartTime = millis();
+  if(millis() - taskStartTime > 10000){
+    Serial.println("ESP free Heap: ");
+    Serial.println(ESP.getFreeHeap());
+    Serial.println("ESP free RAM: ");
+    Serial.println(ESP.getFreePsram());
+    taskStartTime = millis();
+  }
 }
