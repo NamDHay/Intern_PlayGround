@@ -1,4 +1,3 @@
-
 #define LOG(x) {Serial.print(x);}
 #define LOGLN(x) {Serial.println(x);}
 
@@ -15,7 +14,7 @@
 
 void TaskWiFi(void *pvParameter);
 void TaskCaptivePortal(void *pvParameter);
-
+void TaskFunction(void *pvParameter);
 #define MAX_CLIENTS 4
 #define WIFI_CHANNEL 6
 
@@ -41,6 +40,9 @@ const char* password_AP = "123456789";
 
 short timeout = 0;
 
+DNSServer dnsServer;
+// AsyncWebServer server(80);
+#include "WebSocket.h"
 
 String header;
 String HTML = "\
@@ -54,6 +56,11 @@ String HTML = "\
   <label for=\"lname\">PASSWORD:</label><br>\
   <input type=\"text\" id=\"pass\" name=\"pass\" placeholder=\"Wifi Pass\"><br><br>\
   <input type=\"submit\" value=\"SAVE\">\
+  <div class=\"content\">\
+  <div class=\"card\">\
+    <p><button id=\"button\" class=\"button\">Toggle</button></p>\
+  </div>\
+  </div>\
 </form>\
 </body>\
 </html>\
@@ -61,8 +68,6 @@ String HTML = "\
 const char* SSID_ = "ssid";
 const char* PASS_ = "pass";
 
-DNSServer dnsServer;
-AsyncWebServer server(80);
 void setUpDNSServer(DNSServer &dnsServer, const IPAddress &localIP) {
 	dnsServer.setTTL(3600);
 	dnsServer.start(53, "*", localIP);
@@ -129,7 +134,7 @@ void WebInit(){
           Pass = request->getParam(PASS_)->value();
         } 
         else {
-          Pass = "khong co SSID";
+          Pass = "khong co PASS";
         }
         settings.pass = Pass;
         
@@ -181,9 +186,10 @@ void setup() {
   setUpDNSServer(dnsServer, WiFi.softAPIP());
   setUpWebserver(server, WiFi.softAPIP());
   WebInit();
-
+  WB_setup();
   xTaskCreatePinnedToCore(TaskWiFi, "WiFi", 20000, NULL, 1, NULL, 1);
   xTaskCreatePinnedToCore(TaskCaptivePortal, "CaptivePortal",2000,NULL, 2, NULL, 1);
+  xTaskCreatePinnedToCore(TaskFunction, "Function", 10000, NULL, 3,NULL, 1);
 }
 void loop(){}
 
@@ -200,6 +206,11 @@ void TaskCaptivePortal(void *pvParameter){
   for(;;){
     dnsServer.processNextRequest();
     vTaskDelay(30/portTICK_PERIOD_MS);
+  } 
+}
+void TaskFunction(void *pvParameter){
+  for(;;){
+    WB_loop();
+    vTaskDelay(10/portTICK_PERIOD_MS);
   }
 }
-

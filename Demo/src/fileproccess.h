@@ -7,7 +7,7 @@ void loadSetting(){
   String SSID = doc["SSID"].as<String>();
   String PASS = doc["PASS"].as<String>();
   LOGLN("SSID: " + SSID);
-  LOGLN("PASS: "+PASS); 
+  LOGLN("PASS: "+ PASS); 
   settings.ssid = SSID;
   settings.pass = PASS;
 }
