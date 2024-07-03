@@ -1,13 +1,14 @@
 #include <File_System.h>
+#include <Arduino.h>
 
-void SPIFFS_Init() {
+void FFS::Init(){
     if(!SPIFFS.begin(true)){
         Serial.println("An error occurred while mounting SPIFFS");
         return;
     }
 }
 
-void writefile(String filename, String content, uint8_t mode) {
+void FFS::writefile(String filename, String content, uint8_t mode) {
     File file = SPIFFS.open(filename, (mode == 1 ? "a" : "w"));
     Serial.println("File Write: ");
     file.print(content);
@@ -15,7 +16,7 @@ void writefile(String filename, String content, uint8_t mode) {
     file.close();
 }
 
-String readfile(String filename) {
+String FFS::readfile(String filename) {
     String content = "";
     File file = SPIFFS.open(filename,"r");
     if(!file){

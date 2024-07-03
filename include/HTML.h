@@ -1,10 +1,10 @@
-#ifndef __BOARDPARAMETER_H__
-#define __BOARDPARAMETER_H__
+#ifndef __HTML_H__
+#define __HTML_H__
 
-#include <File_System.h>
-#include <Wifi_Config.h>
-#include <CaptivePortal.h>
+#include <Arduino.h>
 
+class Website {
+public:
 String WebSocket_HTML = "\
 <!DOCTYPE HTML><html>\
 <head>\
@@ -145,12 +145,10 @@ String Wifi_Config_HTML = "\
 </body>\
 </html>\
 ";
+};
 
-AsyncWebServer server(80);
-
-#define ledPin 25
-void Config_Output();
+extern Website myweb;
 
 
-#endif //__BOARDPARAMETER_H__
+#endif //__HTML_H__
 

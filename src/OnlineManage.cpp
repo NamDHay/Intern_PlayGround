@@ -1,36 +1,52 @@
-// #include <File_System.h>
-#include <Wifi_Config.h>
-// #include <CaptivePortal.h>
+#include <OnlineManage.h>
+#include <HTML.h>
+#include <File_System.h>
 
 
-struct wifi_setting_t
+void OnlineManage::Init() {
+  Serial.print("Connecting to ");
+  Serial.println(online.wifi_setting.ssid);
+  online.STA_Mode();
+  if(CheckConnect()) {
+    Serial.print("Connected!\n");
+    online.Get_STA_IP();
+  } else {
+    Serial.println("Connection failed\n");
+    Serial.println("Change to AP_Mode\n");
+    online.AP_Mode();
+    online.Get_AP_IP();
+  }
+}
+
+void OnlineManage::AP_Mode()
 {
-  String ssid;
-  String pass;
-} wifisetting;
-QueueHandle_t qOnline;
-String header;
-const char *SSID_ = "ssid";
-const char *PASS_ = "pass";
-AsyncWebSocket ws("/ws");
-bool ledState = 0;
-
-void WifiConnect()
-{
+  WiFi.mode(WIFI_AP);
+  WiFi.softAP(soft_ap_ssid, soft_ap_password);
+}
+void OnlineManage::STA_Mode() {
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(online.wifi_setting.ssid, online.wifi_setting.pass);
+}
+void OnlineManage::Get_STA_IP() {
+  Serial.print("STA -> IP address: ");
+  Serial.println(WiFi.localIP());
+}
+void OnlineManage::Get_AP_IP() {
+  Serial.print("AP -> IP address: ");
+  Serial.println(WiFi.softAPIP());
+}
+void OnlineManage::AP_STA_Mode() {
+  WiFi.mode(WIFI_AP_STA);
+  WiFi.softAP(soft_ap_ssid, soft_ap_password);
+  WiFi.begin(online.wifi_setting.ssid, online.wifi_setting.pass);
+}
+bool OnlineManage::CheckConnect() {
   uint8_t timeout = 50;
   static long startTime = millis();
-  WiFi.mode(WIFI_AP_STA);
-  Serial.print("Connecting to ");
-  Serial.println(wifisetting.ssid);
-  WiFi.begin(wifisetting.ssid, wifisetting.pass);
-  while (WiFi.status() != WL_CONNECTED)
-  {
+  while (WiFi.status() != WL_CONNECTED) {
     if (timeout == 0)
     {
-      Serial.println("\nWiFi connected timeout\n");
-      Serial.println("Change to AP_Mode\n");
-      AP_Mode();
-      return;
+      return false;
     }
     if (millis() - startTime >= 100) {
       startTime = millis();
@@ -38,51 +54,41 @@ void WifiConnect()
       timeout--;
     }
   }
-  Serial.print("Connected!\n");
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
-  SocketSetup();
-  // server.begin();
-  PortalSetup(server);
-  return;
-}
-void AP_Mode()
-{
-  WiFi.mode(WIFI_AP);
-  WiFi.softAP(soft_ap_ssid, soft_ap_password);
-  Serial.print("IP address: ");
-  Serial.println(WiFi.softAPIP());
-  PortalSetup(server);
-  return;
+  return true;
 }
 
-void loadSetting()
+void OnlineManage::Reconnect()
+{
+
+}
+
+void OnlineManage::loadSetting()
 {
   String dataRead = "";
   JsonDocument doc;
-  dataRead = readfile("/setting.json");
+  dataRead = savefile.readfile("/setting.json");
   deserializeJson(doc, dataRead);
   String SSID = doc["SSID"].as<String>();
   String PASS = doc["PASS"].as<String>();
   Serial.println("SSID: " + SSID);
   Serial.println("PASS: " + PASS);
-  wifisetting.ssid = SSID;
-  wifisetting.pass = PASS;
+  online.wifi_setting.ssid = SSID;
+  online.wifi_setting.pass = PASS;
 }
-void writeSetting()
+void OnlineManage::writeSetting()
 {
   String setting = "";
   JsonDocument writeDoc;
-  writeDoc["SSID"] = wifisetting.ssid;
-  writeDoc["PASS"] = wifisetting.pass;
+  writeDoc["SSID"] = online.wifi_setting.ssid;
+  writeDoc["PASS"] = online.wifi_setting.pass;
   serializeJson(writeDoc, setting);
   Serial.println("JSON: " + setting);
-  writefile("/setting.json", setting, 0);
+  savefile.writefile("/setting.json", setting, 0);
 }
 
-void WebInit()
+void OnlineManage::WebInit()
 {
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
+  online.server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
             { request->send(200, "text/html", WebSocket_HTML); });
 
   server.on("/reset", HTTP_GET, [](AsyncWebServerRequest *request)
@@ -179,13 +185,13 @@ String processor(const String& var){
   return String();
 }
 
-void SocketSetup() {
+
+void OnlineManage::SocketSetup(); {
   initWebSocket();
 }
 
 void TaskSocketHandle(void *pvParameter) {
   for(;;) {
     ws.cleanupClients();
-    digitalWrite(ledPin, ledState);
   }
 }

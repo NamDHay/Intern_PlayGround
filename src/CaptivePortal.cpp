@@ -71,9 +71,13 @@ void setUpWebserver(AsyncWebServer &server, const IPAddress &localIP) {
 }
 
 void PortalSetup(AsyncWebServer &server) {
+
+	server.begin();
+}
+
+void Portal::Init() {
 	setUpDNSServer(dnsServer, WiFi.softAPIP());
 	setUpWebserver(server, WiFi.softAPIP());
-	server.begin();
 
 	Serial.print("\n");
 	Serial.print("Startup Time:");	// should be somewhere between 270-350 for Generic ESP32 (D0WDQ6 chip, can have a higher startup time on first boot)

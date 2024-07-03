@@ -15,8 +15,17 @@ const IPAddress subnetMask(255, 255, 255, 0);  // no need to change: https://avi
 
 const String localIPURL = "http://192.168.4.1";	 // a string version of the local IP with http, used for redirecting clients to your webpage
 
+class Portal {
+private:
+    
+public:
+    void Init();
+};
+
+extern Portal portal;
+
 void PortalSetup(AsyncWebServer &server);
-void TaskPortal(void *pvParameter);
 TaskHandle_t* GetPortalTaskHandle();
+void TaskPortal(void *pvParameter);
 
 #endif
