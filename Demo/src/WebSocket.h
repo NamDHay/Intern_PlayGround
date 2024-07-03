@@ -1,6 +1,5 @@
 #include <Arduino.h>
-#include <WebServer.h>
-WebServer FuncSocket;
+Function FuncSocket;
 bool ledState = 0;
 const int ledPin = 25;
 

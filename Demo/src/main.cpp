@@ -32,7 +32,7 @@ struct Settings
 }settings;
 
 #include "WebServer.h"
-WebServer webFunc;
+Function webFunc;
 // AP Mode
 const char* ssid_AP = "NODE_IOT";
 const char* password_AP = "123456789";
@@ -189,7 +189,7 @@ String HTML = "\
       alert(\"Pass Fail\");\
     }\
     else{\
-      var json_output = \"{'SSID':'\" + ssid_input + \"'','PASS':'\" + pass_input +\"'}\";\
+      var json_output = \"{'SSID':'\" + ssid_input + \"','PASS':'\" + pass_input +\"'}\";\
       console.log(json_output);\
       websocket.send(json_output);\
       alert(\"Completed setting!!!\");\

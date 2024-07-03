@@ -5,22 +5,20 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <Filesystem.h>
-class WebServer
+class Function
 {
-private:
+    private:
 
-public:
-    String dataRead = "";
-    String setting = "";
-    struct Settings
-    {
-        String ssid;
-        String pass;
-    }settings;
-    void loadSetting();
-    void writeSetting();
-
-
+    public:
+        String dataRead = "";
+        String setting = "";
+        struct Settings
+        {
+            String ssid;
+            String pass;
+        }settings;
+        void loadSetting();
+        void writeSetting();
 };
-extern WebServer WEBSERVER;
+extern Function WEBSERVER;
 #endif

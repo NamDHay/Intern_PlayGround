@@ -2,7 +2,7 @@
 #include <WebServer.h>
 FileSystem FSFunc;
 
-void WebServer::writeSetting(){
+void Function::writeSetting(){
     //Setting 
     JsonDocument writeDoc;
     writeDoc["SSID"] = settings.ssid;
@@ -11,7 +11,7 @@ void WebServer::writeSetting(){
     LOGLN("JSON: "+ setting);
     FSFunc.writefile("/setting.json", setting);
 }
-void WebServer::loadSetting(){
+void Function::loadSetting(){
     //load setting
     JsonDocument doc;//
     dataRead = FSFunc.readfile("/setting.json");
@@ -23,6 +23,5 @@ void WebServer::loadSetting(){
     settings.ssid = SSID;
     settings.pass = PASS;
     writeSetting();
-
 }
 
