@@ -177,22 +177,22 @@ String HTML = "\
     var ssid_input = document.getElementById('input_ssid').value;\
     var pass_input = document.getElementById('input_pass').value;\
     if(ssid_input == \"\" && pass_input == \"\"){\
-      console.log(\"Chưa nhập SSID và PASS\");\
-      alert(\"Chưa nhập SSID và PASS\");\
+      console.log(\"Fail SSID và PASS\");\
+      alert(\"Fail SSID và PASS\");\
     }\
     else if(ssid_input == \"\"){\
-      console.log(\"Chưa nhập SSID\");\
-      alert(\"Chưa nhập SSID\");\
+      console.log(\"Pass SSID\");\
+      alert(\"Pass SSID\");\
     }\
     else if(pass_input == \"\"){\
-      console.log(\"Chưa nhập PASS\");\
-      alert(\"Chưa nhập PASS\");\
+      console.log(\"Pass Fail\");\
+      alert(\"Pass Fail\");\
     }\
     else{\
       var json_output = \"{'SSID':'\" + ssid_input + \"'','PASS':'\" + pass_input +\"'}\";\
       console.log(json_output);\
       websocket.send(json_output);\
-      alert(\"Cài đặt thành công!!!\");\
+      alert(\"Completed setting!!!\");\
     }\
   }\
 </script>\
