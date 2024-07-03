@@ -1,25 +1,9 @@
+#include <main.h>
 #include <CaptivePortal.h>
 
 DNSServer dnsServer;
-
 const char *ssid = "captive";  // FYI The SSID can't have a space in it.
 const char *password = NULL;  // no password
-
-String HTML1 = "\
-<!DOCTYPE html>\
-<html>\
-<body><CENTER>\
-<h2>Cai dat Wifi</h2>\
-<form action=\"/get\">\
-  <label for=\"fname\">ten wifi:</label><br>\
-  <input type=\"text\" id=\"ssid\" name=\"ssid\" placeholder=\"ten wifi\"><br>\
-  <label for=\"lname\">mat khau wifi:</label><br>\
-  <input type=\"text\" id=\"pass\" name=\"pass\" placeholder=\"pass wifi\"><br><br>\
-  <input type=\"submit\" value=\"Luu\">\
-</form> </CENTER>\
-</body>\
-</html>\
-";
 
 void setUpDNSServer(DNSServer &dnsServer, const IPAddress &localIP) {
 #define DNS_INTERVAL 30
@@ -69,7 +53,7 @@ void setUpWebserver(AsyncWebServer &server, const IPAddress &localIP) {
 
 	// Serve Basic HTML Page
 	server.on("/", HTTP_ANY, [](AsyncWebServerRequest *request) {
-		AsyncWebServerResponse *response = request->beginResponse(200, "text/html", HTML1);
+		AsyncWebServerResponse *response = request->beginResponse(200, "text/html", Wifi_Config_HTML);
 		response->addHeader("Cache-Control", "public,max-age=31536000");  // save this file to cache for 1 year (unless you refresh)
 		request->send(response);
 		Serial.println("Served Basic HTML Page");

@@ -5,6 +5,7 @@
 #include <ArduinoJson.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
+#include <BoardParameter.h>
 typedef enum {
     ACCESS_POINT,
     STATION,

@@ -67,5 +67,6 @@
     "type_traits": "cpp",
     "utility": "cpp",
     "memory_resource": "cpp"
-  }
+  },
+  "cmake.sourceDirectory": "/home/namdhay/Documents/Workspace/Intern_PlayGround/.pio/libdeps/esp32dev/AsyncTCP-esphome"
 }

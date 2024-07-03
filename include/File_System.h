@@ -1,7 +1,6 @@
 #ifndef __FILE_SYSTEM_H__
 #define __FILE_SYSTEM_H__
 
-
 #include <SPIFFS.h>
 
 void SPIFFS_Init();

@@ -4,8 +4,5 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
 #include <freertos/task.h>
-#include <CaptivePortal.h>
-#include <Wifi_Config.h>
-#include <File_System.h>
 
 #endif
