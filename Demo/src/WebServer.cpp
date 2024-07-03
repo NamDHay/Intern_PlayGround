@@ -1,6 +1,16 @@
 #include <Arduino.h>
 #include <WebServer.h>
 FileSystem FSFunc;
+
+void WebServer::writeSetting(){
+    //Setting 
+    JsonDocument writeDoc;
+    writeDoc["SSID"] = settings.ssid;
+    writeDoc["PASS"] = settings.pass;
+    serializeJson(writeDoc, setting);
+    LOGLN("JSON: "+ setting);
+    FSFunc.writefile("/setting.json", setting);
+}
 void WebServer::loadSetting(){
     //load setting
     JsonDocument doc;//
@@ -12,13 +22,7 @@ void WebServer::loadSetting(){
     LOGLN("PASS: "+ PASS); 
     settings.ssid = SSID;
     settings.pass = PASS;
+    writeSetting();
+
 }
-void WebServer::writeSetting(){
-    //Setting 
-    JsonDocument writeDoc;
-    writeDoc["SSID"] = settings.ssid;
-    writeDoc["PASS"] = settings.pass;
-    serializeJson(writeDoc, setting);
-    LOGLN("JSON: "+ setting);
-    FSFunc.writefile("/setting.json", setting);
-}
+

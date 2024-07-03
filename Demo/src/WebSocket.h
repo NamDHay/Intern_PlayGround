@@ -1,22 +1,32 @@
 #include <Arduino.h>
+#include <WebServer.h>
+WebServer FuncSocket;
 bool ledState = 0;
 const int ledPin = 25;
 
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
 String ws_load = "";
-void notifyClients() {
-  ws.textAll(String(ledState));
+void notifyClients(String value) {
+  ws.textAll(value);
 }
 
 void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
   AwsFrameInfo *info = (AwsFrameInfo*)arg;
   if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
     data[len] = 0;
-    if (strcmp((char*)data, "toggle") == 0) {
-      ledState = !ledState;
-      notifyClients();
-    }
+    String DataStr = "";
+    for(int i = 0 ; i < len ; i++){DataStr += (char)data[i];}
+    LOGLN("Data: " + DataStr);
+    JsonDocument doc;//
+    deserializeJson(doc, DataStr);
+    String SSID = doc["SSID"].as<String>();
+    String PASS = doc["PASS"].as<String>();
+    LOGLN("SSID: " + SSID);
+    LOGLN("PASS: "+ PASS); 
+    settings.ssid = SSID;
+    settings.pass = PASS;
+    FuncSocket.writeSetting();
   }
 }
 

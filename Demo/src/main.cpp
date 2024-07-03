@@ -7,7 +7,7 @@
 #include <freertos/task.h>
 #include <WiFi.h>
 #include <SPIFFS.h>
-#include "Filesystem.h"
+#include <Filesystem.h>
 #include <DNSServer.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
@@ -178,11 +178,11 @@ String HTML = "\
     var pass_input = document.getElementById('input_pass').value;\
     if(ssid_input == \"\" && pass_input == \"\"){\
       console.log(\"Fail SSID và PASS\");\
-      alert(\"Fail SSID và PASS\");\
+      alert(\"Fail SSID and PASS\");\
     }\
     else if(ssid_input == \"\"){\
-      console.log(\"Pass SSID\");\
-      alert(\"Pass SSID\");\
+      console.log(\"SSID Fail\");\
+      alert(\"SSID Fail\");\
     }\
     else if(pass_input == \"\"){\
       console.log(\"Pass Fail\");\
@@ -278,7 +278,6 @@ void WebInit(){
     });
 }//WebInit
 void setUpWebserver(AsyncWebServer &server, const IPAddress &localIP) {
-	
 	// Required
 	server.on("/connecttest.txt", [](AsyncWebServerRequest *request) { request->redirect("http://logout.net"); });	// windows 11 captive portal workaround
 	server.on("/wpad.dat", [](AsyncWebServerRequest *request) { request->send(404); });								// Honestly don't understand what this is but a 404 stops win 10 keep calling this repeatedly and panicking the esp32 :)

@@ -90,8 +90,8 @@
     </div>
   </div>
 <script>
-  var gateway = `ws://192.168.4.1/ws`;
-  //var gateway = `ws://${window.location.hostname}/ws`;
+  //var gateway = `ws://192.168.4.1/ws`;
+  var gateway = `ws://${window.location.hostname}/ws`;
   var websocket;
   function initWebSocket() {
     console.log('Trying to open a WebSocket connection...');
@@ -148,7 +148,7 @@
       alert("Chưa nhập PASS");
     }
     else{
-      var json_output = "{'SSID':'" + ssid_input + "'','PASS':'" + pass_input +"'}";
+      var json_output = "{'SSID':'" + ssid_input + "','PASS':'" + pass_input +"'}";
       console.log(json_output);
       websocket.send(json_output);
       alert("Cài đặt thành công!!!");
