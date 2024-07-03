@@ -75,18 +75,18 @@
   <div class="content">
     <div class="card">
     <span><label for="fname">SSID:</label>
-    <input type="text" id="ssid" name="ssid" placeholder="Wifi Name"></span><br><br>
+    <input type="text" id="input_ssid" placeholder="Wifi Name"></span><br><br>
     <span><label for="lname">PASSWORD:</label>
-    <input type="text" id="pass" name="pass" placeholder="Wifi Pass"></span><br><br>
-    <span><button id="button" class="button">SAVE</button></span>
+    <input type="text" id="input_pass" placeholder="Wifi Pass"></span><br><br>
+    <span><button id="buttonsave" class="button">SAVE</button></span>
     </div>
   </div>
   
   <div class="content">
     <div class="card">
-      <h2>OUTPUT - GPIO 25</h2>
+      <h2>LED STATUS</h2>
       <p class="state">STATE: <span id="state">%STATE%</span></p>
-      <p><button id="button" class="button">TOGGLE</button></p>
+      <p><button id="buttontoggle" class="button">TOGGLE</button></p>
     </div>
   </div>
 <script>
@@ -125,10 +125,34 @@
   }
 
   function initButton() {
-    document.getElementById('button').addEventListener('click', toggle);
+    document.getElementById('buttontoggle').addEventListener('click', toggle);
+    document.getElementById('buttonsave').addEventListener('click', save);
+    
   }
   function toggle(){
     websocket.send('toggle');
+  }
+  function save(){
+    var ssid_input = document.getElementById('input_ssid').value;
+    var pass_input = document.getElementById('input_pass').value;
+    if(ssid_input == "" && pass_input == ""){
+      console.log("Chưa nhập SSID và PASS");
+      alert("Chưa nhập SSID và PASS");
+    }
+    else if(ssid_input == ""){
+      console.log("Chưa nhập SSID");
+      alert("Chưa nhập SSID");
+    }
+    else if(pass_input == ""){
+      console.log("Chưa nhập PASS");
+      alert("Chưa nhập PASS");
+    }
+    else{
+      var json_output = "{'SSID':'" + ssid_input + "'','PASS':'" + pass_input +"'}";
+      console.log(json_output);
+      websocket.send(json_output);
+      alert("Cài đặt thành công!!!");
+    }
   }
 </script>
 </body>

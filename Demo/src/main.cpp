@@ -12,9 +12,11 @@
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 
-void TaskWiFi(void *pvParameter);
 void TaskCaptivePortal(void *pvParameter);
 void TaskFunction(void *pvParameter);
+
+FileSystem fsFunc;
+
 #define MAX_CLIENTS 4
 #define WIFI_CHANNEL 6
 
@@ -29,11 +31,8 @@ struct Settings
   String pass;
 }settings;
 
-
-
-
-#include "fileproccess.h"
-
+#include "WebServer.h"
+WebServer webFunc;
 // AP Mode
 const char* ssid_AP = "NODE_IOT";
 const char* password_AP = "123456789";
@@ -41,26 +40,166 @@ const char* password_AP = "123456789";
 short timeout = 0;
 
 DNSServer dnsServer;
-// AsyncWebServer server(80);
 #include "WebSocket.h"
 
 String header;
 String HTML = "\
-<!DOCTYPE html>\
+<!DOCTYPE HTML>\
 <html>\
-<body><CENTER>\
-<h1>WIFI SETTING</h1></CENTER>\
-<form action=\"/get\">\
-  <label for=\"fname\">SSID:</label>\
-  <input type=\"text\" id=\"ssid\" name=\"ssid\" placeholder=\"Wifi Name\"><br><br>\
-  <label for=\"lname\">PASSWORD:</label>\
-  <input type=\"text\" id=\"pass\" name=\"pass\" placeholder=\"Wifi Pass\"><br><br>\
-  <input type=\"submit\" value=\"SAVE\">\
+<head>\
+  <title>WIFI SETTING</title>\
+  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\
+  <link rel=\"icon\" href=\"data:,\">\
+  <style>\
+  html {\
+    font-family: Arial, Helvetica, sans-serif;\
+    text-align: center;\
+  }\
+  h1 {\
+    font-size: 1.8rem;\
+    color: white;\
+  }\
+  h2{\
+    font-size: 1.5rem;\
+    font-weight: bold;\
+    color: #143642;\
+  }\
+  .topnav {\
+    overflow: hidden;\
+    background-color: #143642;\
+  }\
+  body {\
+    margin: 0;\
+  }\
+  .content {\
+    padding: 30px;\
+    max-width: 600px;\
+    margin: 0 auto;\
+  }\
+  .card {\
+    background-color: #F8F7F9;;\
+    box-shadow: 2px 2px 12px 1px rgba(140,140,140,.5);\
+    padding-top:10px;\
+    padding-bottom:20px;\
+  }\
+  .button {\
+    padding: 15px 50px;\
+    font-size: 24px;\
+    text-align: center;\
+    outline: none;\
+    color: #fff;\
+    background-color: #0f8b8d;\
+    border: none;\
+    border-radius: 5px;\
+    -webkit-touch-callout: none;\
+    -webkit-user-select: none;\
+    -khtml-user-select: none;\
+    -moz-user-select: none;\
+    -ms-user-select: none;\
+    user-select: none;\
+    -webkit-tap-highlight-color: rgba(0,0,0,0);\
+   }\
+   .button:active {\
+     background-color: #0f8b8d;\
+     box-shadow: 2 2px #CDCDCD;\
+     transform: translateY(2px);\
+   }\
+   .state {\
+     font-size: 1.5rem;\
+     color:#8c8c8c;\
+     font-weight: bold;\
+   }\
+  </style>\
+  <title>WIFI SETTING</title>\
+<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\
+<link rel=\"icon\" href=\"data:,\">\
+</head>\
+<body>\
+  <div class=\"topnav\">\
+    <h1>WIFI SETTING</h1>\
   </div>\
-</form>\
+  <div class=\"content\">\
+    <div class=\"card\">\
+    <span><label for=\"fname\">SSID:</label>\
+    <input type=\"text\" id=\"input_ssid\" placeholder=\"Wifi Name\"></span><br><br>\
+    <span><label for=\"lname\">PASSWORD:</label>\
+    <input type=\"text\" id=\"input_pass\" placeholder=\"Wifi Pass\"></span><br><br>\
+    <span><button id=\"buttonsave\" class=\"button\">SAVE</button></span>\
+    </div>\
+  </div>\
+  <div class=\"content\">\
+    <div class=\"card\">\
+      <h2>LED STATUS</h2>\
+      <p class=\"state\">STATE: <span id=\"state\">STATE</span></p>\
+      <p><button id=\"buttontoggle\" class=\"button\">TOGGLE</button></p>\
+    </div>\
+  </div>\
+<script>\
+  var gateway = `ws://192.168.4.1/ws`;\
+  var websocket;\
+  function initWebSocket() {\
+    console.log('Trying to open a WebSocket connection...');\
+    websocket = new WebSocket(gateway);\
+    websocket.onopen    = onOpen;\
+    websocket.onclose   = onClose;\
+    websocket.onmessage = onMessage; \
+  }\
+  function onOpen(event) {\
+    console.log('Connection opened');\
+  }\
+  function onClose(event) {\
+    console.log('Connection closed');\
+    setTimeout(initWebSocket, 2000);\
+  }\
+  function onMessage(event) {\
+    var state;\
+    if (event.data == \"1\"){\
+      state = \"ON\";\
+    }\
+    else{\
+      state = \"OFF\";\
+    }\
+    document.getElementById('state').innerHTML = state;\
+  }\
+  window.addEventListener('load', onLoad);\
+  function onLoad(event) {\
+    initWebSocket();\
+    initButton();\
+  }\
+  function initButton() {\
+    document.getElementById('buttontoggle').addEventListener('click', toggle);\
+    document.getElementById('buttonsave').addEventListener('click', save);\
+  }\
+  function toggle(){\
+    websocket.send('toggle');\
+  }\
+  function save(){\
+    var ssid_input = document.getElementById('input_ssid').value;\
+    var pass_input = document.getElementById('input_pass').value;\
+    if(ssid_input == \"\" && pass_input == \"\"){\
+      console.log(\"Chưa nhập SSID và PASS\");\
+      alert(\"Chưa nhập SSID và PASS\");\
+    }\
+    else if(ssid_input == \"\"){\
+      console.log(\"Chưa nhập SSID\");\
+      alert(\"Chưa nhập SSID\");\
+    }\
+    else if(pass_input == \"\"){\
+      console.log(\"Chưa nhập PASS\");\
+      alert(\"Chưa nhập PASS\");\
+    }\
+    else{\
+      var json_output = \"{'SSID':'\" + ssid_input + \"'','PASS':'\" + pass_input +\"'}\";\
+      console.log(json_output);\
+      websocket.send(json_output);\
+      alert(\"Cài đặt thành công!!!\");\
+    }\
+  }\
+</script>\
 </body>\
 </html>\
 ";
+
 const char* SSID_ = "ssid";
 const char* PASS_ = "pass";
 
@@ -92,7 +231,7 @@ void Switch(){
 void stationMode(){
   Serial.println();
   Serial.println();
-  loadSetting();
+  webFunc.loadSetting();
   Serial.print("Connecting to ");
   Serial.println(settings.ssid);
   unsigned long start = millis();
@@ -135,7 +274,7 @@ void WebInit(){
         settings.pass = Pass;
         
         request->send(200, "text/plain", Ssid + "|" + Pass);
-        writeSetting();
+        webFunc.writeSetting();
     });
 }//WebInit
 void setUpWebserver(AsyncWebServer &server, const IPAddress &localIP) {
@@ -177,27 +316,17 @@ void setUpWebserver(AsyncWebServer &server, const IPAddress &localIP) {
 
 void setup() {
   Serial.begin(115200);
-  SPIFFS_Init();
+  fsFunc.SPIFFS_Init();
   stationMode();
   setUpDNSServer(dnsServer, WiFi.softAPIP());
   setUpWebserver(server, WiFi.softAPIP());
   WebInit();
   WB_setup();
-  xTaskCreatePinnedToCore(TaskWiFi, "WiFi", 20000, NULL, 1, NULL, 1);
   xTaskCreatePinnedToCore(TaskCaptivePortal, "CaptivePortal",2000,NULL, 2, NULL, 1);
   xTaskCreatePinnedToCore(TaskFunction, "Function", 10000, NULL, 1,NULL, 1);
 }
 void loop(){}
 
-void TaskWiFi(void *pvParameter){
-  static long realtime = millis();
-  static long Timedelay= 1;
-  for(;;){
-    if(millis()-realtime>Timedelay){realtime = millis();
-    
-    }  
-  }
-}
 void TaskCaptivePortal(void *pvParameter){
   for(;;){
     dnsServer.processNextRequest();
