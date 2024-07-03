@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-  <title>ESP Web Server</title>
+  <title>WIFI SETTING</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" href="data:,">
   <style>
@@ -64,23 +64,34 @@
      font-weight: bold;
    }
   </style>
-<title>ESP Web Server</title>
+  <title>WIFI SETTING</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="data:,">
 </head>
 <body>
   <div class="topnav">
-    <h1>ESP WebSocket Server</h1>
+    <h1>WIFI SETTING</h1>
   </div>
   <div class="content">
     <div class="card">
-      <h2>Output - GPIO 2</h2>
-      <p class="state">state: <span id="state">%STATE%</span></p>
-      <p><button id="button" class="button">Toggle</button></p>
+    <span><label for="fname">SSID:</label>
+    <input type="text" id="ssid" name="ssid" placeholder="Wifi Name"></span><br><br>
+    <span><label for="lname">PASSWORD:</label>
+    <input type="text" id="pass" name="pass" placeholder="Wifi Pass"></span><br><br>
+    <span><button id="button" class="button">SAVE</button></span>
+    </div>
+  </div>
+  
+  <div class="content">
+    <div class="card">
+      <h2>OUTPUT - GPIO 25</h2>
+      <p class="state">STATE: <span id="state">%STATE%</span></p>
+      <p><button id="button" class="button">TOGGLE</button></p>
     </div>
   </div>
 <script>
-  var gateway = `ws://${window.location.hostname}/ws`;
+  var gateway = `ws://192.168.4.1/ws`;
+  //var gateway = `ws://${window.location.hostname}/ws`;
   var websocket;
   function initWebSocket() {
     console.log('Trying to open a WebSocket connection...');

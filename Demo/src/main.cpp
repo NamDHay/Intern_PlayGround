@@ -51,15 +51,11 @@ String HTML = "\
 <body><CENTER>\
 <h1>WIFI SETTING</h1></CENTER>\
 <form action=\"/get\">\
-  <label for=\"fname\">SSID:</label><br>\
-  <input type=\"text\" id=\"ssid\" name=\"ssid\" placeholder=\"Wifi Name\"><br>\
-  <label for=\"lname\">PASSWORD:</label><br>\
+  <label for=\"fname\">SSID:</label>\
+  <input type=\"text\" id=\"ssid\" name=\"ssid\" placeholder=\"Wifi Name\"><br><br>\
+  <label for=\"lname\">PASSWORD:</label>\
   <input type=\"text\" id=\"pass\" name=\"pass\" placeholder=\"Wifi Pass\"><br><br>\
   <input type=\"submit\" value=\"SAVE\">\
-  <div class=\"content\">\
-  <div class=\"card\">\
-    <p><button id=\"button\" class=\"button\">Toggle</button></p>\
-  </div>\
   </div>\
 </form>\
 </body>\
@@ -189,7 +185,7 @@ void setup() {
   WB_setup();
   xTaskCreatePinnedToCore(TaskWiFi, "WiFi", 20000, NULL, 1, NULL, 1);
   xTaskCreatePinnedToCore(TaskCaptivePortal, "CaptivePortal",2000,NULL, 2, NULL, 1);
-  xTaskCreatePinnedToCore(TaskFunction, "Function", 10000, NULL, 3,NULL, 1);
+  xTaskCreatePinnedToCore(TaskFunction, "Function", 10000, NULL, 1,NULL, 1);
 }
 void loop(){}
 

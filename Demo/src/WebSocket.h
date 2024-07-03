@@ -1,14 +1,10 @@
 #include <Arduino.h>
 bool ledState = 0;
-const int ledPin = 20;
+const int ledPin = 25;
 
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
 String ws_load = "";
-void ws_loadHTML(){
-  ws_load = readfile("/index.html");
-  
-}
 void notifyClients() {
   ws.textAll(String(ledState));
 }
@@ -60,9 +56,8 @@ String processor(const String& var){
 }
 
 void WB_setup(){
-  ws_loadHTML();
   pinMode(ledPin, OUTPUT);
-  digitalWrite(ledPin, LOW);
+  digitalWrite(ledPin, LOW);      
   initWebSocket();
 }
 void WB_loop() {
