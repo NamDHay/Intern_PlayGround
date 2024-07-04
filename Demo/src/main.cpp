@@ -2,7 +2,6 @@
 #define LOGLN(x) {Serial.println(x);}
 
 #include <Arduino.h>
-
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <WiFi.h>
@@ -13,8 +12,6 @@
 
 void TaskCaptivePortal(void *pvParameter);
 void TaskFunction(void *pvParameter);
-
-
 
 #define MAX_CLIENTS 4
 #define WIFI_CHANNEL 6
@@ -131,7 +128,7 @@ String HTML = "\
     </div>\
   </div>\
 <script>\
-  var gateway = `ws://192.168.4.1/ws`;\
+  var gateway = `ws://${window.location.hostname}/ws`;\
   var websocket;\
   function initWebSocket() {\
     console.log('Trying to open a WebSocket connection...');\
@@ -244,34 +241,9 @@ void stationMode(){
     server.begin();
 }//stationMode
 void WebInit(){
-    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-      request->send(200, "text/html", HTML);
-    });  
-    server.on("/reset", HTTP_GET, [](AsyncWebServerRequest *request){
-      ESP.restart();
-      request->send(200, "text/plain", "reset done");
-    });
-    server.on("/get", HTTP_GET, [] (AsyncWebServerRequest *request) {
-        String Ssid;
-        String Pass;
-        if (request->hasParam(SSID_)) {
-          Ssid = request->getParam(SSID_)->value();
-        } 
-        else {
-          Ssid = "khong co SSID";
-        }
-        settings.ssid = Ssid;
-        if (request->hasParam(PASS_)) {
-          Pass = request->getParam(PASS_)->value();
-        } 
-        else {
-          Pass = "khong co PASS";
-        }
-        settings.pass = Pass;
-        
-        request->send(200, "text/plain", Ssid + "|" + Pass);
-        writeSetting();
-    });
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(200, "text/html", HTML);
+  });
 }//WebInit
 void setUpWebserver(AsyncWebServer &server, const IPAddress &localIP) {
 	// Required

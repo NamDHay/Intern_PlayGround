@@ -15,18 +15,30 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
   AwsFrameInfo *info = (AwsFrameInfo*)arg;
   if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
     data[len] = 0;
-    String DataStr = "";
-    for(int i = 0 ; i < len ; i++){DataStr += (char)data[i];}
-    LOGLN("Data: " + DataStr);
-    JsonDocument doc;
-    deserializeJson(doc, DataStr);
-    String SSID = doc["SSID"].as<String>();
-    String PASS = doc["PASS"].as<String>();
-    LOGLN("SSID: " + SSID);
-    LOGLN("PASS: "+ PASS); 
-    settings.ssid = SSID;
-    settings.pass = PASS;
-    writeSetting();
+    if(strcmp((char*)data, "toggle") == 0) {
+      ledState = !ledState;
+      notifyClients(String(ledState));
+    }
+    else{ 
+      String DataStr = "";
+      for(int i = 0 ; i < len ; i++){DataStr += (char)data[i];}
+      LOGLN("Data: " + DataStr);
+      JsonDocument doc;
+      deserializeJson(doc, DataStr);
+      String SSID = doc["SSID"].as<String>();
+      String PASS = doc["PASS"].as<String>();
+      LOGLN("SSID: " + SSID);
+      LOGLN("PASS: "+ PASS); 
+      settings.ssid = SSID;
+      settings.pass = PASS;
+      writeSetting();
+      // loadSetting();
+      // Serial.print("Connecting to ");
+      // Serial.println(settings.ssid);
+      // unsigned long start = millis();
+      // WiFi.mode(WIFI_AP_STA);
+      // WiFi.begin(settings.ssid,settings.pass);
+    }
   }
 }
 
