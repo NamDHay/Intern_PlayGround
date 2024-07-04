@@ -71,74 +71,83 @@
      font-weight: bold;
    }
   </style>
+  
 <title>ESP Web Server</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="data:,">
 </head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
 <body>
   <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
     <div class="container-fluid">
-      <a class="navbar-brand" href="javascript:void(0)">Master Web</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mynavbar">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="mynavbar">
-        <ul class="navbar-nav me-auto">
-          <li class="nav-item">
-            <a class="nav-link" id="tabwifi">Setting Wifi</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" id="tabled">Setting Led</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" id="tabmqtt">Setting MQTT</a>
-          </li>
+        <ul class="nav navbar-nav me-auto nav-pills mb-3" id="pills-tab" role="tablist">   
+            <li class="nav-item">    
+                <a class="nav-link active" id="tabHome" href="javascript:void(0)">HOME</a>
+            </li>    
+            <li class="nav-item">
+                <a class="nav-link " id="tabWifi" href="javascript:void(0)">Setting Wifi</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="tabIO" href="javascript:void(0)">Setting IO</a>
+            </li>
         </ul>
-
       </div>
     </div>
   </nav>
-  <div id="cardled" class="contentcuatao" style="display:none">
+  <div id="cardio" class="contentcuatao" style="display:none">
     <div class="cardcuatao">
-      <h2>Output - GPIO 2</h2>
-      <p class="statecuatao">state: <span id="state">%STATE%</span></p>
+    <CENTER>
+      <h2>Output - LED</h2>
+      <p class="statecuatao">State: <span id="state">%STATE%</span></p>
       <p><button id="button" class="buttoncuatao">Toggle</button></p>
+    </CENTER>
+    </div><br>
+    <div class="cardcuatao">
+        <CENTER>    
+            <h2>Chart</h2>
+            <canvas id="myChart" style="width:100%;max-width:600px"></canvas>
+        </CENTER>
     </div>
     
   </div>
   <div id="cardwifi" class="contentcuatao" style="display:none">
     <div class="cardcuatao">
-<h2>Wifi Setting</h2>
-
-  <span><label for="fname">ssid:</label>
-  <input type="text"  id="input_ssid" placeholder="John"></span><br><br>
-  <span><label for="lname">password:</label>
-  <input type="text"  id="input_pass" placeholder="Doe"></span><br><br>
-  <span><button class="buttoncuatao" id="buttonSave">Submit</button>
-  <button class="buttoncuatao"  id="buttonled" >Led</button></span>
-
+        <CENTER>
+    <h2>Wifi Setting</h2>
+    <span><label for="fname">SSID:</label>
+    <input type="text"  id="input_ssid" placeholder="ssid"></span><br><br>
+    <span><label for="lname">PASSWORD:</label>
+    <input type="password"  id="input_pass" placeholder="password"></span><br><br>
+    <span><button class="buttoncuatao" id="buttonSave">Submit</button></span>
+        </CENTER>
     </div>
     
   </div>
 <script>
-    // http://192.168.1.20/
-  var gateway = `ws://192.168.1.20/ws`;
-//   var gateway = `ws://${window.location.hostname}/ws`;
+  var xValues = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23];
+  var yValues = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23];
+  var gateway = `ws://192.168.1.128/ws`;
+  // var gateway = `ws://192.168.245.54/ws`;
   var websocket;
   window.addEventListener('load', onLoad);
+
   function initWebSocket(){
     console.log('Trying to open a WebSocket connection...');
     websocket = new WebSocket(gateway);
     websocket.onopen    = onOpen;
     websocket.onclose   = onClose;
-    websocket.onmessage = onMessage; // <-- add this line
+    websocket.onmessage = onMessage;
   }
   function onOpen(event) {
     console.log('Connection opened');
   }
   function onClose(event) {
     console.log('Connection closed');
-    setTimeout(initWebSocket, 2000);
+    setTimeout(initWebSocket, 1);
   }
   function onMessage(event) {
     var state;
@@ -149,30 +158,51 @@
       state = "OFF";
     }
     document.getElementById('state').innerHTML = state;
+    
   }
+
   function onLoad(event) {
     initWebSocket();
     initButton();
-  }function initButton() {
+  }
+  function initButton() {
     document.getElementById('buttonSave').addEventListener('click', save);
-    document.getElementById('buttonled').addEventListener('click', led);
     document.getElementById('button').addEventListener('click', toggle);
-    document.getElementById('tabwifi').addEventListener('click', settingwifi);
-    document.getElementById('tabled').addEventListener('click', settingled);
-    document.getElementById('tabmqtt').addEventListener('click', settingmqtt);
+    document.getElementById('tabWifi').addEventListener('click', settingwifi);
+    document.getElementById('tabIO').addEventListener('click', settingio);
+    document.getElementById('tabHome').addEventListener('click', Home);
   }
   function settingwifi(){
     document.getElementById("cardwifi").style.display = "block";    
-    document.getElementById("cardled").style.display = "none";      
-    }
-  function settingled(){
+    document.getElementById("cardio").style.display = "none";      
+  }
+  function settingio(){
     document.getElementById("cardwifi").style.display = "none";    
-    document.getElementById("cardled").style.display = "block";
-}
-  function settingmqtt(){
+    document.getElementById("cardio").style.display = "block";
+    new Chart("myChart", {
+        type: "line",
+        data: {
+            labels: xValues,
+            datasets: [{
+            fill: false,
+            lineTension: 0,
+            backgroundColor: "rgba(0,0,255,1.0)",
+            borderColor: "rgba(0,0,255,0.1)",
+            data: yValues
+            }]
+        },
+        options: {
+            legend: {display: false},
+            scales: {
+            yAxes: [{ticks: {min: 0, max:24}}],
+            }
+        }
+    });
+  }
+  function Home(){
     document.getElementById("cardwifi").style.display = "none";    
-    document.getElementById("cardled").style.display = "none";
-}
+    document.getElementById("cardio").style.display = "none";
+  }
   function save(){
     var ssid_input = document.getElementById('input_ssid').value;
     var pass_input = document.getElementById('input_pass').value;
@@ -181,22 +211,17 @@
         console.log("chua nhap ssid ");
         alert("chua nhap ssid ");
     }else if( pass_input == ""){
-        console.log("chua nhap  password");
-        alert("chua nhap  password");
+        console.log("chua nhap password");
+        alert("chua nhap password");
     }else{
-    var json_output = "{'SSID':'" + ssid_input + "'','PASS':'" + pass_input +"'}";
+    var json_output = "{'SSID':'" + ssid_input + "','PASS':'" + pass_input +"'}";
     console.log(json_output);
     websocket.send(json_output);
     alert("setting success!!!");
-}
-
-  }
-  function led(value){
-    var json_output = "{'LED':'0','VALUE':'" + value +"'}";
-    console.log(json_output);
-    websocket.send(json_output);
+    }
   }
   function toggle(){
+    console.log('toggle');
     websocket.send('toggle');
   }
 
