@@ -1,0 +1,164 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>WIFI SETTING</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <style>
+  html {
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: center;
+  }
+  h1 {
+    font-size: 1.8rem;
+    color: white;
+  }
+  h2{
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #143642;
+  }
+  .topnav {
+    overflow: hidden;
+    background-color: #143642;
+  }
+  body {
+    margin: 0;
+  }
+  .content {
+    padding: 30px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  .card {
+    background-color: #F8F7F9;;
+    box-shadow: 2px 2px 12px 1px rgba(140,140,140,.5);
+    padding-top:10px;
+    padding-bottom:20px;
+  }
+  .button {
+    padding: 15px 50px;
+    font-size: 24px;
+    text-align: center;
+    outline: none;
+    color: #fff;
+    background-color: #0f8b8d;
+    border: none;
+    border-radius: 5px;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+   }
+   .button:active {
+     background-color: #0f8b8d;
+     box-shadow: 2 2px #CDCDCD;
+     transform: translateY(2px);
+   }
+   .state {
+     font-size: 1.5rem;
+     color:#8c8c8c;
+     font-weight: bold;
+   }
+  </style>
+  <title>WIFI SETTING</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+</head>
+<body>
+  <div class="topnav">
+    <h1>WIFI SETTING</h1>
+  </div>
+  <div class="content">
+    <div class="card">
+    <span><label for="fname">SSID:</label>
+    <input type="text" id="input_ssid" placeholder="Wifi Name"></span><br><br>
+    <span><label for="lname">PASSWORD:</label>
+    <input type="text" id="input_pass" placeholder="Wifi Pass"></span><br><br>
+    <span><button id="buttonsave" class="button">SAVE</button></span>
+    </div>
+  </div>
+  
+  <div class="content">
+    <div class="card">
+      <h2>LED STATUS</h2>
+      <p class="state">STATE: <span id="state">%STATE%</span></p>
+      <p><button id="buttontoggle" class="button">TOGGLE</button></p>
+    </div>
+  </div>
+<script>
+  var gateway = `ws://192.168.1.128/ws`;
+  //var gateway = `ws://${window.location.hostname}/ws`;
+  var websocket;
+  function initWebSocket() {
+    console.log('Trying to open a WebSocket connection...');
+    websocket = new WebSocket(gateway);
+    websocket.onopen    = onOpen;
+    websocket.onclose   = onClose;
+    websocket.onmessage = onMessage; // <-- add this line
+  }
+  function onOpen(event) {
+    console.log('Connection opened');
+  }
+
+  function onClose(event) {
+    console.log('Connection closed');
+    setTimeout(initWebSocket, 2000);
+  }
+  function onMessage(event) {
+    var state;
+    if (event.data == "1"){
+      state = "ON";
+    }
+    else{
+      state = "OFF";
+    }
+    document.getElementById('state').innerHTML = state;
+  }
+  window.addEventListener('load', onLoad);
+  function onLoad(event) {
+    initWebSocket();
+    initButton();
+  }
+
+  function initButton() {
+    document.getElementById('buttontoggle').addEventListener('click', toggle);
+    document.getElementById('buttonsave').addEventListener('click', save);
+    
+  }
+  function led(value){
+    var json_output = "{'LED':'0','VALUE':'" + value +"'}";
+    console.log(json_output);
+    websocket.send(json_output);
+  }
+  function toggle(){
+    websocket.send('toggle');
+  }
+  function save(){
+    var ssid_input = document.getElementById('input_ssid').value;
+    var pass_input = document.getElementById('input_pass').value;
+    if(ssid_input == "" && pass_input == ""){
+      console.log("Chưa nhập SSID và PASS");
+      alert("Chưa nhập SSID và PASS");
+    }
+    else if(ssid_input == ""){
+      console.log("Chưa nhập SSID");
+      alert("Chưa nhập SSID");
+    }
+    else if(pass_input == ""){
+      console.log("Chưa nhập PASS");
+      alert("Chưa nhập PASS");
+    }
+    else{
+      var json_output = "{'SSID':'" + ssid_input + "'','PASS':'" + pass_input +"'}";
+      console.log(json_output);
+      websocket.send(json_output);
+      alert("Cài đặt thành công!!!");
+    }
+  }
+</script>
+</body>
+</html>

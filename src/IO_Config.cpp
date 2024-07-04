@@ -1,7 +1,8 @@
-#include <Config.h>
+#include <IO_Config.h>
 #include <Arduino.h>
 
-void CONFIG::Init() {
+void IO_CONFIG::Init() {
     Serial.begin(115200);
-    digitalWrite(LED, 0);
+    pinMode(LED, OUTPUT);
+    digitalWrite(LED, LOW);
 }

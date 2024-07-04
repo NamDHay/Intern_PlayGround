@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-#define LED 25
+const int LED = 25;
 
 class IO_CONFIG {
 public:
