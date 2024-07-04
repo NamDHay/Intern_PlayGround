@@ -2,12 +2,11 @@
 #define LOGLN(x) {Serial.println(x);}
 
 #include <Arduino.h>
-#include <ArduinoJson.h>
+
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <WiFi.h>
 #include <SPIFFS.h>
-#include <Filesystem.h>
 #include <DNSServer.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
@@ -15,7 +14,7 @@
 void TaskCaptivePortal(void *pvParameter);
 void TaskFunction(void *pvParameter);
 
-FileSystem fsFunc;
+
 
 #define MAX_CLIENTS 4
 #define WIFI_CHANNEL 6
@@ -31,8 +30,6 @@ struct Settings
   String pass;
 }settings;
 
-#include "WebServer.h"
-Function webFunc;
 // AP Mode
 const char* ssid_AP = "NODE_IOT";
 const char* password_AP = "123456789";
@@ -41,7 +38,6 @@ short timeout = 0;
 
 DNSServer dnsServer;
 #include "WebSocket.h"
-
 String header;
 String HTML = "\
 <!DOCTYPE HTML>\
@@ -231,7 +227,7 @@ void Switch(){
 void stationMode(){
   Serial.println();
   Serial.println();
-  webFunc.loadSetting();
+  loadSetting();
   Serial.print("Connecting to ");
   Serial.println(settings.ssid);
   unsigned long start = millis();
@@ -274,7 +270,7 @@ void WebInit(){
         settings.pass = Pass;
         
         request->send(200, "text/plain", Ssid + "|" + Pass);
-        webFunc.writeSetting();
+        writeSetting();
     });
 }//WebInit
 void setUpWebserver(AsyncWebServer &server, const IPAddress &localIP) {
@@ -315,7 +311,7 @@ void setUpWebserver(AsyncWebServer &server, const IPAddress &localIP) {
 
 void setup() {
   Serial.begin(115200);
-  fsFunc.SPIFFS_Init();
+  SPIFFS_Init();
   stationMode();
   setUpDNSServer(dnsServer, WiFi.softAPIP());
   setUpWebserver(server, WiFi.softAPIP());

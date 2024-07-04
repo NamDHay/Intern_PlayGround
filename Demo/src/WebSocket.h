@@ -1,5 +1,6 @@
 #include <Arduino.h>
-Function FuncSocket;
+#include "WebServer.h"
+
 bool ledState = 0;
 const int ledPin = 25;
 
@@ -17,7 +18,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
     String DataStr = "";
     for(int i = 0 ; i < len ; i++){DataStr += (char)data[i];}
     LOGLN("Data: " + DataStr);
-    JsonDocument doc;//
+    JsonDocument doc;
     deserializeJson(doc, DataStr);
     String SSID = doc["SSID"].as<String>();
     String PASS = doc["PASS"].as<String>();
@@ -25,7 +26,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
     LOGLN("PASS: "+ PASS); 
     settings.ssid = SSID;
     settings.pass = PASS;
-    FuncSocket.writeSetting();
+    writeSetting();
   }
 }
 
