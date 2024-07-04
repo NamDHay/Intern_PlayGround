@@ -289,8 +289,8 @@ void setup() {
   setUpWebserver(server, WiFi.softAPIP());
   WebInit();
   WB_setup();
-  xTaskCreatePinnedToCore(TaskCaptivePortal, "CaptivePortal",2000,NULL, 2, NULL, 1);
-  xTaskCreatePinnedToCore(TaskFunction, "Function", 10000, NULL, 1,NULL, 1);
+  xTaskCreatePinnedToCore(TaskCaptivePortal, "CaptivePortal",30000,NULL, 2, NULL, 1);
+  xTaskCreatePinnedToCore(TaskFunction, "Function", 30000, NULL, 1,NULL, 1);
 }
 void loop(){}
 
