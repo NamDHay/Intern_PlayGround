@@ -25,6 +25,12 @@ struct Settings
 {
   String ssid;
   String pass;
+  String staticip;
+  String waddress;
+  String wgetway;
+  String wsubnet;
+  String wifimode;
+  String chanel;
 }settings;
 
 // AP Mode
@@ -200,49 +206,12 @@ void setUpDNSServer(DNSServer &dnsServer, const IPAddress &localIP) {
 	dnsServer.setTTL(3600);
 	dnsServer.start(53, "*", localIP);
 }
-void accessPointMode(){
-  WiFi.mode(WIFI_AP);
-  Serial.println("Configuring access point!");
-  WiFi.softAP(ssid_AP,password_AP);
-  IPAddress IP = WiFi.softAPIP();
-  Serial.print("AP IP address: ");
-  Serial.println(IP);
-  server.begin();
-}//accessPointMode
-void Switch(){
-  while(WiFi.status() != WL_CONNECTED){
-    delay(500);
-    timeout++;
-    Serial.print(".");
-    if(timeout == 10){
-      accessPointMode();
-      timeout = 0;
-      break;
-    }
-  }
-}//Switch
-void stationMode(){
-  Serial.println();
-  Serial.println();
-  loadSetting();
-  Serial.print("Connecting to ");
-  Serial.println(settings.ssid);
-  unsigned long start = millis();
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(settings.ssid,settings.pass);
-  if(WiFi.status() != WL_CONNECTED)
-  {
-    Switch();
-  }
-  else {
-    Serial.println(WiFi.localIP());
-  }
-    Serial.println(WiFi.localIP());
-    server.begin();
-}//stationMode
+
 void WebInit(){
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(200, "text/html", HTML);
+    // request->send(200, "text/html", HTML);
+    // request->send(200, "text/html", readfile("/index.html"));
+    request->send(SPIFFS, "/index.html", String(), false, processor);
   });
 }//WebInit
 void setUpWebserver(AsyncWebServer &server, const IPAddress &localIP) {
@@ -264,7 +233,8 @@ void setUpWebserver(AsyncWebServer &server, const IPAddress &localIP) {
 
 	// Serve Basic HTML Page
 	server.on("/", HTTP_ANY, [](AsyncWebServerRequest *request) {
-		AsyncWebServerResponse *response = request->beginResponse(200, "text/html", HTML);
+		AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/index.html", String(), false, processor);
+    // AsyncWebServerResponse *response = request->beginResponse(200, "text/html", readfile("/index.html"));
 		response->addHeader("Cache-Control", "public,max-age=31536000");  // save this file to cache for 1 year (unless you refresh)
 		request->send(response);
 		Serial.println("Served Basic HTML Page");
@@ -289,8 +259,8 @@ void setup() {
   setUpWebserver(server, WiFi.softAPIP());
   WebInit();
   WB_setup();
-  xTaskCreatePinnedToCore(TaskCaptivePortal, "CaptivePortal",30000,NULL, 2, NULL, 1);
-  xTaskCreatePinnedToCore(TaskFunction, "Function", 30000, NULL, 1,NULL, 1);
+  xTaskCreatePinnedToCore(TaskCaptivePortal, "CaptivePortal",10000,NULL, 2, NULL, 1);
+  xTaskCreatePinnedToCore(TaskFunction, "Function", 10000, NULL, 1,NULL, 1);
 }
 void loop(){}
 
