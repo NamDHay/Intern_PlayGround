@@ -1,5 +1,9 @@
 #include <OnlineManage.h>
 
+IO_CONFIG io_config;
+FFS filesystem;
+OnlineManage online;
+
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
 
@@ -220,6 +224,9 @@ void OnlineManage::printLocalTime() {
 
 void TaskOnlineManager(void *pvParameter)
 {
+  io_config.Init();
+  filesystem.Init();
+  online.Init();
   static long startNPTTime = millis();
   static long startPortalTime = millis();
   static long startCheckWifiTime = millis();

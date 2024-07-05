@@ -7,17 +7,8 @@
 #include <MB.h>
 #include <OnlineManage.h>
 
-IO_CONFIG io_config;
-FFS filesystem;
-OnlineManage online;
-MODBUS_RTU modbus;
-
 void setup() {
-  io_config.Init();
-  filesystem.Init();
-  online.Init();
-  modbus.MasterInit(&Serial2, 115200);
-  modbus.SlaveInit(&Serial2, 115200);
+  Serial.begin(115200);
   xTaskCreatePinnedToCore(TaskOnlineManager,"TaskOnlineManager",1024,NULL,2,NULL,1);
   xTaskCreatePinnedToCore(TaskModbus,"TaskModbusRTU", 512, NULL,1,NULL,1);
 }
