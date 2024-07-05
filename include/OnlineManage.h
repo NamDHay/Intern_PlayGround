@@ -35,7 +35,6 @@ public:
     void Get_STA_IP();
     void Get_AP_IP();
     bool CheckConnect(uint32_t timeout);
-    void Reconnect();
 
     void loadSetting();
     void writeSetting();

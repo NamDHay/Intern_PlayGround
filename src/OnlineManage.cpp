@@ -78,10 +78,6 @@ bool OnlineManage::CheckConnect(uint32_t timeout) {
   }
   return true;
 }
-void OnlineManage::Reconnect()
-{
-
-}
 
 void OnlineManage::loadSetting()
 {
@@ -233,8 +229,7 @@ void TaskOnlineManager(void *pvParameter)
   online.qWebSocket = xQueueCreate(1, sizeof(bool));
   for (;;)
   {
-    if (xQueueReceive(online.qOnline, (void *)&SetWifi, 1 / portTICK_PERIOD_MS) == pdTRUE)
-    {
+    if (xQueueReceive(online.qOnline, (void *)&SetWifi, 1 / portTICK_PERIOD_MS) == pdTRUE) {
       WiFi.begin(online.wifi_setting.ssid, online.wifi_setting.pass);
       online.writeSetting();
       SetWifi = false;
@@ -245,16 +240,17 @@ void TaskOnlineManager(void *pvParameter)
       IsMessageReceived = false;
       Serial.print("Im in queue Socket\n");
     }
-    // if (millis() - startNPTTime >= 2000) {
-    //   startNPTTime = millis();        
-    //   online.printLocalTime();
-    // }
+    if (millis() - startNPTTime >= 2000) {
+      startNPTTime = millis();
+      Serial.print("Usage heap memory: ");
+      Serial.println((ESP.getHeapSize() - ESP.getFreeHeap()));      
+    }
     if(millis() - startCheckWifiTime >= 10){
       startCheckWifiTime = millis();
       if (WiFi.status() != WL_CONNECTED) {
         Serial.println("Wifi Disconnected");
-        dnsServer.processNextRequest();	
       }
+      dnsServer.processNextRequest();	
     }
     ws.cleanupClients();
   }
