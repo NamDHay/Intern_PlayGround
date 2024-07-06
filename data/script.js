@@ -76,6 +76,9 @@ function Home() {
 function save() {
   var ssid_input = document.getElementById('input_ssid').value;
   var pass_input = document.getElementById('input_pass').value;
+  var waddress_input = document.getElementById('input_waddress').value;
+  var wgetway_input = document.getElementById('input_wgetway').value;
+  var wsubnet_input = document.getElementById('input_wsubnet').value;
   // "{'SSID':'isoft','PASS':'i-soft@123'}"
   if (ssid_input == "") {
     console.log("chua nhap ssid ");
@@ -83,8 +86,18 @@ function save() {
   } else if (pass_input == "") {
     console.log("chua nhap password");
     alert("chua nhap password");
+  } else if (waddress_input == "") {
+    console.log("chua nhap waddress");
+    alert("chua nhap waddress");
+  } else if (wgetway_input == "") {
+    console.log("chua nhap wgetway");
+    alert("chua nhap wgetway");
+  } else if (wsubnet_input == "") {
+    console.log("chua nhap wsubnet");
+    alert("chua nhap wsubnet");
   } else {
-    var json_output = "{'SSID':'" + ssid_input + "','PASS':'" + pass_input + "'}";
+    // var json_output = "{'SSID':'" + ssid_input + "','PASS':'" + pass_input + "'}";
+    var json_output = "{'SSID':'" + ssid_input + "','PASS':'" + pass_input + "','waddress':'" + waddress_input +"','wgetway':'" + wgetway_input +"','wsubnet':'" + wsubnet_input +"'}";
     console.log(json_output);
     websocket.send(json_output);
     alert("setting success!!!");
