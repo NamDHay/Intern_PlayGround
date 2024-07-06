@@ -10010,3 +10010,7 @@ body {
     color: #8c8c8c;
     font-weight: bold;
 }
+
+.input-container {
+    margin-left: 100px;
+}

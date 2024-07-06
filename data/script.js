@@ -3,7 +3,10 @@ var yValues = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
 var gateway = `ws://192.168.1.128/ws`;
 // var gateway = `ws://192.168.245.54/ws`;
 var websocket;
+const intervalId = setInterval(intervalHandle, 1000);
+
 window.addEventListener('load', onLoad);
+window.addEventListener('beforeunload', () => clearInterval(intervalId));
 
 function initWebSocket() {
   console.log('Trying to open a WebSocket connection...');
@@ -17,18 +20,20 @@ function onOpen(event) {
 }
 function onClose(event) {
   console.log('Connection closed');
-  setTimeout(initWebSocket, 1);
+  setTimeout(initWebSocket, 1000);
 }
 function onMessage(event) {
   var state;
-  if (event.data == "1") {
-    state = "ON";
-  }
-  else {
+  if (event.data == "0") {
     state = "OFF";
   }
+  else if(event.data == "1") {
+    state = "OFF";
+  }
+  if(event.data == "SetingDone"){
+    alert("setting success!!!");
+  }
   document.getElementById('state').innerHTML = state;
-
 }
 
 function onLoad(event) {
@@ -42,6 +47,12 @@ function initButton() {
   document.getElementById('tabIO').addEventListener('click', settingio);
   document.getElementById('tabHome').addEventListener('click', Home);
 }
+
+function intervalHandle() {
+  console.log('toggle');
+  websocket.send('toggle');
+}
+
 function settingwifi() {
   document.getElementById("cardwifi").style.display = "block";
   document.getElementById("cardio").style.display = "none";
@@ -79,6 +90,8 @@ function save() {
   var waddress_input = document.getElementById('input_waddress').value;
   var wgetway_input = document.getElementById('input_wgetway').value;
   var wsubnet_input = document.getElementById('input_wsubnet').value;
+  var staip = document.getElementById('staip').value;
+  var wmode = document.getElementById('wmode').value;
   // "{'SSID':'isoft','PASS':'i-soft@123'}"
   if (ssid_input == "") {
     console.log("chua nhap ssid ");
@@ -96,14 +109,13 @@ function save() {
     console.log("chua nhap wsubnet");
     alert("chua nhap wsubnet");
   } else {
-    // var json_output = "{'SSID':'" + ssid_input + "','PASS':'" + pass_input + "'}";
-    var json_output = "{'SSID':'" + ssid_input + "','PASS':'" + pass_input + "','waddress':'" + waddress_input +"','wgetway':'" + wgetway_input +"','wsubnet':'" + wsubnet_input +"'}";
+    var json_output = "{'SSID':'" + ssid_input + "','PASS':'" + pass_input + "','waddress':'" + waddress_input +"','wgetway':'" + wgetway_input +"','wsubnet':'" + wsubnet_input +"','staticIP':'" + staip + "','wmode':'" + wmode + "'}";
     console.log(json_output);
     websocket.send(json_output);
-    alert("setting success!!!");
   }
 }
 function toggle() {
-  console.log('toggle');
+  // console.log('toggle');
+  // console.log(new Date().toLocaleString());
   websocket.send('toggle');
 }

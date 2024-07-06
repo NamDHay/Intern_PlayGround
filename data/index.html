@@ -50,32 +50,43 @@
             <CENTER>
                 <h2>Wifi Setting</h2>
             </CENTER>
-                <span><label for="ssid">SSID:</label>
-                    <CENTER><input type="text" id="input_ssid" placeholder="ssid"></span></CENTER><br>
-                <span><label for="pass">PASSWORD:</label>
-                    <CENTER><input type="password" id="input_pass" placeholder="password"></span></CENTER><br>
-                <label for="staticip">STATIC IP:</label>
-                <CENTER><select name="staip" id="staip">
+            <div class="input-container">
+                <div><label for="ssid">SSID:</label></div>
+            </div>
+            <CENTER><input type="text" id="input_ssid" placeholder="ssid"></CENTER><br>
+            <div class="input-container">
+                <div><label for="pass">PASSWORD:</label></div>
+            </div>
+            <CENTER><input type="password" id="input_pass" placeholder="password"></CENTER><br>
+            <div class="input-container">
+                <label for="staticip">STATIC IP</label>
+            </div>
+            <CENTER><select name="staip" id="staip">
                     <option value="en">Enable</option>
                     <option value="dis">Disable</option>
                 </select></CENTER>
-                <br>
-                <span><label for="waddress">WAddress:</label>
-                    <CENTER><input type="text" id="input_waddress" placeholder="192.168.x.x"></span></CENTER><br>
-                <span><label for="wgetway">WGetway:</label>
-                    <CENTER><input type="text" id="input_wgetway" placeholder="192.168.x.x"></span></CENTER><br>
-                <span><label for="wsubnet">WSubnet:</label>
-                    <CENTER><input type="text" id="input_wsubnet" placeholder="255.255.255.0"></span></CENTER><br>
-                <label for="staticip">WiFi Mode</label>
-                <CENTER><select name="staip" id="staip">
-                    <option value="sta">STA</option>
-                    <option value="ap">AP</option>
-                    <option value="ap_sta">AP STA</option>
-                    <option value="off">OFF</option>
-                </select></CENTER>
-                <br>                        
-                <CENTER><span><button class="buttoncuatao" id="buttonSave">Save</button></span>
-            </CENTER>
+            <div class="input-container">
+                <div><label for="waddress">WAddress:</label></div>
+            </div>
+            <CENTER><input type="text" id="input_waddress" placeholder="192.168.x.x"></CENTER><br>
+            <div class="input-container">
+                <div><label for="wgetway">WGetway:</label></div>
+            </div>
+            <CENTER><input type="text" id="input_wgetway" placeholder="192.168.x.x"></CENTER><br>
+            <div class="input-container">
+                <div><label for="wsubnet">WSubnet:</label></div>
+            </div>
+            <CENTER><input type="text" id="input_wsubnet" placeholder="255.255.255.0"></CENTER><br>
+            <div class="input-container">
+                <label for="wifimode">WiFi Mode</label>
+            </div>
+            <CENTER><select name="wmode" id="wmode">
+                <option value="sta">STA</option>
+                <option value="ap">AP</option>
+                <option value="ap_sta">AP STA</option>
+                <option value="off">OFF</option>
+                </select></CENTER><br>
+            <CENTER><span><button class="buttoncuatao" id="buttonSave">Save</button></CENTER></span>
         </div><br>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
