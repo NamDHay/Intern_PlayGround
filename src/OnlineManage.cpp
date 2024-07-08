@@ -1,4 +1,5 @@
 #include <OnlineManage.h>
+#include <MB.h>
 
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
@@ -160,36 +161,95 @@ void notifyClients(const String &message)
 void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
 {
     AwsFrameInfo *info = (AwsFrameInfo *)arg;
-    JsonDocument doc;
+    JsonDocument rdoc;
+    // uint8_t io_array[8] = {0, 1, 0, 0, 0, 0, 0, 0};
     String DataStr = "";
+    String fbDataString = "";
+    JsonDocument wDoc;
     if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT)
     {
         data[len] = 0;
-        if (strcmp((char *)data, "toggle") == 0)
+        for (int i = 0; i < len; i++)
         {
-            digitalWrite(LED, !digitalRead(LED));
-            notifyClients(String(digitalRead(LED)));
+                DataStr += (char)data[i];
         }
-        else if (strcmp((char *)data, "getinfo") == 0)
-        {
+        deserializeJson(rdoc, DataStr);
+        String command = rdoc["Command"].as<String>();
+        if (command == "toggleLed") {
+            wDoc["Command"] = "toggleLed";
+            wDoc["Data"] = digitalRead(LED);
+            serializeJson(wDoc, fbDataString);
+            notifyClients(fbDataString);
+            digitalWrite(LED, !digitalRead(LED));
+        } else if (command == "getMem") {
             Serial.print("Usage heap memory: ");
             Serial.println((ESP.getHeapSize() - ESP.getFreeHeap()));
-            notifyClients(String((ESP.getHeapSize() - ESP.getFreeHeap())));
-        }
-        else
-        {
-            for (int i = 0; i < len; i++)
-            {
-                DataStr += (char)data[i];
-            }
-            deserializeJson(doc, DataStr);
-            String SSID = doc["SSID"].as<String>();
-            String PASS = doc["PASS"].as<String>();
-            String waddress = doc["waddress"].as<String>();
-            String wgetway = doc["wgetway"].as<String>();
-            String wsubnet = doc["wsubnet"].as<String>();
-            String staip = doc["staip"].as<String>();
-            String wmode = doc["wmode"].as<String>();
+            wDoc["Command"] = "getMem";
+            wDoc[""] = (ESP.getHeapSize() - ESP.getFreeHeap());
+            serializeJson(wDoc, fbDataString);
+            notifyClients(fbDataString);
+        } else if (command == "getIO") {
+            String ccommand = rdoc["Command"].as<String>();
+            String io_array = rdoc["Data"].as<String>();
+            Serial.println("Data: " + io_array);
+            Serial.println("Data0: " + String(io_array[0]));
+            Serial.println("Data1: " + String(io_array[1]));
+            Serial.println("Data2: " + String(io_array[2]));
+            Serial.println("Data3: " + String(io_array[3]));
+            Serial.println("Data4: " + String(io_array[4]));
+            Serial.println("Data4: " + String(io_array[5]));
+            Serial.println("Data4: " + String(io_array[6]));
+            Serial.println("Data4: " + String(io_array[7]));
+            Serial.flush();
+            // Serial.println("Data0: " + io_array[0]);
+            // Serial.println("Data1: " + io_array[1]);
+            // Serial.println("Data2: " + io_array[2]);
+            // Serial.println("Data3: " + io_array[3]);
+            // Serial.println("Data4: " + io_array[4]);
+
+            // JsonDocument doc;
+            // JsonArray digitalValues = doc["Data"].to<JsonArray>();
+            // notifyClients("");
+        } else if (command == "settingModbus") {
+            String slaveID = rdoc["slaveID"].as<String>();
+            String baud = rdoc["baud"].as<String>();
+            String readStart = rdoc["readStart"].as<String>();
+            String readEnd = rdoc["readEnd"].as<String>();
+            String writeStart = rdoc["writeStart"].as<String>();
+            String writeEnd = rdoc["writeEnd"].as<String>();
+            String serial = rdoc["serial"].as<String>();
+            String mbmaster = rdoc["mbmaster"].as<String>();
+
+            modbus.config.slaveID = slaveID.toInt();
+            modbus.config.baud = baud.toInt();
+            modbus.config.port = (serial == "0") ? &Serial1 : &Serial2;
+            modbus.readTemp.startAddress = readStart.toInt();
+            modbus.readTemp.endAddress = readEnd.toInt();
+            modbus.writeTemp.startAddress = writeStart.toInt();
+            modbus.writeTemp.endAddress = writeEnd.toInt();
+            modbus.mbmaster = (mbmaster == "0") ? true : false;
+
+            // Serial.println("SlaveID: " + slaveID);
+            // Serial.println("Baud: " + baud);
+            // Serial.println("ReadStart: " + readStart);
+            // Serial.println("ReadEnd: " + readEnd);
+            // Serial.println("WriteStart: " + writeStart);
+            // Serial.println("WriteEnd: " + writeEnd);
+            // Serial.println("Serial: " + serial);
+            // Serial.println("Mbmaster: " + mbmaster);
+
+            wDoc["Command"] = "settingWifi";
+            wDoc["Data"] = "SetingDone";
+            serializeJson(wDoc, fbDataString);
+            notifyClients(fbDataString);
+        } else if (command == "settingWifi"){
+            String SSID = rdoc["SSID"].as<String>();
+            String PASS = rdoc["PASS"].as<String>();
+            String waddress = rdoc["waddress"].as<String>();
+            String wgetway = rdoc["wgetway"].as<String>();
+            String wsubnet = rdoc["wsubnet"].as<String>();
+            String staip = rdoc["staip"].as<String>();
+            String wmode = rdoc["wmode"].as<String>();
 
             Serial.println("SSID: " + SSID);
             Serial.println("PASS: " + PASS);
@@ -207,7 +267,10 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
             online.wifi_setting.staip = staip;
             online.wifi_setting.wmode = wmode;
             online.writeSetting();
-            notifyClients("SetingDone");
+            wDoc["Command"] = "settingWifi";
+            wDoc["Data"] = "SetingDone";
+            serializeJson(wDoc, fbDataString);
+            notifyClients(fbDataString);
             bool IsMessage = true;
             xQueueSend(online.qWifiSetting, (void *)&IsMessage, 1 / portTICK_PERIOD_MS);
         }
@@ -250,20 +313,20 @@ void OnlineManage::WebHandle()
               { request->redirect(localIPURL); }); // microsoft redirect
     server.on("/hotspot-detect.html", [](AsyncWebServerRequest *request)
               { request->redirect(localIPURL); }); // apple call home
-    // server.on("/canonical.html", [](AsyncWebServerRequest *request) { request->redirect(localIPURL); });	   // firefox captive portal call home
-    // server.on("/success.txt", [](AsyncWebServerRequest *request) { request->send(200); });					   // firefox captive portal call home
+    server.on("/canonical.html", [](AsyncWebServerRequest *request) { request->redirect(localIPURL); });	   // firefox captive portal call home
+    server.on("/success.txt", [](AsyncWebServerRequest *request) { request->send(200); });					   // firefox captive portal call home
     server.on("/chrome-variations/seed", [](AsyncWebServerRequest *request)
               { request->send(200); }); // chrome captive portal call home
-    // server.on("/ncsi.txt", [](AsyncWebServerRequest *request) { request->redirect(localIPURL); });			   // windows call home
+    server.on("/ncsi.txt", [](AsyncWebServerRequest *request) { request->redirect(localIPURL); });			   // windows call home
 
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
               { request->send(SPIFFS, "/index.html", "text/html"); });
-    server.serveStatic("/", SPIFFS, "/");
+    // server.serveStatic("/", SPIFFS, "/");
     server.on("/setting", HTTP_ANY, [](AsyncWebServerRequest *request)
-              {
-		AsyncWebServerResponse *response = request->beginResponse(200, "text/html", mywebsite.Wifi_Config_HTML);
-		request->send(response);
-		Serial.println("Served Wifi Config Page"); });
+            {
+        AsyncWebServerResponse *response = request->beginResponse(200, "text/html", mywebsite.Wifi_Config_HTML);
+        request->send(response);
+        Serial.println("Served Wifi Config Page"); });
     server.on("/get", HTTP_GET, [](AsyncWebServerRequest *request)
               {
     String Ssid;

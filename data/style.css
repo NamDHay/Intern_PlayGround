@@ -9978,6 +9978,8 @@ body {
     box-shadow: 2px 2px 12px 1px rgba(140, 140, 140, .5);
     padding-top: 10px;
     padding-bottom: 20px;
+    padding-left: 10px;
+    padding-right: 10px;
 }
 
 .buttoncuatao {
@@ -10013,4 +10015,53 @@ body {
 
 .input-container {
     margin-left: 100px;
+}
+
+.cardcuatao_header {
+    background-color: skyblue;
+    text-align: center;
+    padding: 10px;
+    grid-column: 1 / span 4;
+}
+
+.cardcuatao_input, .cardcuatao_output {
+    background-color: #F8F7F9;
+    padding: 10px;
+    border-radius: 10px;
+    text-align: center;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    padding-left: 30px;
+    padding-right: 30px;
+    /* box-shadow: 2px 2px 12px 1px rgba(140, 140, 140, .5); */
+
+}
+
+.buttoncuatao_output {
+    padding: 1px 5px;
+    font-size: 24px;
+    text-align: center;
+    outline: none;
+    color: #fff;
+    background-color: #0f8b8d;
+    border: none;
+    border-radius: 5px;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+.buttoncuatao_output:active {
+    background-color: #0f8b8d;
+    box-shadow: 2 2px #CDCDCD;
+    transform: translateY(2px);
+}
+
+.chart-container {
+    padding-right: 5%;
+    padding-left: 5%;
 }

@@ -6,6 +6,7 @@
 class MODBUS_RTU {
 private:   
 public:
+    bool mbmaster;
     struct Config_t{
         byte slaveID;
         unsigned long baud;

@@ -17,33 +17,125 @@
             <div class="collapse navbar-collapse" id="mynavbar">
                 <ul class="nav navbar-nav me-auto nav-pills mb-3" id="pills-tab" role="tablist">
                     <li class="nav-item">
-                        <a class="nav-link active" id="tabHome" href="javascript:void(0)">HOME</a>
+                        <a class="nav-link active" id="tabHome">HOME</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link " id="tabWifi" href="javascript:void(0)">Wifi Setting</a>
+                        <a class="nav-link " id="tabWifi">Wifi Setting</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="tabIO" href="javascript:void(0)">IO Setting</a>
+                        <a class="nav-link" id="tabIO">IO Setting</a>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
+    <div id="cardhome" class="contentcuatao" style="display: block;">
+        <div class="cardcuatao">
+            <CENTER>
+                <h2>Device </h2>
+                <p class="statecuatao">Input</p>
+                <div style="display: inline-flex;">
+                    <div class="cardcuatao_input">
+                        <p class="statecuatao">1</p>
+                        <p class="statecuatao"><span id="input1">ON</span></p>
+                    </div>
+                    <div class="cardcuatao_input">
+                        <p class="statecuatao">2</p>
+                        <p class="statecuatao"><span id="input2">ON</span></p>
+                    </div>
+                    <div class="cardcuatao_input">
+                        <p class="statecuatao">3</p>
+                        <p class="statecuatao"><span id="input3">ON</span></p>
+                    </div>
+                    <div class="cardcuatao_input">
+                        <p class="statecuatao">4</p>
+                        <p class="statecuatao"><span id="input4">ON</span></p>
+                    </div>
+                </div>
+            </CENTER>
+            <CENTER>
+                <p class="statecuatao">Output</p>
+                <div style="display: inline-flex;">
+                    <div class="cardcuatao_input">
+                        <p class="statecuatao">1</p>
+                        <p><button id="button1" class="buttoncuatao_output"><span id="output1">ON</span></button></p>
+                    </div>
+                    <div class="cardcuatao_input">
+                        <p class="statecuatao">2</p>
+                        <p><button id="button2" class="buttoncuatao_output"><span id="output2">ON</span></button></p>
+                    </div>
+                    <div class="cardcuatao_input">
+                        <p class="statecuatao">3</p>
+                        <p><button id="button3" class="buttoncuatao_output"><span id="output3">ON</span></button></p>
+                    </div>
+                    <div class="cardcuatao_input">
+                        <p class="statecuatao">4</p>
+                        <p><button id="button4" class="buttoncuatao_output"><span id="output4">ON</span></button></p>
+                    </div>
+                </div>
+            </CENTER>
+        </div><br>
+        <div class="cardcuatao">
+            <CENTER>
+                <h2>Usage HEAP</h2>
+                <div id="chart-temperature" class="chart-container"></div>
+            </CENTER>
+        </div>
+    </div>
     <div id="cardio" class="contentcuatao" style="display:none">
         <div class="cardcuatao">
             <CENTER>
                 <h2>Output - LED</h2>
-                <p class="statecuatao">State: <span id="state">%STATE%</span></p>
+                <p class="statecuatao">State: <span id="state">STATE</span></p>
                 <p><button id="button" class="buttoncuatao">Toggle</button></p>
             </CENTER>
         </div><br>
         <div class="cardcuatao">
             <CENTER>
-                <h2>Chart</h2>
-                <canvas id="myChart" style="width:100%;max-width:600px"></canvas>
+                <h2>MODBUS Config</h2>
             </CENTER>
+            <div class="input-container">
+                <label for="mbmaster">MASTER</label>
+            </div>
+            <CENTER><select name="mbmaster" id="mbmaster">
+                    <option value="0">Enable</option>
+                    <option value="1">Disable</option>
+                </select></CENTER>
+            <div class="input-container">
+                <div><label for="slaveID">Slave ID:</label></div>
+            </div>
+            <CENTER><input type="text" id="slaveID" placeholder="Slave ID"></CENTER><br>
+            <div class="input-container">
+                <div><label for="Baudrate">Baudrate:</label></div>
+            </div>
+            <CENTER><input type="text" id="Baudrate" placeholder="Baudrate"></CENTER><br>
+            <div class="input-container">
+                <label for="Serial">Serial</label>
+            </div>
+            <CENTER><select name="serial" id="serial">
+                    <option value="0">Serial1</option>
+                    <option value="1">Serial2</option>
+                </select></CENTER><br>
+            <p class="input-container statecuatao">READ MODE</p>
+            <div class="input-container">
+                <div><label for="readStart">Start Address:</label></div>
+            </div>
+            <CENTER><input type="text" id="readStart" placeholder="readStart"></CENTER><br>
+            <div class="input-container">
+                <div><label for="readEnd">End Address:</label></div>
+            </div>
+            <CENTER><input type="text" id="readEnd" placeholder="readEnd"></CENTER><br>
+            <p class="input-container statecuatao">WRITE MODE</p>
+            <div class="input-container">
+                <div><label for="writeStart">Start Address:</label></div>
+            </div>
+            <CENTER><input type="text" id="writeStart" placeholder="writeStart"></CENTER><br>
+            <div class="input-container">
+                <div><label for="writeEnd">End Address:</label></div>
+            </div>
+            <CENTER><input type="text" id="writeEnd" placeholder="writeEnd"></CENTER><br>
+            <CENTER><span><button class="buttoncuatao" id="mbButtonSave">Save</button></CENTER></span>
         </div>
-
     </div>
     <div id="cardwifi" class="contentcuatao" style="display:none">
         <div class="cardcuatao">
@@ -62,8 +154,8 @@
                 <label for="staticip">STATIC IP</label>
             </div>
             <CENTER><select name="staip" id="staip">
-                    <option value="en">Enable</option>
-                    <option value="dis">Disable</option>
+                    <option value="0">Enable</option>
+                    <option value="1">Disable</option>
                 </select></CENTER>
             <div class="input-container">
                 <div><label for="waddress">WAddress:</label></div>
@@ -81,14 +173,16 @@
                 <label for="wifimode">WiFi Mode</label>
             </div>
             <CENTER><select name="wmode" id="wmode">
-                <option value="sta">STA</option>
-                <option value="ap">AP</option>
-                <option value="ap_sta">AP STA</option>
-                <option value="off">OFF</option>
+                    <option value="0">STA</option>
+                    <option value="1">AP</option>
+                    <option value="2">AP STA</option>
+                    <option value="3">OFF</option>
                 </select></CENTER><br>
             <CENTER><span><button class="buttoncuatao" id="buttonSave">Save</button></CENTER></span>
         </div><br>
     </div>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
     <script src="script.js"></script>
 </body>
