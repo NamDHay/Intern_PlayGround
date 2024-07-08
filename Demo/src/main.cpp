@@ -9,9 +9,11 @@
 #include <DNSServer.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
-
+#include <ModbusConfig.h>
+// #include <MergeData.h>
 void TaskCaptivePortal(void *pvParameter);
 void TaskFunction(void *pvParameter);
+void TaskModbus(void *pvParameter);
 
 #define MAX_CLIENTS 4
 #define WIFI_CHANNEL 6
@@ -209,9 +211,8 @@ void setUpDNSServer(DNSServer &dnsServer, const IPAddress &localIP) {
 
 void WebInit(){
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    // request->send(200, "text/html", HTML);
-    // request->send(200, "text/html", readfile("/index.html"));
-    request->send(SPIFFS, "/index.html", String(), false, processor);
+    request->send(200, "text/html", HTML);
+    // request->send(SPIFFS, "/index.html", String(), false, processor);
   });
 }//WebInit
 void setUpWebserver(AsyncWebServer &server, const IPAddress &localIP) {
@@ -233,8 +234,8 @@ void setUpWebserver(AsyncWebServer &server, const IPAddress &localIP) {
 
 	// Serve Basic HTML Page
 	server.on("/", HTTP_ANY, [](AsyncWebServerRequest *request) {
-		AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/index.html", String(), false, processor);
-    // AsyncWebServerResponse *response = request->beginResponse(200, "text/html", readfile("/index.html"));
+		AsyncWebServerResponse *response = request->beginResponse(200, "text/html", HTML);
+    // AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/index.html", String(), false, processor);
 		response->addHeader("Cache-Control", "public,max-age=31536000");  // save this file to cache for 1 year (unless you refresh)
 		request->send(response);
 		Serial.println("Served Basic HTML Page");
@@ -259,8 +260,10 @@ void setup() {
   setUpWebserver(server, WiFi.softAPIP());
   WebInit();
   WB_setup();
-  xTaskCreatePinnedToCore(TaskCaptivePortal, "CaptivePortal",10000,NULL, 2, NULL, 1);
-  xTaskCreatePinnedToCore(TaskFunction, "Function", 10000, NULL, 1,NULL, 1);
+  // Modbus_MasterInit(&Serial2);
+  xTaskCreatePinnedToCore(TaskCaptivePortal, "CaptivePortal",30000,NULL, 1, NULL, 1);
+  xTaskCreatePinnedToCore(TaskFunction, "Function", 30000, NULL, 2,NULL, 1);
+  xTaskCreatePinnedToCore(TaskModbus, "Modbus", 10000, NULL, 3, NULL, 1);
 }
 void loop(){}
 
@@ -275,4 +278,14 @@ void TaskFunction(void *pvParameter){
     WB_loop();
     vTaskDelay(10/portTICK_PERIOD_MS);
   }
+}
+void TaskModbus(void *pvParameter){
+  if(mbusconfig.mode == "0") Modbus_MasterInit();
+  else if(mbusconfig.mode == "1") Modbus_SlaveInit();
+  for (;;)
+  {
+    Modbus_loop();
+    vTaskDelay(500/portTICK_PERIOD_MS);
+  }
+  
 }

@@ -31,6 +31,7 @@ void stationMode(){
   Serial.println();
   Serial.println();
   loadSetting();
+  ModbusReading();
   Serial.print("Connecting to ");
   Serial.println(settings.ssid);
   unsigned long start = millis();
@@ -50,7 +51,7 @@ String ws_load = "";
 void notifyClients(String value) {
   ws.textAll(value);
 }
-
+//Receive data from websocket
 void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
   AwsFrameInfo *info = (AwsFrameInfo*)arg;
   if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
@@ -73,19 +74,50 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
       String WEB_GETWAY = doc["WEB_GETWAY"].as<String>(); 
       String WIFI_MODE = doc["WIFI_MODE"].as<String>(); 
       String CHANEL = doc["CHANEL"].as<String>(); 
+      String SLAVE_ID = doc["SLAVE_ID"].as<String>(); 
+      String BAUD = doc["BAUD"].as<String>(); 
+      String RTU_TCP = doc["RTU_TCP"].as<String>(); 
+      String SERIAL_PORT = doc["SERIAL_PORT"].as<String>(); 
+      String MODE = doc["MODE"].as<String>(); 
+      String WRITE_START = doc["WRITE_START"].as<String>(); 
+      String WRITE_END = doc["WRITE_END"].as<String>(); 
+      String READ_START = doc["READ_START"].as<String>(); 
+      String READ_END = doc["READ_END"].as<String>(); 
+      String SEND_VALUE = doc["SEND_VALUE"].as<String>();
+      String RECEIVE_VALUE = doc["RECEIVE_VALUE"].as<String>();
+
       if(STATIC_IP == "0") STATIC_IP = "Disable";
       else if(STATIC_IP == "1") STATIC_IP = "Enable";
       if(WIFI_MODE == "0") WIFI_MODE = "STA NORMAL";
-      if(WIFI_MODE == "1") WIFI_MODE = "AP NORMAL";
-      if(WIFI_MODE == "2") WIFI_MODE = "AP-STA NORMAL";
-      if(WIFI_MODE == "3") WIFI_MODE = "WIFI OFF";
+      else if(WIFI_MODE == "1") WIFI_MODE = "AP NORMAL";
+      else if(WIFI_MODE == "2") WIFI_MODE = "AP-STA NORMAL";
+      else if(WIFI_MODE == "3") WIFI_MODE = "WIFI OFF";
+      if(RTU_TCP == "0") RTU_TCP = "RTU";
+      else if(RTU_TCP == "1") RTU_TCP = "TCP";
+      if(SERIAL_PORT == "0") SERIAL_PORT = "Serial2";
+      else if(SERIAL_PORT == "1") SERIAL_PORT = "Serial1";
+      if(MODE == "0") MODE = "Master";
+      else if(MODE == "1") MODE = "Slave";
+      
       LOGLN("SSID: " + SSID);
+      LOGLN("PASS: " + PASS);
       LOGLN("STATIC_IP: "+ STATIC_IP); 
       LOGLN("WEB_SUBNET: "+ WEB_SUBNET); 
       LOGLN("WEB_ADDRESS: "+ WEB_ADDRESS); 
       LOGLN("WEB_GETWAY: "+ WEB_GETWAY); 
       LOGLN("WIFI_MODE: "+ WIFI_MODE); 
       LOGLN("CHANEL: "+ CHANEL); 
+      LOGLN("SLAVE_ID: "+ SLAVE_ID); 
+      LOGLN("BAUD: "+ BAUD); 
+      LOGLN("RTU_TCP: "+ RTU_TCP); 
+      LOGLN("SERIAL_PORT: "+ SERIAL_PORT); 
+      LOGLN("MODE: "+ MODE); 
+      LOGLN("WRITE_START: "+ WRITE_START); 
+      LOGLN("WRITE_END: "+ WRITE_END); 
+      LOGLN("READ_START: "+ READ_START); 
+      LOGLN("READ_END: "+ READ_END); 
+      LOGLN("SEND_VALUE: "+ SEND_VALUE); 
+      LOGLN("RECEIVE_VALUE: "+ RECEIVE_VALUE); 
 
       settings.ssid = SSID;
       settings.pass = PASS;
@@ -95,8 +127,22 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
       settings.wgetway = WEB_GETWAY;
       settings.wifimode = WIFI_MODE;
       settings.chanel = CHANEL;
+
+      mbusconfig.SlaveID_Config = SLAVE_ID.toInt();
+      mbusconfig.baud = BAUD.toInt();
+      mbusconfig.port = SERIAL_PORT;
+      mbusconfig.mode = MODE;
+      writeTemp.startAddress = WRITE_START.toInt();
+      writeTemp.endAddress = WRITE_END.toInt();
+      readTemp.startAddress = READ_START.toInt();
+      readTemp.endAddress = READ_END.toInt();
+      mbdata.writevalue = (uint16_t *)SEND_VALUE.toInt();
+      mbdata.readvalue = (uint16_t *)RECEIVE_VALUE.toInt();
+
       writeSetting();
-      stationMode();
+      ModbusSetting();
+      // stationMode();
+
 
     }
   }
