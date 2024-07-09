@@ -5,7 +5,6 @@ void FourByteToOneByte(float value, byte* dataArray) {
   
   for (byte i = 0; i < 4; i++) {
     dataArray[i] = *(pFloat + i);
-    // Serial.printf("0x%x \n", dataArray[i]);
   }
 }
 
@@ -37,7 +36,6 @@ short OneByteToTwoByte(byte* dataArray){
 void BitsToBytes(bool* bitArray, byte* byteArray, int numBits) {
   int numBytes = (numBits + 7) / 8; // Calculate the number of bytes needed
   
-  // Initialize all bytes to zero
   for (int i = 0; i < numBytes; i++) {
     byteArray[i] = 0;
   }
