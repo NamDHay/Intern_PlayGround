@@ -114,7 +114,7 @@ void OnlineManage::loadSetting()
     Serial.println("wsubnet: " + wsubnet);
     Serial.println("staip: " + staip);
     Serial.println("wmode: " + wmode);
-    
+
     online.wifi_setting.ssid = SSID;
     online.wifi_setting.pass = PASS;
     online.wifi_setting.waddress = waddress;
@@ -158,121 +158,132 @@ void notifyClients(const String &message)
 {
     ws.textAll(message);
 }
+
+JsonDocument rdoc;
+JsonDocument wDoc;
+String DataStr = "";
+String fbDataString = "";
+void getIOHandler()
+{
+    Serial.println("I'm here getIO");
+    int DataArr[10];
+    int size = sizeof(DataArr);
+    for (int i = 0; i < 10; i++)
+    {
+        DataArr[i] = rdoc["Data"][i];
+    }
+    Serial.println("Data0: " + String(DataArr[0]));
+    Serial.println("Data1: " + String(DataArr[1]));
+    Serial.println("Data2: " + String(DataArr[2]));
+    Serial.println("Data3: " + String(DataArr[3]));
+    Serial.println("Data4: " + String(DataArr[4]));
+    Serial.println("Data5: " + String(DataArr[5]));
+    Serial.println("Data6: " + String(DataArr[6]));
+    Serial.println("Data7: " + String(DataArr[7]));
+    Serial.flush();
+}
+void setModbusHandler()
+{
+    String slaveID = rdoc["slaveID"].as<String>();
+    String baud = rdoc["baud"].as<String>();
+    String readStart = rdoc["readStart"].as<String>();
+    String readEnd = rdoc["readEnd"].as<String>();
+    String writeStart = rdoc["writeStart"].as<String>();
+    String writeEnd = rdoc["writeEnd"].as<String>();
+    String serial = rdoc["serial"].as<String>();
+    String mbmaster = rdoc["mbmaster"].as<String>();
+
+    modbus.config.slaveID = slaveID.toInt();
+    modbus.config.baud = baud.toInt();
+    modbus.config.port = (serial == "0") ? &Serial1 : &Serial2;
+    modbus.readTemp.startAddress = readStart.toInt();
+    modbus.readTemp.endAddress = readEnd.toInt();
+    modbus.writeTemp.startAddress = writeStart.toInt();
+    modbus.writeTemp.endAddress = writeEnd.toInt();
+    modbus.mbmaster = (mbmaster == "0") ? true : false;
+
+    wDoc["Command"] = "settingWifi";
+    wDoc["Data"] = "SetingDone";
+    serializeJson(wDoc, fbDataString);
+    notifyClients(fbDataString);
+}
+void setWifiHandler()
+{
+    String SSID = rdoc["SSID"].as<String>();
+    String PASS = rdoc["PASS"].as<String>();
+    String waddress = rdoc["waddress"].as<String>();
+    String wgetway = rdoc["wgetway"].as<String>();
+    String wsubnet = rdoc["wsubnet"].as<String>();
+    String staip = rdoc["staip"].as<String>();
+    String wmode = rdoc["wmode"].as<String>();
+
+    Serial.println("SSID: " + SSID);
+    Serial.println("PASS: " + PASS);
+    Serial.println("waddress: " + waddress);
+    Serial.println("wgetway: " + wgetway);
+    Serial.println("wsubnet: " + wsubnet);
+    Serial.println("staip: " + staip);
+    Serial.println("wmode: " + wmode);
+
+    online.wifi_setting.ssid = SSID;
+    online.wifi_setting.pass = PASS;
+    online.wifi_setting.waddress = waddress;
+    online.wifi_setting.wgetway = wgetway;
+    online.wifi_setting.wsubnet = wsubnet;
+    online.wifi_setting.staip = staip;
+    online.wifi_setting.wmode = wmode;
+    online.writeSetting();
+    wDoc["Command"] = "settingWifi";
+    wDoc["Data"] = "SetingDone";
+    serializeJson(wDoc, fbDataString);
+    notifyClients(fbDataString);
+    bool IsMessage = true;
+    xQueueSend(online.qWifiSetting, (void *)&IsMessage, 1 / portTICK_PERIOD_MS);
+}
 void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
 {
     AwsFrameInfo *info = (AwsFrameInfo *)arg;
-    JsonDocument rdoc;
-    // uint8_t io_array[8] = {0, 1, 0, 0, 0, 0, 0, 0};
-    String DataStr = "";
-    String fbDataString = "";
-    JsonDocument wDoc;
     if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT)
     {
         data[len] = 0;
+        DataStr = "";
         for (int i = 0; i < len; i++)
         {
-                DataStr += (char)data[i];
+            DataStr += (char)data[i];
         }
         deserializeJson(rdoc, DataStr);
+        Serial.println(DataStr);
         String command = rdoc["Command"].as<String>();
-        if (command == "toggleLed") {
+        Serial.println(command);
+        if (command == "toggleLed")
+        {
+            Serial.println("I'm here toggleLed");
             wDoc["Command"] = "toggleLed";
             wDoc["Data"] = digitalRead(LED);
             serializeJson(wDoc, fbDataString);
             notifyClients(fbDataString);
             digitalWrite(LED, !digitalRead(LED));
-        } else if (command == "getMem") {
+        }
+        else if (command == "getMem")
+        {
             Serial.print("Usage heap memory: ");
             Serial.println((ESP.getHeapSize() - ESP.getFreeHeap()));
             wDoc["Command"] = "getMem";
             wDoc[""] = (ESP.getHeapSize() - ESP.getFreeHeap());
             serializeJson(wDoc, fbDataString);
             notifyClients(fbDataString);
-        } else if (command == "getIO") {
-            String ccommand = rdoc["Command"].as<String>();
-            String io_array = rdoc["Data"].as<String>();
-            Serial.println("Data: " + io_array);
-            Serial.println("Data0: " + String(io_array[0]));
-            Serial.println("Data1: " + String(io_array[1]));
-            Serial.println("Data2: " + String(io_array[2]));
-            Serial.println("Data3: " + String(io_array[3]));
-            Serial.println("Data4: " + String(io_array[4]));
-            Serial.println("Data4: " + String(io_array[5]));
-            Serial.println("Data4: " + String(io_array[6]));
-            Serial.println("Data4: " + String(io_array[7]));
-            Serial.flush();
-            // Serial.println("Data0: " + io_array[0]);
-            // Serial.println("Data1: " + io_array[1]);
-            // Serial.println("Data2: " + io_array[2]);
-            // Serial.println("Data3: " + io_array[3]);
-            // Serial.println("Data4: " + io_array[4]);
-
-            // JsonDocument doc;
-            // JsonArray digitalValues = doc["Data"].to<JsonArray>();
-            // notifyClients("");
-        } else if (command == "settingModbus") {
-            String slaveID = rdoc["slaveID"].as<String>();
-            String baud = rdoc["baud"].as<String>();
-            String readStart = rdoc["readStart"].as<String>();
-            String readEnd = rdoc["readEnd"].as<String>();
-            String writeStart = rdoc["writeStart"].as<String>();
-            String writeEnd = rdoc["writeEnd"].as<String>();
-            String serial = rdoc["serial"].as<String>();
-            String mbmaster = rdoc["mbmaster"].as<String>();
-
-            modbus.config.slaveID = slaveID.toInt();
-            modbus.config.baud = baud.toInt();
-            modbus.config.port = (serial == "0") ? &Serial1 : &Serial2;
-            modbus.readTemp.startAddress = readStart.toInt();
-            modbus.readTemp.endAddress = readEnd.toInt();
-            modbus.writeTemp.startAddress = writeStart.toInt();
-            modbus.writeTemp.endAddress = writeEnd.toInt();
-            modbus.mbmaster = (mbmaster == "0") ? true : false;
-
-            // Serial.println("SlaveID: " + slaveID);
-            // Serial.println("Baud: " + baud);
-            // Serial.println("ReadStart: " + readStart);
-            // Serial.println("ReadEnd: " + readEnd);
-            // Serial.println("WriteStart: " + writeStart);
-            // Serial.println("WriteEnd: " + writeEnd);
-            // Serial.println("Serial: " + serial);
-            // Serial.println("Mbmaster: " + mbmaster);
-
-            wDoc["Command"] = "settingWifi";
-            wDoc["Data"] = "SetingDone";
-            serializeJson(wDoc, fbDataString);
-            notifyClients(fbDataString);
-        } else if (command == "settingWifi"){
-            String SSID = rdoc["SSID"].as<String>();
-            String PASS = rdoc["PASS"].as<String>();
-            String waddress = rdoc["waddress"].as<String>();
-            String wgetway = rdoc["wgetway"].as<String>();
-            String wsubnet = rdoc["wsubnet"].as<String>();
-            String staip = rdoc["staip"].as<String>();
-            String wmode = rdoc["wmode"].as<String>();
-
-            Serial.println("SSID: " + SSID);
-            Serial.println("PASS: " + PASS);
-            Serial.println("waddress: " + waddress);
-            Serial.println("wgetway: " + wgetway);
-            Serial.println("wsubnet: " + wsubnet);
-            Serial.println("staip: " + staip);
-            Serial.println("wmode: " + wmode);
-
-            online.wifi_setting.ssid = SSID;
-            online.wifi_setting.pass = PASS;
-            online.wifi_setting.waddress = waddress;
-            online.wifi_setting.wgetway = wgetway;
-            online.wifi_setting.wsubnet = wsubnet;
-            online.wifi_setting.staip = staip;
-            online.wifi_setting.wmode = wmode;
-            online.writeSetting();
-            wDoc["Command"] = "settingWifi";
-            wDoc["Data"] = "SetingDone";
-            serializeJson(wDoc, fbDataString);
-            notifyClients(fbDataString);
-            bool IsMessage = true;
-            xQueueSend(online.qWifiSetting, (void *)&IsMessage, 1 / portTICK_PERIOD_MS);
+        }
+        else if (command == "getIO")
+        {
+            getIOHandler();
+        }
+        else if (command == "settingModbus")
+        {
+            setModbusHandler();
+        }
+        else if (command == "settingWifi")
+        {
+            setWifiHandler();
         }
     }
 }
@@ -313,17 +324,20 @@ void OnlineManage::WebHandle()
               { request->redirect(localIPURL); }); // microsoft redirect
     server.on("/hotspot-detect.html", [](AsyncWebServerRequest *request)
               { request->redirect(localIPURL); }); // apple call home
-    server.on("/canonical.html", [](AsyncWebServerRequest *request) { request->redirect(localIPURL); });	   // firefox captive portal call home
-    server.on("/success.txt", [](AsyncWebServerRequest *request) { request->send(200); });					   // firefox captive portal call home
+    server.on("/canonical.html", [](AsyncWebServerRequest *request)
+              { request->redirect(localIPURL); }); // firefox captive portal call home
+    server.on("/success.txt", [](AsyncWebServerRequest *request)
+              { request->send(200); }); // firefox captive portal call home
     server.on("/chrome-variations/seed", [](AsyncWebServerRequest *request)
               { request->send(200); }); // chrome captive portal call home
-    server.on("/ncsi.txt", [](AsyncWebServerRequest *request) { request->redirect(localIPURL); });			   // windows call home
+    server.on("/ncsi.txt", [](AsyncWebServerRequest *request)
+              { request->redirect(localIPURL); }); // windows call home
 
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
               { request->send(SPIFFS, "/index.html", "text/html"); });
     // server.serveStatic("/", SPIFFS, "/");
     server.on("/setting", HTTP_ANY, [](AsyncWebServerRequest *request)
-            {
+              {
         AsyncWebServerResponse *response = request->beginResponse(200, "text/html", mywebsite.Wifi_Config_HTML);
         request->send(response);
         Serial.println("Served Wifi Config Page"); });
@@ -365,37 +379,37 @@ void OnlineManage::printLocalTime()
     // timeinfo.tm_hour %= 24;
     // Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
 
-  struct tm timeinfo;
-  if(!getLocalTime(&timeinfo)){
-    Serial.println("Failed to obtain time");
-    return;
-  }
-  Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
-  Serial.print("Day of week: ");
-  Serial.println(&timeinfo, "%A");
-  Serial.print("Month: ");
-  Serial.println(&timeinfo, "%B");
-  Serial.print("Day of Month: ");
-  Serial.println(&timeinfo, "%d");
-  Serial.print("Year: ");
-  Serial.println(&timeinfo, "%Y");
-  Serial.print("Hour: ");
-  Serial.println(&timeinfo, "%H");
-  Serial.print("Hour (12 hour format): ");
-  Serial.println(&timeinfo, "%I");
-  Serial.print("Minute: ");
-  Serial.println(&timeinfo, "%M");
-  Serial.print("Second: ");
-  Serial.println(&timeinfo, "%S");
-  Serial.println("Time variables");
-  char timeHour[3];
-  strftime(timeHour,3, "%H", &timeinfo);
-  Serial.println(timeHour);
-  char timeWeekDay[10];
-  strftime(timeWeekDay,10, "%A", &timeinfo);
-  Serial.println(timeWeekDay);
-  Serial.println();
-
+    struct tm timeinfo;
+    if (!getLocalTime(&timeinfo))
+    {
+        Serial.println("Failed to obtain time");
+        return;
+    }
+    Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
+    Serial.print("Day of week: ");
+    Serial.println(&timeinfo, "%A");
+    Serial.print("Month: ");
+    Serial.println(&timeinfo, "%B");
+    Serial.print("Day of Month: ");
+    Serial.println(&timeinfo, "%d");
+    Serial.print("Year: ");
+    Serial.println(&timeinfo, "%Y");
+    Serial.print("Hour: ");
+    Serial.println(&timeinfo, "%H");
+    Serial.print("Hour (12 hour format): ");
+    Serial.println(&timeinfo, "%I");
+    Serial.print("Minute: ");
+    Serial.println(&timeinfo, "%M");
+    Serial.print("Second: ");
+    Serial.println(&timeinfo, "%S");
+    Serial.println("Time variables");
+    char timeHour[3];
+    strftime(timeHour, 3, "%H", &timeinfo);
+    Serial.println(timeHour);
+    char timeWeekDay[10];
+    strftime(timeWeekDay, 10, "%A", &timeinfo);
+    Serial.println(timeWeekDay);
+    Serial.println();
 }
 
 void TaskOnlineManager(void *pvParameter)
@@ -428,7 +442,7 @@ void TaskOnlineManager(void *pvParameter)
         //     Serial.println((ESP.getHeapSize() - ESP.getFreeHeap()));
         // }
         if (millis() - startCheckWifiTime >= WIFI_STATUS_INTERVAL)
-        {   
+        {
             startCheckWifiTime = millis();
             if (WiFi.status() != WL_CONNECTED)
             {

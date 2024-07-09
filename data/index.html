@@ -66,7 +66,7 @@
                     </div>
                     <div class="cardcuatao_input">
                         <p class="statecuatao">3</p>
-                        <p><button id="button3" class="buttoncuatao_output"><span id="output3">ON</span></button></p>
+                        <const xValues = [100,200,300,400,500,600,700,800,900,1000];><button id="button3" class="buttoncuatao_output"><span id="output3">ON</span></button></p>
                     </div>
                     <div class="cardcuatao_input">
                         <p class="statecuatao">4</p>
@@ -78,10 +78,45 @@
         <div class="cardcuatao">
             <CENTER>
                 <h2>Usage HEAP</h2>
-                <div id="chart-temperature" class="chart-container"></div>
+                <canvas id="myChart" style="width:100%;max-width:600px"></canvas>
+            </CENTER>
+        </div><br>
+        <div class="cardcuatao">
+            <CENTER>
+                <h2>Table Data</h2>
+                <div id="TableData"></div>
             </CENTER>
         </div>
-    </div>
+
+        <!-- Button trigger modal -->
+    <button type="button" class="btn btn-primary" id="Openmodal">
+        Launch demo modal
+    </button>
+
+    <!-- The Modal1 -->
+    
+        <div class="modal fade" id="settingModalNV" tabindex="-1" aria-labelledby="settingModalNVLabel" aria-hidden="true" style="display: none;">
+            <div class="modal-dialog">
+            <div class="modal-content" style="width: fit-content;">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="settingModalLabel " style="font-size: 1.5rem; font-weight: bold;">Thêm nhân viên</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form style="padding: 10px;">
+                        <label class="card-title"> ID Nhân viên:  <label id="idStaff">2</label></label>
+                        <p class="card-title"> Tên NV</p>
+                        <input type="text" class="reading" id="name" style="width: 100%;">
+                        <p class="card-title"> Ca làm việc</p>
+                        <input type="text" class="reading" id="ca" style="width: 100%;">
+                        <p class="card-title"> Loại hàng</p>
+                        <input type="text" class="reading" id="loai" style="width: 100%;">
+                        <p style="padding: 10px; position: relative; text-align: center;"><button id="buttoncheck" class="buttonA" data-bs-dismiss="modal" aria-label="Close" onclick="tai_lai_trang()">Save</button></p>
+                    </form>                         
+                </div>
+            </div>
+        </div>
+
+</div>
     <div id="cardio" class="contentcuatao" style="display:none">
         <div class="cardcuatao">
             <CENTER>
@@ -185,6 +220,7 @@
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
     <script src="script.js"></script>
+    
 </body>
 
 </html>
