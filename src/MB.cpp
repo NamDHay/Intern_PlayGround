@@ -2,56 +2,97 @@
 #include <MB.h>
 
 ModbusRTU mb;
+#define MODBUS_BAUD_ 9600
 
-bool cb(Modbus::ResultCode event, uint16_t transactionId, void *data) { // Callback to monitor errors
-    if (event != Modbus::EX_SUCCESS) {
+bool cb(Modbus::ResultCode event, uint16_t transactionId, void *data)
+{ // Callback to monitor errors
+    if (event != Modbus::EX_SUCCESS)
+    {
         Serial.print("Request result: 0x");
         Serial.print(event, HEX);
     }
     return true;
 }
 
-void MODBUS_RTU::MasterInit(HardwareSerial *port, unsigned long baud) {
+void MODBUS_RTU::MasterInit(HardwareSerial *port, unsigned long baud)
+{
     modbus.config.port = port;
     modbus.config.baud = baud;
-    port->begin(baud);
+    port->begin(baud, SERIAL_8N1);
     mb.begin(port);
     mb.master();
 }
 
-void MODBUS_RTU::SlaveInit(HardwareSerial *port, unsigned long baud) {
+void MODBUS_RTU::SlaveInit(HardwareSerial *port, unsigned long baud)
+{
     modbus.config.port = port;
     modbus.config.baud = baud;
-    port->begin(baud);
+    port->begin(baud, SERIAL_8N1);
     mb.begin(port);
 }
 
-void TaskModbus(void *pvParameter) {
-    bool master = true;
-    uint16_t *rvalue;
-    uint16_t *wvalue;
-    for (;;) {
-        if (master) {
-            if (!mb.slave()) {
+void TaskModbus(void *pvParameter)
+{
+    uint8_t master = 0;
+    uint16_t rvalue[60];
+    uint16_t wvalue[60];
+    for (int i = 0; i < 60; i++)
+    {
+        wvalue[i] = i;
+    }
+    modbus.config.slaveID = 0x01;
+    modbus.readTemp.startAddress = 0;
+    modbus.readTemp.endAddress = 60;
+    modbus.writeTemp.startAddress = 0;
+    modbus.writeTemp.endAddress = 60;
+    if (master == 1)
+    {
+        modbus.MasterInit(&Serial2, MODBUS_BAUD_);
+    }
+    else
+    {
+        modbus.SlaveInit(&Serial2, MODBUS_BAUD_);
+        mb.slave(modbus.config.slaveID);
+        mb.addHreg(modbus.writeTemp.startAddress, 0, 30);
+    }
+    for (;;)
+    {
+        if (master == 1) // Master part
+        {
+            if (!mb.slave())
+            {
                 mb.readHreg(modbus.config.slaveID,
                             modbus.readTemp.startAddress,
                             rvalue,
-                            modbus.readTemp.startAddress - modbus.readTemp.startAddress,
+                            modbus.readTemp.endAddress - modbus.readTemp.startAddress + 1,
                             cb);
-                while (mb.slave()) {
+                while (mb.slave())
+                {
                     mb.task();
+                    vTaskDelay(10 / portTICK_PERIOD_MS);
                 }
+                Serial.println("\nSlaveID: " + String(modbus.config.slaveID));
+                for (uint8_t i = modbus.readTemp.startAddress; i <= modbus.readTemp.endAddress; i++)
+                {
+                    Serial.print("Data" + String(i) + ": ");
+                    Serial.println(rvalue[i - modbus.readTemp.startAddress]);
+                    Serial.flush();
+                    vTaskDelay(10 / portTICK_PERIOD_MS);
+                }
+            } // Master part
+        }
+        else // Slave part
+        {
+            Serial.println("SlaveID: " + String(modbus.config.slaveID));
+            for (uint8_t i = modbus.writeTemp.startAddress; i <= modbus.writeTemp.endAddress; i++)
+            {
+                mb.Hreg(i, wvalue[i]);
+                Serial.print("Data" + String(i) + ": ");
+                Serial.println(wvalue[i]);
+                Serial.flush();
+                vTaskDelay(10 / portTICK_PERIOD_MS);
             }
-        }
-        else {
-            mb.slave(modbus.config.slaveID);
-            mb.writeHreg(modbus.config.slaveID,
-                         modbus.writeTemp.startAddress,
-                         wvalue,
-                         modbus.writeTemp.startAddress - modbus.writeTemp.startAddress,
-                         cb);
             mb.task();
-            yield();
-        }
+        } // Slave part
     }
 }

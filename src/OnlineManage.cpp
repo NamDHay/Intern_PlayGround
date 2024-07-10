@@ -446,7 +446,7 @@ void TaskOnlineManager(void *pvParameter)
             startCheckWifiTime = millis();
             if (WiFi.status() != WL_CONNECTED)
             {
-                Serial.println("Wifi Disconnected");
+                // Serial.println("Wifi Disconnected");
             }
         }
         dnsServer.processNextRequest();

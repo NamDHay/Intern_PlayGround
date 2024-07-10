@@ -17,10 +17,8 @@ void setup() {
   io_config.Init();
   filesystem.Init();
   online.Init();
-  modbus.MasterInit(&Serial2, 115200);
-  modbus.SlaveInit(&Serial2, 115200);
   xTaskCreatePinnedToCore(TaskOnlineManager,"TaskOnlineManager",5000,NULL,2,NULL,1);
-  xTaskCreatePinnedToCore(TaskModbus,"TaskModbusRTU", 1024, NULL,1,NULL,1);
+  xTaskCreatePinnedToCore(TaskModbus,"TaskModbusRTU", 5000, NULL,1,NULL,1);
 }
 
 void loop(){
