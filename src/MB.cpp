@@ -31,6 +31,56 @@ void MODBUS_RTU::SlaveInit(HardwareSerial *port, unsigned long baud)
     mb.begin(port);
 }
 
+bool read_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t length)
+{
+    static uint16_t start;
+    static long dataLength = 0;
+    static uint16_t *rdata = NULL;
+    if (!length || !value)
+        return false;
+    if (!dataLength || !rdata)
+    {
+        start = startAddress;
+        dataLength = length;
+        rdata = value;
+    }
+    if (dataLength >= 30)
+    {
+        mb.readHreg(ID,
+                    start,
+                    rdata,
+                    start + 30 - 1,
+                    cb);
+        while (mb.slave())
+        {
+            mb.task();
+            vTaskDelay(10 / portTICK_PERIOD_MS);
+        }
+        start = start + 30 - 1;
+        dataLength -= 30;
+        
+        return false;;
+    }
+    else if (dataLength < 30)
+    {
+        mb.readHreg(ID,
+                    start,
+                    rdata,
+                    start + dataLength - 1,
+                    cb);
+        while (mb.slave())
+        {
+            mb.task();
+            vTaskDelay(10 / portTICK_PERIOD_MS);
+        }
+        dataLength = 0;
+        start = 0;
+        rdata = NULL;
+        return true;
+    }
+    return false;
+}
+
 void TaskModbus(void *pvParameter)
 {
     uint8_t master = 0;
