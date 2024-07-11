@@ -2,6 +2,20 @@
 
   var gateway = `ws://192.168.4.1/ws`;
   var websocket;
+  var IsConnect;
+  var io_array = [1, 1, 1, 1, 1, 1, 1, 1];
+
+  var io_obj = "{\"Command\": \"getIO\",\"id\": \"1\",\"Data\":[]}";
+  let io_arr = [];
+  const intervalId = setInterval(intervalHandle, 1000);
+  window.addEventListener('beforeunload', () => clearInterval(intervalId));
+  window.addEventListener('load', onLoad);
+  function getReadings() {
+    console.log(io_array.length);
+    for (var i = 0; i < io_array.length; i++) {
+      console.log("Get IO: " + io_array[i]);
+    }
+  }
   function initWebSocket() {
     console.log('Trying to open a WebSocket connection...');
     websocket = new WebSocket(gateway);
@@ -18,26 +32,111 @@
   }
   function onMessage(event) {
     var state;
-    if (event.data == "1"){
-      state = "ON";
+    var state;
+    var message = JSON.parse(event.data);
+    if (message.Command == "toggleLed") {
+      if (message.Data == "0")
+        state = "ON";
+      else state = "OFF";
+      document.getElementById('state').innerHTML = state;
+    } else if (message.Command == "getIO") {
+  
+    } else if (message.Command == "settingWifi") {
+      alert("Setting Done")
     }
-    else{
-      state = "OFF";
+    else if(message.Command == "settingModbus"){
+      alert("Completed setting!!!");
     }
-    document.getElementById('state').innerHTML = state;
+    else if (message.Command == "Data") {
+      loadtable(event.data);
+      // tablefile(event.data);
+    }
   }
-  window.addEventListener('load', onLoad);
   function onLoad(event) {
     initWebSocket();
     initButton();
+    loadChart();
+  }
+  function io_ChangeState1() {
+    io_array[4] = !io_array[4];
+  }
+  function io_ChangeState2() {
+    io_array[5] = !io_array[5];
+  }
+  function io_ChangeState3() {
+    io_array[6] = !io_array[6];
+  }
+  function io_ChangeState4() {
+    io_array[7] = !io_array[7];
   }
   function initButton() {
     document.getElementById('buttontoggle').addEventListener('click', toggle);
     document.getElementById('buttonsave').addEventListener('click', save);
     document.getElementById('buttonsend').addEventListener('click',send_modbus);
+    document.getElementById('tabmodbus').addEventListener('click', settingmodbus);
+    document.getElementById('tabIO').addEventListener('click', settingio);
+    document.getElementById('tabHome').addEventListener('click', Home);
+    document.getElementById('tabshowfile').addEventListener('click', Showfile);
+    document.getElementById('button1').addEventListener('click', io_ChangeState1);
+    document.getElementById('button2').addEventListener('click', io_ChangeState2);
+    document.getElementById('button3').addEventListener('click', io_ChangeState3);
+    document.getElementById('button4').addEventListener('click', io_ChangeState4);
+  }
+  function intervalHandle() {
+    var json_output;
+    if (IsConnect == true) {
+  
+  
+      json_output = "{'Command':'toggleLed'}";
+      websocket.send(json_output);
+  
+      document.getElementById('input1').innerHTML = io_array[0];
+      document.getElementById('input2').innerHTML = io_array[1];
+      document.getElementById('input3').innerHTML = io_array[2];
+      document.getElementById('input4').innerHTML = io_array[3];
+      document.getElementById('output1').innerHTML = io_array[4];
+      document.getElementById('output2').innerHTML = io_array[5];
+      document.getElementById('output3').innerHTML = io_array[6];
+      document.getElementById('output4').innerHTML = io_array[7];
+  
+      var JSonObj = JSON.parse(io_obj);
+      for (var i = 0; i < io_array.length; i++) {
+        JSonObj.Data[i] = io_array[i];
+      }
+      var StringJson = JSON.stringify(JSonObj);
+      StringJson = StringJson.replaceAll("false", "0");
+      StringJson = StringJson.replaceAll("true", "1");
+      console.log(StringJson);
+      websocket.send(StringJson);
+      StringJson = "";
+    }
   }
   function toggle(){
     websocket.send('toggle');
+  }
+  function settingmodbus() {
+    document.getElementById("cardmodbus").style.display = "block";
+    document.getElementById("cardio").style.display = "none";
+    document.getElementById("cardhome").style.display = "none"
+    document.getElementById("cardshowfile").style.display = "none"
+  }
+  function settingio() {
+    document.getElementById("cardmodbus").style.display = "none";
+    document.getElementById("cardhome").style.display = "none"
+    document.getElementById("cardio").style.display = "block";
+    document.getElementById("cardshowfile").style.display = "none"
+  }
+  function Home() {
+    document.getElementById("cardmodbus").style.display = "none";
+    document.getElementById("cardio").style.display = "none";
+    document.getElementById("cardhome").style.display = "block";
+    document.getElementById("cardshowfile").style.display = "none"
+  }
+  function Showfile(){
+    document.getElementById("cardmodbus").style.display = "none";
+    document.getElementById("cardio").style.display = "none";
+    document.getElementById("cardhome").style.display = "none";
+    document.getElementById("cardshowfile").style.display = "block"
   }
   function save(){
     var ssid_input = document.getElementById('input_ssid').value;
@@ -69,10 +168,10 @@
       alert("Web Subnet Emty");
     }
     else{
-      var json_output = "{'SSID':'" + ssid_input + "','PASS':'" + pass_input +"','STATIC_IP':'" + staticip_input + "','WEB_ADDRESS':'" + waddress_input + "','WEB_GETWAY':'" + wgetway_input + "','WEB_SUBNET':'" + wsubnet_input +"','WIFI_MODE':'" + wifimode_input + "','CHANEL':'" + Chanel_input + "'}";
+      var json_output = "{'Command':'settingWifi','SSID':'" + ssid_input + "','PASS':'" + pass_input + "','waddress':'" + waddress_input + "','wgetway':'" + wgetway_input + "','wsubnet':'" + wsubnet_input + "','staticIP':'" + staticip_input + "','wmode':'" + wifimode_input + "'}";
       console.log(json_output);
       websocket.send(json_output);
-      alert("Completed setting!!!");
+      
     }
   }
   function send_modbus(){
@@ -87,11 +186,24 @@
     var readdres_input = document.getElementById('input_read_end').value;
     var sendvalue_input = document.getElementById('input_sendvalue').value;
     var receivevalue_input = document.getElementById('input_receivevalue').value;
-    
-    var output = "{'SLAVE_ID':'" + slaveid_input +"','BAUD':'" + baud_input + "','RTU_TCP':'"+ rtu_tcp_input + "','SERIAL_PORT':'" + port_input +"','MODE':'" + mode +"','WRITE_START':'" + wsaddres_input +"','WRITE_END':'" + weaddres_input +"','READ_START':'" + rsaddres_input + "','READ_END':'" + readdres_input +"','SEND_VALUE':'" + sendvalue_input +"','RECEIVE_VALUE':'" + receivevalue_input +"'}";
-    console.log(output);
-    websocket.send(output);
-    alert("Modbus sended!!!");
+    if (slaveID == "") {
+      alert("chua nhap slaveID ");
+    } else if (baud == "") {
+      alert("chua nhap baudrate");
+    } else if (readStart == "") {
+      alert("chua nhap Dia chi doc dau tien");
+    } else if (readEnd == "") {
+      alert("chua nhap Dia chi doc ket thuc");
+    } else if (writeStart == "") {
+      alert("chua nhap Dia chi ghi dau tien");
+    } else if (writeEnd == "") {
+      alert("chua nhap Dia chi ghi ket thuc");
+    } else{
+      var output = "{'Command':'settingModbus','slaveID':'" + slaveid_input + "','baud':'" + baud_input + "','readStart':'" + rsaddres_input + "','readEnd':'" + readdres_input + "','writeStart':'" + wsaddres_input + "','writeEnd':'" + weaddres_input + "','serial':'" + port_input + "','mbmaster':'" + mode + "'}";
+      console.log(output);
+      websocket.send(output);
+      alert("Modbus sended!!!");
+    }
   }
   function openSettingModalNV() {
     var modal = new bootstrap.Modal(document.getElementById('settingModalNV'));
@@ -140,6 +252,7 @@
   document.getElementById('settingBtnLog').addEventListener('click', openSettingModalLog);
   document.getElementById('settingBtnList').addEventListener('click', openSettingModalList);
   document.getElementById('settingBtnSetting').addEventListener('click', openSettingModalSetting);
+
   function SelectTab(evt, cityName) {
     var i, tabcontent, tablinks;
     tabcontent = document.getElementsByClassName("tabcontent");
@@ -152,4 +265,81 @@
     }
     document.getElementById(cityName).style.display = "block";
     evt.currentTarget.className += " active";
+  }
+
+  if (!!window.EventSource) {
+    var source = new EventSource('/events');
+  
+    source.addEventListener('open', function (e) {
+      console.log("Events Connected");
+    }, false);
+  
+    source.addEventListener('error', function (e) {
+      if (e.target.readyState != EventSource.OPEN) {
+        console.log("Events Disconnected");
+      }
+    }, false);
+  
+    source.addEventListener('message', function (e) {
+      console.log("message", e.data);
+    }, false);
+  }
+  function loadChart() {
+    var datalogHuy1 = " {\"Data\":[{\"value\":\"1\",\"type\":\"0\",\"slaveID\":\"1\"},{\"value\":\"2\",\"type\":\"3\",\"slaveID\":\"10\"},{\"value\":\"3\",\"type\":\"2\",\"slaveID\":\"3\"},{\"value\":\"4\",\"type\":\"1\",\"slaveID\":\"5\"},{\"value\":\"5\",\"type\":\"3\",\"slaveID\":\"133\"},{\"value\":\"6\",\"type\":\"1\",\"slaveID\":\"44\"},{\"value\":\"7\",\"type\":\"0\",\"slaveID\":\"20\"}]}";
+    loadtable(datalogHuy1);
+    tablefile(datalogHuy1);
+  }
+  function loadtable(jsonValue){
+    var TableHTML = "";
+    TableHTML = "<table class=\"table \"><thead class=\"thead-dark\"><th>STT</th><th>Slave ID</th><th>Thời Gian</th><th>Kiểu dữ liệu</th><th>Data</th></thead><tbody>";
+    var keys = JSON.parse(jsonValue);
+    console.log(keys.Data);
+    var stt = 0;
+    for (var i = 0; i < keys.Data.length; i++) {
+      stt++;
+      var id = keys.Data[i].slaveID;
+      var type = keys.Data[i].type;
+      if(type == '0') type = "Coil";
+      else if(type == '1') type = "Word";
+      else if(type == '2') type = "DWord";
+      else if(type == '3') type = "Float";
+      var h = new Date().getHours();
+      var m = new Date().getMinutes();
+      var s = new Date().getSeconds();
+      console.log("Time:" + h + ":" + m + ":" + s);
+      const value = keys.Data[i].value;
+      var thoigian = h + ":" + m + ":" + s;
+      TableHTML += "<tr><td>"+stt+"</td><td>"+id+"</td><td>"+thoigian+"</td><td>"+type+"</td><td>"+value+"</td></tr>";
+    }
+    TableHTML += "</tbody></table>";
+    
+    document.getElementById("TableData").innerHTML = TableHTML;
+  
+  }
+  function tablefile(jsonValue){
+    var TableHTML = "";
+    TableHTML = "<table class=\"table \"><thead class=\"thead-dark\"><th>STT</th><th>File Name</th><th>Use Space</th><th>Kiểu dữ liệu</th><th>Data</th></thead><tbody>";
+    var keys = JSON.parse(jsonValue);
+    console.log(keys.Data);
+    var stt = 0;
+    for (var i = 0; i < keys.Data.length; i++) {
+      stt++;
+      var id = keys.Data[i].slaveID;
+      var type = keys.Data[i].type;
+      if(type == '0') type = "Coil";
+      else if(type == '1') type = "Word";
+      else if(type == '2') type = "DWord";
+      else if(type == '3') type = "Float";
+      var h = new Date().getHours();
+      var m = new Date().getMinutes();
+      var s = new Date().getSeconds();
+      console.log("Time:" + h + ":" + m + ":" + s);
+      const value = keys.Data[i].value;
+      var thoigian = h + ":" + m + ":" + s;
+      TableHTML += "<tr><td>"+stt+"</td><td>"+id+"</td><td>"+thoigian+"</td><td>"+type+"</td><td>"+value+"</td></tr>";
+    }
+    TableHTML += "</tbody></table>";
+    
+    document.getElementById("TableFile").innerHTML = TableHTML;
+  
   }
