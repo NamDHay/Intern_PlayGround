@@ -193,14 +193,23 @@ void setModbusHandler()
     String serial = rdoc["serial"].as<String>();
     String mbmaster = rdoc["mbmaster"].as<String>();
 
+    modbus.mbmaster = (mbmaster == "0") ? true : false;
     modbus.config.slaveID = slaveID.toInt();
     modbus.config.baud = baud.toInt();
     modbus.config.port = (serial == "0") ? &Serial1 : &Serial2;
-    modbus.readTemp.startAddress = readStart.toInt();
-    modbus.readTemp.endAddress = readEnd.toInt();
-    modbus.writeTemp.startAddress = writeStart.toInt();
-    modbus.writeTemp.endAddress = writeEnd.toInt();
-    modbus.mbmaster = (mbmaster == "0") ? true : false;
+    if(modbus.mbmaster == 1){
+        modbus.MasterReadReg.startAddress = readStart.toInt();
+        modbus.MasterReadReg.endAddress = readEnd.toInt();
+        modbus.MasterWriteReg.startAddress = writeStart.toInt();
+        modbus.MasterWriteReg.endAddress = writeEnd.toInt();
+    }
+
+    if(modbus.mbmaster == 0){
+        modbus.SlaveReadReg.startAddress = readStart.toInt();
+        modbus.SlaveReadReg.endAddress = readEnd.toInt();
+        modbus.SlaveWriteReg.startAddress = writeStart.toInt();
+        modbus.SlaveWriteReg.endAddress = writeEnd.toInt();
+    }
 
     wDoc["Command"] = "settingWifi";
     wDoc["Data"] = "SetingDone";

@@ -12,14 +12,24 @@ public:
         unsigned long baud;
         HardwareSerial *port;
     }config;
-    struct Read_t {
+    struct MRead_t {
         long startAddress;
         long endAddress;
-    }readTemp;
-    struct Write_t {
+    }MasterReadReg;
+    struct MWrite_t {
         long startAddress;
         long endAddress;
-    }writeTemp;
+    }MasterWriteReg;
+
+
+    struct SRead_t {
+        long startAddress;
+        long endAddress;
+    }SlaveReadReg;
+    struct SWrite_t {
+        long startAddress;
+        long endAddress;
+    }SlaveWriteReg;
     void MasterInit(HardwareSerial *port, unsigned long baud);
     void SlaveInit(HardwareSerial *port, unsigned long baud);
 };
