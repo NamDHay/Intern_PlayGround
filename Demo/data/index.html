@@ -9,8 +9,9 @@
   </style>
   <style>
     h1 {
-      font-size: 2.5rem;
+      font-size: 3rem;
       color: red;
+      font-weight: bold;
     }
     h2{
       font-size: 2rem;
@@ -223,7 +224,6 @@
       user-select: none;
       -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
     }
-    
     .buttoncuatao_output:active {
         background-color: #0f8b8d;
         box-shadow: 2 2px #CDCDCD;
@@ -358,21 +358,24 @@
   <div class="topnav">
     <Center><h1>WIFI SETTING</h1></Center>
   </div>
+
+  <!-- Thanh Setting -->
   <nav class="navbar navbar-expand-sm " style="background-color: #143642;">
     <div class="container-fluid">
       <ul class="nav navbar-nav me-auto nav-pills mb-3" id="pills-tab" role="tablist">
         <li class="nav-item">
-            <a class="navbar-brand" id="tabHome" style="font-size: 2.0rem; font-weight: bold; text-align: center; color: yellow; ">HOME</a>
+          <a class="navbar-brand" id="tabHome" style="font-size: 2.0rem; font-weight: bold; text-align: center; color: yellow; ">HOME</a>
         </li>
         <li class="nav-item">
-            <a class="navbar-brand" id="tabmodbus" style="font-size: 2.0rem; font-weight: bold; text-align: center; color: yellow; ">ModBus</a>
+          <a class="navbar-brand" id="tabmodbus" style="font-size: 2.0rem; font-weight: bold; text-align: center; color: yellow; ">ModBus</a>
         </li>
         <li class="nav-item">
-            <a class="navbar-brand" id="tabIO" style="font-size: 2.0rem; font-weight: bold; text-align: center; color: yellow; ">IO</a>
+          <a class="navbar-brand" id="tabIO" style="font-size: 2.0rem; font-weight: bold; text-align: center; color: yellow; ">IO</a>
         </li>
         <li class="nav-item">
           <a class="navbar-brand" id="tabshowfile" style="font-size: 2.0rem; font-weight: bold; text-align: center; color: yellow; ">Show File</a>
-      </li>
+        </li>
+
       </ul>
         <ul class="navbar-nav" style="height: 40px;">
           <li class="nav-item dropdown" style="position: absolute; right: 0px;">
@@ -408,6 +411,8 @@
         </ul>
     </div>
   </nav>
+
+  <!-- Tab Home -->
   <div id="cardhome" class="contentcuatao" style="display: block;">
     <div class="cardcuatao">
       <CENTER>
@@ -417,11 +422,12 @@
     </div>
   </div>
 
+  <!-- Tab IO Config -->
   <div id="cardio" class="contentcuatao" style="display:none">
     <div class="content">
       <div class="card">
         <Center><h2>LED STATUS</h2>
-        <p class="state"><span id="state">STATUS<span></p>
+        <p class="state"><span id="state">STATUS</span></p>
         <p><button id="buttontoggle" class="button">TOGGLE</button></p></Center>
       </div><br>
       <div class="cardcuatao">
@@ -471,6 +477,8 @@
     </div><br>
     </div>
   </div>
+
+  <!-- Tab Modbus Config -->
   <div id="cardmodbus" class="contentcuatao" style="display:none">
     <div class="cardcuatao">
       <Center><h2>MODBUS CONSOLE</h2></Center>
@@ -490,51 +498,66 @@
     <Center><span><button id="buttonsend" class="button">SEND</button></span></Center>  
   </div><br>
   
+  <!-- Tab Show File -->
   <div id="cardshowfile" class="contentcuatao" style="display: none;">
     <div class="cardcuatao">
       <CENTER>
-          <h2>Show File</h2>
+          <h2>SHOW FILE</h2>
+          <div id="TableFile"></div>
+      </CENTER>
+      <div>
+        <p class="state">Total Space: <span id="total">Total</span></p>
+        <p class="state">Use Space: <span id="use">Use</span></p>
+        <p class="state">Free Space: <span id="free">Free</span></p>
+      </div>
+    </div>
+  </div>
+  <!-- Tab MQTT -->
+  <div id="cardmqtt" class="contentcuatao" style="display: none;">
+    <div class="cardcuatao">
+      <CENTER>
+          <h2>MQTT</h2>
           <div id="TableFile"></div>
       </CENTER>
     </div>
   </div>
   <!-- settingModalSetting -->
-    <div class="modal fade" id="settingModalSetting" tabindex="-1" aria-labelledby="settingModalSettingSPLabel" aria-hidden="true">
-    <div class="modal-dialog" style="width: 100%;">
-      <div class="modal-content">
-        <div class="modal-header">
-            <h5 class="modal-title" id="settingModalLabel " style="font-size: 1.5rem; font-weight: bold;">SETTING</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div>
-          <div id="SettingsPage">
-            <div class="navbar navbar-expand-sm " style="background-color: #343a40;">
-              <button type="button" class="btn btn-lg" onclick="SelectTab(event, &#39;wifi&#39;)">
-                <svg class="bi" width="24" height="24">
-                <use xlink:href="#icon-wifi"></use></svg>
-              </button>
-              <button type="button" class="btn btn-lg" onclick="SelectTab(event, &#39;ethernet&#39;)">
-                <svg class="bi" width="24" height="24">
-                <use xlink:href="#icon-ethernet"></use></svg>
-              </button>
-              <button type="button" class="btn btn-lg" onclick="SelectTab(event, &#39;mqtt&#39;)">
-                <svg class="bi" width="24" height="24">
-                <use xlink:href="#icon-mqtt"></use></svg>
-              </button>
-              <button type="button" class="btn btn-lg" onclick="SelectTab(event, &#39;rfnet&#39;)">
-                <svg class="bi" width="24" height="24">
-                <use xlink:href="#icon-rfnet"></use></svg>
-              </button>
-              <button type="button" class="btn btn-lg" onclick="SelectTab(event, &#39;io&#39;)">
-                <svg class="bi" width="24" height="24">
-                <use xlink:href="#icon-io"></use></svg>
-              </button>
-              <button type="button" class="btn btn-lg" onclick="SelectTab(event, &#39;gyro&#39;)">
-                <svg class="bi" width="24" height="24">
-                <use xlink:href="#icon-gyro"></use></svg>
-              </button>
-            </div>
-            <form action="http://192.168.4.1/getIP">
+<div class="modal fade" id="settingModalSetting" tabindex="-1" aria-labelledby="settingModalSettingSPLabel" aria-hidden="true">
+  <div class="modal-dialog" style="width: 100%;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="settingModalLabel " style="font-size: 1.5rem; font-weight: bold;">SETTING</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div>
+        <div id="SettingsPage">
+          <div class="navbar navbar-expand-sm " style="background-color: #343a40;">
+            <button type="button" class="btn btn-lg" onclick="SelectTab(event, &#39;wifi&#39;)">
+              <svg class="bi" width="24" height="24">
+              <use xlink:href="#icon-wifi"></use></svg>
+            </button>
+            <button type="button" class="btn btn-lg" onclick="SelectTab(event, &#39;ethernet&#39;)">
+              <svg class="bi" width="24" height="24">
+              <use xlink:href="#icon-ethernet"></use></svg>
+            </button>
+            <button type="button" class="btn btn-lg" onclick="SelectTab(event, &#39;mqtt&#39;)">
+              <svg class="bi" width="24" height="24">
+              <use xlink:href="#icon-mqtt"></use></svg>
+            </button>
+            <button type="button" class="btn btn-lg" onclick="SelectTab(event, &#39;rfnet&#39;)">
+              <svg class="bi" width="24" height="24">
+              <use xlink:href="#icon-rfnet"></use></svg>
+            </button>
+            <button type="button" class="btn btn-lg" onclick="SelectTab(event, &#39;io&#39;)">
+              <svg class="bi" width="24" height="24">
+              <use xlink:href="#icon-io"></use></svg>
+            </button>
+            <button type="button" class="btn btn-lg" onclick="SelectTab(event, &#39;gyro&#39;)">
+              <svg class="bi" width="24" height="24">
+              <use xlink:href="#icon-gyro"></use></svg>
+            </button>
+          </div>
+            <form action="http://192.168.1.128/getIP">
               <div id="wifi" class="tabcontent" style="display: block;">
                 <div id="WifiList"></div>
                 <div class="container py-3">
@@ -556,36 +579,37 @@
               <div id="ethernet" class="tabcontent" style="display: none">
                 <div class="container py-3">
                   <header>
-                    <div class="d-flex flex-column flex-md-row align-items-center pb-3 mb-4 border-bottom"><span class="fs-4">ethernet config</span></div>
+                    <div class="d-flex flex-column flex-md-row align-items-center pb-3 mb-4 border-bottom"><span class="fs-4">ETHERNET CONFIG</span></div>
                   </header>
-                  <div><p>address</p><input type="text" name="address" id="address" size="20" value="192.168.2.101"></div>
-                  <div><p>getway</p><input type="text" name="getway" id="getway" size="20" value="192.168.2.1"></div>
-                  <div><p>subnet</p><input type="text" name="subnet" id="subnet" size="20" value="255.255.255.0"></div>
-                  <div><p>p_dns</p><input type="text" name="p_dns" id="p_dns" size="20" value="8.8.8.8"></div><div><p>s_dns</p><input type="text" name="s_dns" id="s_dns" size="20" value="8.8.4.4"></div>
-                  <div><p>p_port</p><input type="number" name="p_port" id="p_port" size="4" value="502"></div>
+                  <div>ADDRESS: <input type="text" id="address" size="20" placeholder="192.168.2.101"></div><br>
+                  <div>GETWAY: <input type="text" id="getway" size="20" placeholder="192.168.2.1"></div><br>
+                  <div>SUBNET: <input type="text" id="subnet" size="20" placeholder="255.255.255.0"></div><br>
+                  <div>P_DNS: <input type="text" id="p_dns" size="20" placeholder="8.8.8.8"></div><br>
+                  <div>S_DNS: <input type="text" id="s_dns" size="20" placeholder="8.8.4.4"></div><br>
+                  <div>P_PORT: <input type="number" id="p_port" size="4" placeholder="502"></div>
                 </div>
               </div>
               <div id="mqtt" class="tabcontent" style="display: none">
                 <div class="container py-3">
                   <header>
-                    <div class="d-flex flex-column flex-md-row align-items-center pb-3 mb-4 border-bottom"><span class="fs-4">mqtt config</span></div>
+                    <div class="d-flex flex-column flex-md-row align-items-center pb-3 mb-4 border-bottom"><span class="fs-4">MQTT CONFIG</span></div>
                   </header>
-                  <div><p>MQTT_Host</p><input type="text" name="MQTT_Host" id="MQTT_Host" size="30" value="test.mosquitto.org"></div>
-                  <div><p>MQTT_Port</p><input type="number" name="MQTT_Port" id="MQTT_Port" size="4" value="1883"></div>
-                  <div><p>MQTT_user</p><input type="text" name="MQTT_user" id="MQTT_user" size="20" value=""></div>
-                  <div><p>MQTT_pass</p><input type="text" name="MQTT_pass" id="MQTT_pass" size="20" value=""></div></div>
+                  <div>MQTT_HOST: <input type="text" id="MQTT_Host" size="20" value=""></div><br>
+                  <div>MQTT_PORT: <input type="number" id="MQTT_Port" size="20" value=""></div><br>
+                  <div>MQTT_USER: <input type="text" id="MQTT_user" size="20" value=""></div><br>
+                  <div>MQTT_PASS: <input type="text" id="MQTT_pass" size="20" value=""></div></div>
                 </div>
                 <div id="rfnet" class="tabcontent" style="display: none">
                   <div class="container py-3">
                     <header>
-                      <div class="d-flex flex-column flex-md-row align-items-center pb-3 mb-4 border-bottom"><span class="fs-4">rfnet config</span></div>
+                      <div class="d-flex flex-column flex-md-row align-items-center pb-3 mb-4 border-bottom"><span class="fs-4">RFNET CONFIG</span></div>
                     </header>
-                    <div><p>rfmode</p><select name="rfmode" value="0"><option value="0" selected="">Mesh</option><option value="1">WifiRF</option><option value="2">LoRa</option></select></div>
-                    <div><p>networkname</p><input type="text" name="networkname" id="networkname" size="20" value="iSoftMesh"></div>
-                    <div><p>meshpass</p><input type="text" name="meshpass" id="meshpass" size="20" value="i-Soft@2709"></div>
-                    <div><p>meshport</p><input type="number" name="meshport" id="meshport" size="4" value="3"></div>
-                    <div><p>meshid</p><input type="number" name="meshid" id="meshid" size="4" value="7"></div>
-                    <div><p>meshrole</p><select name="meshrole" value="Bridge"><option value="Bridge" selected="">Bridge</option><option value="Node">Node</option></select></div>
+                    <div><p>RFMODE</p><select name="rfmode" value="0"><option value="0" selected="">Mesh</option><option value="1">WifiRF</option><option value="2">LoRa</option></select></div>
+                    <div><p>NetWorkName</p><input type="text" name="networkname" id="networkname" size="20" value="iSoftMesh"></div>
+                    <div><p>MeshPass</p><input type="text" name="meshpass" id="meshpass" size="20" value="i-Soft@2709"></div>
+                    <div><p>MeshPort</p><input type="number" name="meshport" id="meshport" size="4" value="3"></div>
+                    <div><p>MeshID</p><input type="number" name="meshid" id="meshid" size="4" value="7"></div>
+                    <div><p>MeshRole</p><select name="meshrole" value="Bridge"><option value="Bridge" selected="">Bridge</option><option value="Node">Node</option></select></div>
                   </div>
                 </div>
                 <div id="io" class="tabcontent" style="display: none"><div class="container py-3">
@@ -624,6 +648,7 @@
       </div>                     
     </div> 
   </div>
+</div>
   <script src="./main.js"></script>
 </body>
 
