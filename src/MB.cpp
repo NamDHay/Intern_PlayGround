@@ -173,23 +173,26 @@ bool write_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t len
 
 void TaskModbus(void *pvParameter)
 {
-    for (int i = 0; i < 60; i++)
-    {
-        Master_WriteData[i] = i;
-        Master_ReadData[i] = 0;
-        Slave_WriteData[i] = i;
-        Slave_ReadData[i] = 0;
-    }
-    modbus.config.slaveID = 1;
-    modbus.MasterReadReg.startAddress = 0;
-    modbus.MasterReadReg.endAddress = 10;
-    modbus.MasterWriteReg.startAddress = 11;
-    modbus.MasterWriteReg.endAddress = 20;
+    /********Test*********/
+    // for (int i = 0; i < 60; i++)
+    // {
+    //     Master_WriteData[i] = i;
+    //     Master_ReadData[i] = 0;
+    //     Slave_WriteData[i] = i;
+    //     Slave_ReadData[i] = 0;
+    // }
+    // modbus.config.slaveID = 1;
+    // modbus.MasterReadReg.startAddress = 0;
+    // modbus.MasterReadReg.endAddress = 10;
+    // modbus.MasterWriteReg.startAddress = 11;
+    // modbus.MasterWriteReg.endAddress = 20;
 
-    modbus.SlaveReadReg.startAddress = 11;
-    modbus.SlaveReadReg.endAddress = 20;
-    modbus.SlaveWriteReg.startAddress = 0;
-    modbus.SlaveWriteReg.endAddress = 10;
+    // modbus.SlaveReadReg.startAddress = 11;
+    // modbus.SlaveReadReg.endAddress = 20;
+    // modbus.SlaveWriteReg.startAddress = 0;
+    // modbus.SlaveWriteReg.endAddress = 10;
+    /********Test*********/
+
     if (master == 1)
     {
         modbus.MasterInit(&Serial2, MODBUS_BAUD_);
@@ -216,7 +219,7 @@ void TaskModbus(void *pvParameter)
                                               modbus.MasterReadReg.startAddress,
                                               (modbus.MasterReadReg.endAddress - modbus.MasterReadReg.startAddress + 1)) != true)
                         ;
-                    Serial.println("Done reading from slave");
+                    Serial.println("Done reading from slave");     // Need to wait for the master read to complete
                     vTaskDelay(1000 / portTICK_PERIOD_MS);
                     Serial.println("Start writing to slave");
                     while (write_Multiple_Data(modbus.config.slaveID,
@@ -225,7 +228,7 @@ void TaskModbus(void *pvParameter)
                                                (modbus.MasterWriteReg.endAddress - modbus.MasterWriteReg.startAddress + 1)) != true)
                         ;
                     Serial.println("Done writing to slave");
-                    vTaskDelay(1000 / portTICK_PERIOD_MS);
+                    vTaskDelay(1000 / portTICK_PERIOD_MS);          // Need to wait for the master write to complete
                 }
             }
         } // Master part
