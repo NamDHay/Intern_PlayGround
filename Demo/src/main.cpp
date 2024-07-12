@@ -21,7 +21,7 @@ void TaskModbus(void *pvParameter);
 const IPAddress localIP(192, 168, 4, 1);		
 const IPAddress gatewayIP(192, 168, 4, 1);	   
 const IPAddress subnetMask(255, 255, 255, 0);
-const String localIPURL = "http://192.168.4.1";
+const String localIPURL = "http://192.168.1.52";
 
 struct Settings
 {
