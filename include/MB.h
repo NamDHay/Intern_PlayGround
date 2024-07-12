@@ -21,7 +21,6 @@ public:
         long endAddress;
     }MasterWriteReg;
 
-
     struct SRead_t {
         long startAddress;
         long endAddress;
@@ -30,6 +29,17 @@ public:
         long startAddress;
         long endAddress;
     }SlaveWriteReg;
+
+    enum TypeData_t {
+        COIL,
+        WORD,
+        DWORDS,
+        FLOAT,
+    };
+
+    TypeData_t readTypeData;
+    TypeData_t writeTypeData;
+    
     void MasterInit(HardwareSerial *port, unsigned long baud);
     void SlaveInit(HardwareSerial *port, unsigned long baud);
 };

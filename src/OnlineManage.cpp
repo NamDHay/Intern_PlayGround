@@ -20,6 +20,9 @@ const char *ntpServer = "vn.pool.ntp.org";
 const long gmtOffset_sec = 3600;
 const int daylightOffset_sec = 3600;
 
+
+
+
 void OnlineManage::Init()
 {
     online.loadSetting();
@@ -154,7 +157,7 @@ void OnlineManage::PortalInit()
     Serial.print("\n");
 }
 
-void notifyClients(const String &message)
+void OnlineManage::notifyClients(const String &message)
 {
     ws.textAll(message);
 }
@@ -165,7 +168,6 @@ String DataStr = "";
 String fbDataString = "";
 void getIOHandler()
 {
-    Serial.println("I'm here getIO");
     int DataArr[10];
     int size = sizeof(DataArr);
     for (int i = 0; i < 10; i++)
@@ -214,7 +216,7 @@ void setModbusHandler()
     wDoc["Command"] = "settingWifi";
     wDoc["Data"] = "SetingDone";
     serializeJson(wDoc, fbDataString);
-    notifyClients(fbDataString);
+    online.notifyClients(fbDataString);
 }
 void setWifiHandler()
 {
@@ -245,7 +247,7 @@ void setWifiHandler()
     wDoc["Command"] = "settingWifi";
     wDoc["Data"] = "SetingDone";
     serializeJson(wDoc, fbDataString);
-    notifyClients(fbDataString);
+    online.notifyClients(fbDataString);
     bool IsMessage = true;
     xQueueSend(online.qWifiSetting, (void *)&IsMessage, 1 / portTICK_PERIOD_MS);
 }
@@ -270,7 +272,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
             wDoc["Command"] = "toggleLed";
             wDoc["Data"] = digitalRead(LED);
             serializeJson(wDoc, fbDataString);
-            notifyClients(fbDataString);
+            online.notifyClients(fbDataString);
             digitalWrite(LED, !digitalRead(LED));
         }
         else if (command == "getMem")
@@ -280,7 +282,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
             wDoc["Command"] = "getMem";
             wDoc[""] = (ESP.getHeapSize() - ESP.getFreeHeap());
             serializeJson(wDoc, fbDataString);
-            notifyClients(fbDataString);
+            online.notifyClients(fbDataString);
         }
         else if (command == "getIO")
         {
@@ -303,9 +305,11 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
     {
     case WS_EVT_CONNECT:
         Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
+        online.isConnected = true;
         break;
     case WS_EVT_DISCONNECT:
         Serial.printf("WebSocket client #%u disconnected\n", client->id());
+        online.isConnected = false;
         break;
     case WS_EVT_DATA:
         handleWebSocketMessage(arg, data, len);
@@ -380,14 +384,6 @@ void OnlineManage::NTPInit()
 }
 void OnlineManage::printLocalTime()
 {
-    // time_t now;
-    // struct tm timeinfo;
-    // time(&now);
-    // gmtime_r(&now, &timeinfo);
-    // timeinfo.tm_hour += 7;
-    // timeinfo.tm_hour %= 24;
-    // Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
-
     struct tm timeinfo;
     if (!getLocalTime(&timeinfo))
     {
@@ -423,8 +419,7 @@ void OnlineManage::printLocalTime()
 
 void TaskOnlineManager(void *pvParameter)
 {
-    static long startUpdateIntervalTime = millis();
-    static long startPortalTime = millis();
+
     static long startCheckWifiTime = millis();
     static bool setWifi = false;
     static bool isMessageReceived = false;
@@ -444,12 +439,6 @@ void TaskOnlineManager(void *pvParameter)
             WiFi.begin(online.wifi_setting.ssid, online.wifi_setting.pass);
             isMessageReceived = false;
         }
-        // if (millis() - startUpdateIntervalTime >= UPDATE_INTERVAL_MS)
-        // {
-        //     startUpdateIntervalTime = millis();
-        //     Serial.print("Usage heap memory: ");
-        //     Serial.println((ESP.getHeapSize() - ESP.getFreeHeap()));
-        // }
         if (millis() - startCheckWifiTime >= WIFI_STATUS_INTERVAL)
         {
             startCheckWifiTime = millis();

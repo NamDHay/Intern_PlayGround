@@ -10,12 +10,7 @@ var io_obj = "{\"Command\": \"getIO\",\"id\": \"1\",\"Data\":[]}";
 const intervalId = setInterval(intervalHandle, 1000);
 window.addEventListener('beforeunload', () => clearInterval(intervalId));
 window.addEventListener('load', onLoad);
-function getReadings() {
-    console.log(io_array.length);
-    for (var i = 0; i < io_array.length; i++) {
-        console.log("Get IO: " + io_array[i]);
-    }
-}
+
 function initWebSocket() {
     console.log('Trying to open a WebSocket connection...');
     websocket = new WebSocket(gateway);
@@ -24,9 +19,11 @@ function initWebSocket() {
     websocket.onmessage = onMessage;
 }
 function onOpen(event) {
+    IsConnect = true;
     console.log('Connection opened');
 }
 function onClose(event) {
+    IsConnect = false;
     console.log('Connection closed');
     setTimeout(initWebSocket, 2000);
 }
@@ -87,7 +84,6 @@ function initButton() {
 function intervalHandle() {
     var json_output;
     if (IsConnect == true) {
-
         json_output = "{'Command':'toggleLed'}";
         websocket.send(json_output);
 
@@ -183,6 +179,8 @@ function send_modbus() {
     var weaddres_input = document.getElementById('input_write_end').value;
     var rsaddres_input = document.getElementById('input_read_start').value;
     var readdres_input = document.getElementById('input_read_end').value;
+    var Wmode = document.getElementById('Wmode').value;
+    var Rmode = document.getElementById('Rmode').value;
     if (slaveid_input == "") {
         alert("chua nhap slaveID ");
     } else if (baud_input == "") {
@@ -196,7 +194,7 @@ function send_modbus() {
     } else if (weaddres_input == "") {
         alert("chua nhap Dia chi ghi ket thuc");
     } else {
-        var output = "{'Command':'settingModbus','slaveID':'" + slaveid_input + "','baud':'" + baud_input + "','readStart':'" + rsaddres_input + "','readEnd':'" + readdres_input + "','writeStart':'" + wsaddres_input + "','writeEnd':'" + weaddres_input + "','serial':'" + port_input + "','mbmaster':'" + mode + "'}";
+        var output = "{'Command':'settingModbus','slaveID':'" + slaveid_input + "','baud':'" + baud_input + "','readStart':'" + rsaddres_input + "','readEnd':'" + readdres_input + "','writeStart':'" + wsaddres_input + "','writeEnd':'" + weaddres_input + "','serial':'" + port_input + "','mbmaster':'" + mode + "'Wmode':'" + Wmode + "','Rmode':'" + Rmode + "'}";
         console.log(output);
         websocket.send(output);
         alert("Modbus sended!!!");

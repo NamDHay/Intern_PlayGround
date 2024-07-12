@@ -1,5 +1,6 @@
 #include <OnlineManage.h>
 #include <MB.h>
+#include <ArduinoJson.h>
 
 ModbusRTU mb;
 
@@ -171,27 +172,51 @@ bool write_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t len
     return false;
 }
 
+void update_WebData_Interval()
+{
+    JsonDocument wDoc;
+    JsonDocument mbOjb;
+    String fbDataString = "";
+    JsonArray dataArray;
+    if (online.isConnected == true)
+    {
+        wDoc["Command"] = "Data";
+        dataArray = wDoc["Data"].to<JsonArray>();
+        mbOjb["slaveID"] = modbus.config.slaveID;
+        mbOjb["type"] = modbus.readTypeData;
+        for (uint8_t i = 0; i < 10; i++)
+        {
+            mbOjb["value"] = Master_ReadData[i];
+            dataArray.add(mbOjb);
+        }
+        serializeJson(wDoc, fbDataString);
+        online.notifyClients(fbDataString);
+    }
+}
+
 void TaskModbus(void *pvParameter)
 {
     /********Test*********/
-    // for (int i = 0; i < 60; i++)
-    // {
-    //     Master_WriteData[i] = i;
-    //     Master_ReadData[i] = 0;
-    //     Slave_WriteData[i] = i;
-    //     Slave_ReadData[i] = 0;
-    // }
-    // modbus.config.slaveID = 1;
-    // modbus.MasterReadReg.startAddress = 0;
-    // modbus.MasterReadReg.endAddress = 10;
-    // modbus.MasterWriteReg.startAddress = 11;
-    // modbus.MasterWriteReg.endAddress = 20;
+    for (uint8_t i = 0; i < 60; i++)
+    {
+        Master_WriteData[i] = i;
+        Master_ReadData[i] = 0;
+        Slave_WriteData[i] = i;
+        Slave_ReadData[i] = 0;
+    }
+    modbus.config.slaveID = 1;
+    modbus.MasterReadReg.startAddress = 0;
+    modbus.MasterReadReg.endAddress = 10;
+    modbus.MasterWriteReg.startAddress = 11;
+    modbus.MasterWriteReg.endAddress = 20;
 
-    // modbus.SlaveReadReg.startAddress = 11;
-    // modbus.SlaveReadReg.endAddress = 20;
-    // modbus.SlaveWriteReg.startAddress = 0;
-    // modbus.SlaveWriteReg.endAddress = 10;
+    modbus.SlaveReadReg.startAddress = 11;
+    modbus.SlaveReadReg.endAddress = 20;
+    modbus.SlaveWriteReg.startAddress = 0;
+    modbus.SlaveWriteReg.endAddress = 10;
     /********Test*********/
+
+    static long startUpdateIntervalTime = millis();
 
     if (master == 1)
     {
@@ -213,45 +238,25 @@ void TaskModbus(void *pvParameter)
             {
                 if (!mb.slave())
                 {
-                    Serial.println("Start reading from slave");
                     while (read_Multiple_Data(modbus.config.slaveID,
                                               Master_ReadData,
                                               modbus.MasterReadReg.startAddress,
                                               (modbus.MasterReadReg.endAddress - modbus.MasterReadReg.startAddress + 1)) != true)
                         ;
-                    Serial.println("Done reading from slave");     // Need to wait for the master read to complete
-                    vTaskDelay(1000 / portTICK_PERIOD_MS);
-                    Serial.println("Start writing to slave");
+                    vTaskDelay(1000 / portTICK_PERIOD_MS); // Need to wait for the master read to complete
                     while (write_Multiple_Data(modbus.config.slaveID,
                                                Master_WriteData,
                                                modbus.MasterWriteReg.startAddress,
                                                (modbus.MasterWriteReg.endAddress - modbus.MasterWriteReg.startAddress + 1)) != true)
                         ;
-                    Serial.println("Done writing to slave");
-                    vTaskDelay(1000 / portTICK_PERIOD_MS);          // Need to wait for the master write to complete
+                    vTaskDelay(1000 / portTICK_PERIOD_MS); // Need to wait for the master write to complete
                 }
             }
         } // Master part
-        else // Slave part
+        if (millis() - startUpdateIntervalTime >= UPDATE_INTERVAL_MS)
         {
-            // Serial.println("SlaveID: " + String(modbus.config.slaveID));
-            // for (uint8_t i = modbus.SlaveWriteReg.startAddress; i < modbus.SlaveWriteReg.endAddress; i++)
-            // {
-            //     mb.Hreg(i, Slave_WriteData[i]);
-            //     vTaskDelay(200 / portTICK_PERIOD_MS);
-            //     mb.Hreg(i, Slave_ReadData[i + 11]);
-            //     vTaskDelay(200 / portTICK_PERIOD_MS);
-            // }
-
-            // for (uint8_t i = 0; i < modbus.SlaveWriteReg.endAddress; i++)
-            // {
-            //     Serial.print("Data" + String(i) + ": ");
-            //     Serial.print(Slave_WriteData[i]);
-            //     Serial.print(" | ");
-            //     Serial.println(Slave_ReadData[i]);
-            //     Serial.flush();
-            // }
-            // mb.task();
-        } // Slave part
+            startUpdateIntervalTime = millis();
+            update_WebData_Interval();
+        }
     }
 }

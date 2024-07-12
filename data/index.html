@@ -14585,6 +14585,14 @@
                 <div>End Address: <input type="text" id="input_write_end" size="20" placeholder="Write End-Address">
                 </div><br>
             </span>
+            <span>
+                <div>Data Type: <select id="Wmode" value="0">
+                        <option value="0" selected="">COIL</option>
+                        <option value="1">WORD</option>
+                        <option value="1">DOUBLE WORD</option>
+                        <option value="1">FLOAT</option>
+                    </select></div><br>
+            </span>
             <h3>Read Address</h3>
             <span>
                 <div>Start Address: <input type="text" id="input_read_start" size="20" placeholder="Read Start-Address">
@@ -14593,6 +14601,14 @@
             <span>
                 <div>End Address: <input type="text" id="input_read_end" size="20" placeholder="Read End-Address"></div>
                 <br>
+            </span>
+            <span>
+                <div>Data Type: <select id="Rmode" value="0">
+                        <option value="0" selected="">COIL</option>
+                        <option value="1">WORD</option>
+                        <option value="1">DOUBLE WORD</option>
+                        <option value="1">FLOAT</option>
+                    </select></div><br>
             </span>
         </div><br>
         <Center><span><button id="buttonsend" class="button">SEND</button></span></Center>
@@ -14703,7 +14719,8 @@
                                     <header>
                                         <div
                                             class="d-flex flex-column flex-md-row align-items-center pb-3 mb-4 border-bottom">
-                                            <span class="fs-4">ETHERNET CONFIG</span></div>
+                                            <span class="fs-4">ETHERNET CONFIG</span>
+                                        </div>
                                     </header>
                                     <div>ADDRESS: <input type="text" id="address" size="20" placeholder="192.168.2.101">
                                     </div><br>
@@ -14721,7 +14738,8 @@
                                     <header>
                                         <div
                                             class="d-flex flex-column flex-md-row align-items-center pb-3 mb-4 border-bottom">
-                                            <span class="fs-4">MQTT CONFIG</span></div>
+                                            <span class="fs-4">MQTT CONFIG</span>
+                                        </div>
                                     </header>
                                     <div>MQTT_HOST: <input type="text" id="MQTT_Host" size="20" value=""></div><br>
                                     <div>MQTT_PORT: <input type="number" id="MQTT_Port" size="20" value=""></div><br>
@@ -14734,7 +14752,8 @@
                                     <header>
                                         <div
                                             class="d-flex flex-column flex-md-row align-items-center pb-3 mb-4 border-bottom">
-                                            <span class="fs-4">RFNET CONFIG</span></div>
+                                            <span class="fs-4">RFNET CONFIG</span>
+                                        </div>
                                     </header>
                                     <div>
                                         <p>RFMODE</p><select name="rfmode" value="0">
@@ -14771,7 +14790,8 @@
                                     <header>
                                         <div
                                             class="d-flex flex-column flex-md-row align-items-center pb-3 mb-4 border-bottom">
-                                            <span class="fs-4">io config</span></div>
+                                            <span class="fs-4">io config</span>
+                                        </div>
                                     </header>
                                     <div>
                                         <p>Delay1</p><input type="number" name="Delay1" id="Delay1" size="4"
@@ -14832,7 +14852,8 @@
                                     <header>
                                         <div
                                             class="d-flex flex-column flex-md-row align-items-center pb-3 mb-4 border-bottom">
-                                            <span class="fs-4">gyro config</span></div>
+                                            <span class="fs-4">gyro config</span>
+                                        </div>
                                     </header>
                                     <div>
                                         <p>gyro enable</p><select name="gyro enable" value="0">
@@ -14854,7 +14875,7 @@
                                     </div>
                                     <div>
                                         <p>RateDivider</p><input type="text" name="RateDivider" id="RateDivider"
-                                            size="40" value="0">
+                                            size="20" value="0">
                                     </div>
                                     <div>
                                         <p>GyroRange</p><select name="GyroRange" value="0">

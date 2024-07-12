@@ -17,12 +17,13 @@
 #define MAX_CLIENTS 4  // ESP32 supports up to 10 but I have not tested it yet
 #define WIFI_CHANNEL 6 // 2.4ghz channel 6 https://en.wikipedia.org/wiki/List_of_WLAN_channels#2.4_GHz_(802.11b/g/n/ax)
 
-#define UPDATE_INTERVAL_MS 3600000
+#define UPDATE_INTERVAL_MS 60000
 #define WIFI_STATUS_INTERVAL 2000
 class OnlineManage
 {
 private:
 public:
+    bool isConnected = false;
     QueueHandle_t qWifiSetting;
     QueueHandle_t qPortalSetting;
     String header;
@@ -50,6 +51,7 @@ public:
 
     void WebHandle();
     void WebSocketInit();
+    void notifyClients(const String &message);
     void PortalInit();
 
     void NTPInit();
