@@ -206,14 +206,15 @@ void TaskModbus(void *pvParameter)
     }
     modbus.config.slaveID = 1;
     modbus.MasterReadReg.startAddress = 0;
-    modbus.MasterReadReg.endAddress = 10;
-    modbus.MasterWriteReg.startAddress = 11;
-    modbus.MasterWriteReg.endAddress = 20;
+    modbus.MasterReadReg.endAddress = 59;
+    modbus.MasterWriteReg.startAddress = 60;
+    modbus.MasterWriteReg.endAddress = 119;
 
     modbus.SlaveReadReg.startAddress = 11;
     modbus.SlaveReadReg.endAddress = 20;
     modbus.SlaveWriteReg.startAddress = 0;
     modbus.SlaveWriteReg.endAddress = 10;
+
     /********Test*********/
 
     static long startUpdateIntervalTime = millis();
@@ -243,20 +244,20 @@ void TaskModbus(void *pvParameter)
                                               modbus.MasterReadReg.startAddress,
                                               (modbus.MasterReadReg.endAddress - modbus.MasterReadReg.startAddress + 1)) != true)
                         ;
-                    vTaskDelay(1000 / portTICK_PERIOD_MS); // Need to wait for the master read to complete
+                    // vTaskDelay(1000 / portTICK_PERIOD_MS); // Need to wait for the master read to complete
                     while (write_Multiple_Data(modbus.config.slaveID,
                                                Master_WriteData,
                                                modbus.MasterWriteReg.startAddress,
                                                (modbus.MasterWriteReg.endAddress - modbus.MasterWriteReg.startAddress + 1)) != true)
                         ;
-                    vTaskDelay(1000 / portTICK_PERIOD_MS); // Need to wait for the master write to complete
+                    // vTaskDelay(1000 / portTICK_PERIOD_MS); // Need to wait for the master write to complete
                 }
             }
+            if (millis() - startUpdateIntervalTime >= UPDATE_INTERVAL_MS)
+            {
+                startUpdateIntervalTime = millis();
+                update_WebData_Interval();
+            }
         } // Master part
-        if (millis() - startUpdateIntervalTime >= UPDATE_INTERVAL_MS)
-        {
-            startUpdateIntervalTime = millis();
-            update_WebData_Interval();
-        }
     }
 }
