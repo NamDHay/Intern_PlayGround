@@ -51,6 +51,7 @@
     }
     else if(message.Command == "ShowFile"){
       tablefile(event.data); 
+      console.log("ShowFile");
     }
   }
   function onLoad(event) {
@@ -341,23 +342,3 @@
     document.getElementById("use").innerHTML = use + "KB/" + (use /1024).toFixed(2) + "MB";
     document.getElementById("free").innerHTML = free + "KB/" + (free/1024).toFixed(2) + "MB";
   }
-  // document.getElementById('fileinput').addEventListener('change', function(event) {
-  //   // Lấy file từ input
-  //   let file = event.target.files[0];
-
-  //   // Kiểm tra xem có file được chọn không
-  //   if (file) {
-  //       // Xác định kích thước của file
-  //       let fileSize = file.size; // Kích thước tính bằng byte
-
-  //       // Chuyển đổi kích thước sang kilobyte (KB) hoặc megabyte (MB) nếu cần
-  //       let fileSizeInKB = fileSize / 1024;
-  //       let fileSizeInMB = fileSizeInKB / 1024;
-
-  //       // Hiển thị kích thước file
-  //       document.getElementById('filesize').textContent = `Kích thước file: ${fileSize} byte (${fileSizeInKB.toFixed(2)} KB / ${fileSizeInMB.toFixed(2)} MB)`;
-  //       document.getElementById('use').innerHTML = fileSizeInKB.toFixed(2) + 'KB';
-  //   } else {
-  //       document.getElementById('filesize').textContent = 'Không có file nào được chọn';
-  //   }   
-  // });
