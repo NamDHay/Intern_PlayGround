@@ -12,10 +12,14 @@ ModbusRTU mb;
 #define DWORDS_TYPE 2
 #define FLOAT_TYPE 3
 
-uint16_t Master_ReadData[60];
-uint16_t Master_WriteData[60];
-uint16_t Slave_ReadData[60];
-uint16_t Slave_WriteData[60];
+#define CHECKCOIL(CoilGroup, CoilBit) ((((CoilGroup) & (1UL << CoilBit)) == (1UL << CoilBit)) ? 1 : 0)
+#define SETCOIL(CoilGroup, CoilBit) ((CoilGroup) |= (1UL << CoilBit))
+#define CLEARCOIL(CoilGroup, CoilBit) (CoilGroup &= ~(1UL << CoilBit))
+
+int16_t Master_ReadData[60];
+int16_t Master_WriteData[60];
+int16_t Slave_ReadData[60];
+int16_t Slave_WriteData[60];
 
 bool cb(Modbus::ResultCode event, uint16_t transactionId, void *data)
 { // Callback to monitor errors
@@ -126,7 +130,6 @@ void MODBUS_RTU::writeSetting()
     Serial.println("JSON: " + setting);
     filesystem.writefile("/mbsetting.json", setting, 0);
 }
-
 bool read_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t length)
 {
     static uint16_t rstart;
@@ -190,7 +193,6 @@ bool read_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t leng
     }
     return false;
 }
-
 bool write_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t length)
 {
     static uint16_t wstart;
@@ -262,13 +264,23 @@ bool write_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t len
 
 void update_WebData_Interval()
 {
+    union f2w_t
+    {
+        float f;
+        int16_t w[2];
+    }f2w;
+    union dw2w_t
+    {
+        int32_t dw;
+        int16_t w[2];
+    }dw2w;
     JsonDocument wDoc;
     JsonDocument mbOjb;
     String fbDataString = "";
     JsonArray dataArray;
-    long nextAddress; 
+    long nextAddress;
     if (online.isConnected == true)
-    {   
+    {
         wDoc["Command"] = "Data";
         dataArray = wDoc["Data"].to<JsonArray>();
         mbOjb["slaveID"] = modbus.config.slaveID;
@@ -277,24 +289,31 @@ void update_WebData_Interval()
         for (uint8_t i = 0; i < 10; i++)
         {
             modbus.mbdata[i].address = nextAddress;
+            mbOjb["address"] = modbus.mbdata[i].address;
+            mbOjb["type"] = modbus.mbdata[i].typeData;
             switch (modbus.mbdata[i].typeData)
             {
             case COIL_TYPE:
+                mbOjb["value"] = CHECKCOIL(Master_ReadData[nextAddress], 0);
                 nextAddress++;
                 break;
             case WORD_TYPE:
-                nextAddress+=2;
+                mbOjb["value"] = Master_ReadData[nextAddress];
+                nextAddress += 1;
                 break;
             case DWORDS_TYPE:
-                nextAddress+=4;
+                dw2w.w[0] = Master_ReadData[nextAddress];
+                dw2w.w[1] = Master_ReadData[nextAddress + 1];
+                mbOjb["value"] = dw2w.dw;
+                nextAddress += 2;
                 break;
             case FLOAT_TYPE:
-                nextAddress+=4;
+                f2w.w[0] = Master_ReadData[nextAddress];
+                f2w.w[1] = Master_ReadData[nextAddress + 1];
+                mbOjb["value"] = f2w.f;
+                nextAddress += 2;
                 break;
             }
-            mbOjb["address"] = modbus.mbdata[i].address;
-            mbOjb["type"] = modbus.mbdata[i].typeData;
-            mbOjb["value"] = Master_ReadData[i];
             dataArray.add(mbOjb);
         }
         serializeJson(wDoc, fbDataString);
@@ -356,12 +375,12 @@ void TaskModbus(void *pvParameter)
                 if (!mb.slave())
                 {
                     while (read_Multiple_Data(modbus.config.slaveID,
-                                              Master_ReadData,
+                                              (uint16_t *)&Master_ReadData,
                                               modbus.MasterReadReg.startAddress,
                                               (modbus.MasterReadReg.endAddress - modbus.MasterReadReg.startAddress + 1)) != true)
                         ;
                     while (write_Multiple_Data(modbus.config.slaveID,
-                                               Master_WriteData,
+                                               (uint16_t *)&Master_WriteData,
                                                modbus.MasterWriteReg.startAddress,
                                                (modbus.MasterWriteReg.endAddress - modbus.MasterWriteReg.startAddress + 1)) != true)
                         ;
@@ -376,95 +395,52 @@ void TaskModbus(void *pvParameter)
     }
 }
 
-void Float2Byte(float value, byte *dataArray)
-{
-    byte *pFloat = (byte *)&value;
+// void Word2Byte(uint16_t value, byte *dataArray)
+// {
+//     byte *pShort = (byte *)&value;
 
-    for (byte i = 0; i < 4; i++)
-    {
-        dataArray[i] = *(pFloat + i);
-    }
-}
+//     for (byte i = 0; i < 2; i++)
+//     {
+//         dataArray[i] = *(pShort + i);
+//         Serial.printf("0x%x \n", dataArray[i]);
+//     }
+// }
+// uint16_t Byte2Word(byte *dataArray)
+// {
+//     uint16_t value;
+//     byte *pValue = (byte *)&value;
+//     for (byte i = 0; i < 2; i++)
+//     {
+//         *(pValue + i) = dataArray[i];
+//     }
+//     return value;
+// }
 
-float Byte2Float(byte *dataArray)
-{
-    float value;
-    byte *pValue = (byte *)&value;
+// void Bit2Byte(bool *bitArray, byte *byteArray, int numBits)
+// {
+//     int numBytes = (numBits + 7) / 8; // Calculate the number of bytes needed
 
-    for (byte i = 0; i < 4; i++)
-    {
-        *(pValue + i) = dataArray[i];
-    }
-    return value;
-}
+//     for (int i = 0; i < numBytes; i++)
+//     {
+//         byteArray[i] = 0;
+//     }
 
-void DWord2Byte(float value, byte *dataArray)
-{
-    byte *pFloat = (byte *)&value;
+//     for (int i = 0; i < numBits; i++)
+//     {
+//         if (bitArray[i])
+//         {
+//             byteArray[i / 8] |= (1 << (i % 8));
+//         }
+//     }
+// }
 
-    for (byte i = 0; i < 4; i++)
-    {
-        dataArray[i] = *(pFloat + i);
-    }
-}
-
-float Byte2DWord(byte *dataArray)
-{
-    float value;
-    byte *pValue = (byte *)&value;
-
-    for (byte i = 0; i < 4; i++)
-    {
-        *(pValue + i) = dataArray[i];
-    }
-    return value;
-}
-
-void Word2Byte(uint16_t value, byte *dataArray)
-{
-    byte *pShort = (byte *)&value;
-
-    for (byte i = 0; i < 2; i++)
-    {
-        dataArray[i] = *(pShort + i);
-        Serial.printf("0x%x \n", dataArray[i]);
-    }
-}
-uint16_t Byte2Word(byte *dataArray)
-{
-    uint16_t value;
-    byte *pValue = (byte *)&value;
-    for (byte i = 0; i < 2; i++)
-    {
-        *(pValue + i) = dataArray[i];
-    }
-    return value;
-}
-void Bit2Byte(bool *bitArray, byte *byteArray, int numBits)
-{
-    int numBytes = (numBits + 7) / 8; // Calculate the number of bytes needed
-
-    for (int i = 0; i < numBytes; i++)
-    {
-        byteArray[i] = 0;
-    }
-
-    for (int i = 0; i < numBits; i++)
-    {
-        if (bitArray[i])
-        {
-            byteArray[i / 8] |= (1 << (i % 8));
-        }
-    }
-}
-
-void Byte2Bit(byte *byteArray, bool *bitArray, int numBytes)
-{
-    for (int i = 0; i < numBytes; i++)
-    {
-        for (int j = 0; j < 8; j++)
-        {
-            bitArray[i * 8 + j] = (byteArray[i] & (1 << j)) != 0;
-        }
-    }
-}
+// void Byte2Bit(byte *byteArray, bool *bitArray, int numBytes)
+// {
+//     for (int i = 0; i < numBytes; i++)
+//     {
+//         for (int j = 0; j < 8; j++)
+//         {
+//             bitArray[i * 8 + j] = (byteArray[i] & (1 << j)) != 0;
+//         }
+//     }
+// }
