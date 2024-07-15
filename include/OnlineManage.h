@@ -7,9 +7,7 @@
 #include <ESPAsyncWebServer.h>
 #include <DNSServer.h>
 
-#include <HTML.h>
-#include <File_System.h>
-#include <IO_Config.h>
+
 
 #define soft_ap_ssid "ESP32-AP-Connect"
 #define soft_ap_password "12345678"
@@ -17,7 +15,7 @@
 #define MAX_CLIENTS 4  // ESP32 supports up to 10 but I have not tested it yet
 #define WIFI_CHANNEL 6 // 2.4ghz channel 6 https://en.wikipedia.org/wiki/List_of_WLAN_channels#2.4_GHz_(802.11b/g/n/ax)
 
-#define UPDATE_INTERVAL_MS 60000
+#define UPDATE_INTERVAL_MS 1000
 #define WIFI_STATUS_INTERVAL 2000
 class OnlineManage
 {

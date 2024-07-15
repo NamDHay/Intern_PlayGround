@@ -1,12 +1,12 @@
 #include <OnlineManage.h>
 #include <MB.h>
 #include <ArduinoJson.h>
+#include <File_System.h>
 
 ModbusRTU mb;
 
 #define MODBUS_BAUD_ 9600
 
-uint8_t master = 1;
 uint16_t Master_ReadData[60];
 uint16_t Master_WriteData[60];
 uint16_t Slave_ReadData[60];
@@ -37,6 +37,89 @@ void MODBUS_RTU::SlaveInit(HardwareSerial *port, unsigned long baud)
     modbus.config.baud = baud;
     port->begin(baud, SERIAL_8N1);
     mb.begin(port);
+}
+
+void MODBUS_RTU::loadSetting()
+{
+    String dataRead = "";
+    JsonDocument doc;
+    dataRead = filesystem.readfile("/mbsetting.json");
+    deserializeJson(doc, dataRead);
+
+    // String baud = doc["baud"].as<String>();
+    // String readStart = doc["readStart"].as<String>();
+    // String readEnd = doc["readEnd"].as<String>();
+    // String writeStart = doc["writeStart"].as<String>();
+    // String writeEnd = doc["writeEnd"].as<String>();
+    // String serial = doc["serial"].as<String>();
+    // String mbmaster = doc["mbmaster"].as<String>();
+
+    unsigned long baud = doc["baud"];
+    long readStart = doc["readStart"];
+    long readEnd = doc["readEnd"];
+    long writeStart = doc["writeStart"];
+    long writeEnd = doc["writeEnd"];
+    String serial = doc["serial"];
+    String mbmaster = doc["mbmaster"];
+
+    modbus.master = (mbmaster == "0") ? 0 : 1;
+    modbus.config.baud = baud;
+    modbus.config.port = (serial == "0") ? &Serial1 : &Serial2;
+    if (modbus.master == 1)
+    {
+        modbus.MasterReadReg.startAddress = readStart;
+        modbus.MasterReadReg.endAddress = readEnd;
+        modbus.MasterWriteReg.startAddress = writeStart;
+        modbus.MasterWriteReg.endAddress = writeEnd;
+    }
+
+    if (modbus.master == 0)
+    {
+        modbus.SlaveReadReg.startAddress = readStart;
+        modbus.SlaveReadReg.endAddress = readEnd;
+        modbus.SlaveWriteReg.startAddress = writeStart;
+        modbus.SlaveWriteReg.endAddress = writeEnd;
+    }
+
+    // Serial.println("baudrate: " + String(modbus.config.baud));
+    // Serial.println("Readstart: " + String(modbus.MasterReadReg.startAddress));
+    // Serial.println("Readend: " + String(modbus.MasterReadReg.endAddress));
+    // Serial.println("WriteStart: " + String(modbus.MasterWriteReg.startAddress));
+    // Serial.println("WriteEnd: " + String(modbus.MasterWriteReg.endAddress));
+    // Serial.println("Serial: " + String(serial));
+    // Serial.println("MBmaster: " + String(mbmaster));
+
+    Serial.print("baudrate: ");
+    Serial.println(modbus.config.baud);
+    Serial.print("Readstart: ");
+    Serial.println((modbus.MasterReadReg.startAddress));
+    Serial.print("Readend: ");
+    Serial.println((modbus.MasterReadReg.endAddress));
+    Serial.print("WriteStart: ");
+    Serial.println((modbus.MasterWriteReg.startAddress));
+    Serial.print("WriteEnd: ");
+    Serial.println((modbus.MasterWriteReg.endAddress));
+    Serial.print("Serial: ");
+    Serial.println((serial));
+    Serial.print("MBmaster: ");
+    Serial.println((mbmaster));
+}
+void MODBUS_RTU::writeSetting()
+{
+    String setting = "";
+    JsonDocument writeDoc;
+
+    writeDoc["baud"] = modbus.config.baud;
+    writeDoc["readStart"] = modbus.MasterReadReg.startAddress;
+    writeDoc["readEnd"] = modbus.MasterReadReg.endAddress;
+    writeDoc["writeStart"] = modbus.MasterWriteReg.startAddress;
+    writeDoc["writeEnd"] = modbus.MasterWriteReg.endAddress;
+    writeDoc["serial"] = (modbus.config.port == &Serial1) ? "0" : "1";
+    writeDoc["mbmaster"] = modbus.master;
+
+    serializeJson(writeDoc, setting);
+    Serial.println("JSON: " + setting);
+    filesystem.writefile("/mbsetting.json", setting, 0);
 }
 
 bool read_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t length)
@@ -196,36 +279,28 @@ void update_WebData_Interval()
 
 void TaskModbus(void *pvParameter)
 {
-    /********Test*********/
-    for (uint8_t i = 0; i < 60; i++)
+    modbus.loadSetting();
+    for (uint8_t i = 0; i < (modbus.MasterReadReg.endAddress - modbus.MasterReadReg.startAddress + 1); i++)
+    {
+        Master_ReadData[i] = 0;
+    }
+    for (uint8_t i = 0; i < (modbus.MasterWriteReg.endAddress - modbus.MasterWriteReg.startAddress + 1); i++)
     {
         Master_WriteData[i] = i;
-        Master_ReadData[i] = 0;
-        Slave_WriteData[i] = i;
-        Slave_ReadData[i] = 0;
     }
     modbus.config.slaveID = 1;
-    modbus.MasterReadReg.startAddress = 0;
-    modbus.MasterReadReg.endAddress = 59;
-    modbus.MasterWriteReg.startAddress = 60;
-    modbus.MasterWriteReg.endAddress = 119;
-
-    modbus.SlaveReadReg.startAddress = 11;
-    modbus.SlaveReadReg.endAddress = 20;
-    modbus.SlaveWriteReg.startAddress = 0;
-    modbus.SlaveWriteReg.endAddress = 10;
-
-    /********Test*********/
 
     static long startUpdateIntervalTime = millis();
 
-    if (master == 1)
+    if (modbus.master == 1)
     {
         modbus.MasterInit(&Serial2, MODBUS_BAUD_);
+        // modbus.MasterInit(&Serial2, modbus.config.baud);
     }
     else
     {
         modbus.SlaveInit(&Serial2, MODBUS_BAUD_);
+        // modbus.SlaveInit(&Serial2, modbus.config.baud);
         mb.slave(modbus.config.slaveID);
         mb.addHreg(modbus.SlaveWriteReg.startAddress, 0, modbus.SlaveWriteReg.endAddress - modbus.SlaveWriteReg.startAddress);
         mb.addHreg(modbus.SlaveReadReg.startAddress, 0, modbus.SlaveReadReg.endAddress - modbus.SlaveReadReg.startAddress);
@@ -233,7 +308,7 @@ void TaskModbus(void *pvParameter)
 
     for (;;)
     {
-        if (master == 1) // Master part
+        if (modbus.master == 1) // Master part
         {
             if (!mb.slave())
             {
@@ -259,5 +334,75 @@ void TaskModbus(void *pvParameter)
                 update_WebData_Interval();
             }
         } // Master part
+    }
+}
+
+void FourByteToOneByte(float value, byte *dataArray)
+{
+    byte *pFloat = (byte *)&value;
+
+    for (byte i = 0; i < 4; i++)
+    {
+        dataArray[i] = *(pFloat + i);
+    }
+}
+
+float OneByteToFourByte(byte *dataArray)
+{
+    float value;
+    byte *pValue = (byte *)&value;
+
+    for (byte i = 0; i < 4; i++)
+    {
+        *(pValue + i) = dataArray[i];
+    }
+    return value;
+}
+void TwoByteToOneByte(short value, byte *dataArray)
+{
+    byte *pShort = (byte *)&value;
+
+    for (byte i = 0; i < 2; i++)
+    {
+        dataArray[i] = *(pShort + i);
+        Serial.printf("0x%x \n", dataArray[i]);
+    }
+}
+short OneByteToTwoByte(byte *dataArray)
+{
+    short value;
+    byte *pValue = (byte *)value;
+    for (byte i = 0; i < 2; i++)
+    {
+        *(pValue + i) = dataArray[i];
+    }
+    return value;
+}
+void BitsToBytes(bool *bitArray, byte *byteArray, int numBits)
+{
+    int numBytes = (numBits + 7) / 8; // Calculate the number of bytes needed
+
+    for (int i = 0; i < numBytes; i++)
+    {
+        byteArray[i] = 0;
+    }
+
+    for (int i = 0; i < numBits; i++)
+    {
+        if (bitArray[i])
+        {
+            byteArray[i / 8] |= (1 << (i % 8));
+        }
+    }
+}
+
+void BytesToBits(byte *byteArray, bool *bitArray, int numBytes)
+{
+    for (int i = 0; i < numBytes; i++)
+    {
+        for (int j = 0; j < 8; j++)
+        {
+            bitArray[i * 8 + j] = (byteArray[i] & (1 << j)) != 0;
+        }
     }
 }

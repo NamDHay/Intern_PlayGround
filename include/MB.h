@@ -3,34 +3,41 @@
 
 #include <ModbusRTU.h>
 
-class MODBUS_RTU {
-private:   
+class MODBUS_RTU
+{
+private:
 public:
-    bool mbmaster;
-    struct Config_t{
+    bool master;
+    struct Config_t
+    {
         byte slaveID;
         unsigned long baud;
         HardwareSerial *port;
-    }config;
-    struct MRead_t {
+    } config;
+    struct MRead_t
+    {
         long startAddress;
         long endAddress;
-    }MasterReadReg;
-    struct MWrite_t {
+    } MasterReadReg;
+    struct MWrite_t
+    {
         long startAddress;
         long endAddress;
-    }MasterWriteReg;
+    } MasterWriteReg;
 
-    struct SRead_t {
+    struct SRead_t
+    {
         long startAddress;
         long endAddress;
-    }SlaveReadReg;
-    struct SWrite_t {
+    } SlaveReadReg;
+    struct SWrite_t
+    {
         long startAddress;
         long endAddress;
-    }SlaveWriteReg;
+    } SlaveWriteReg;
 
-    enum TypeData_t {
+    enum TypeData_t
+    {
         COIL,
         WORD,
         DWORDS,
@@ -39,9 +46,12 @@ public:
 
     TypeData_t readTypeData;
     TypeData_t writeTypeData;
-    
+
     void MasterInit(HardwareSerial *port, unsigned long baud);
     void SlaveInit(HardwareSerial *port, unsigned long baud);
+
+    void loadSetting();
+    void writeSetting();
 };
 void TaskModbus(void *pvParameter);
 

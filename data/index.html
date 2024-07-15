@@ -14554,16 +14554,7 @@
             </Center>
             <h3>Config</h3>
             <span>
-                <div>Slave ID: <input type="text" id="input_slaveid" size="20" placeholder="1"></div><br>
-            </span>
-            <span>
-                <div>Baud Rate: <input type="text" id="input_baud" size="20" placeholder="115200"></div><br>
-            </span>
-            <span>
-                <div>RTU/TCP: <select id="rtu_tcp" value="0">
-                        <option value="0" selected="">RTU</option>
-                        <option value="1">TCP</option>
-                    </select></div><br>
+                <div>Baud Rate: <input type="text" id="input_baud" size="20" placeholder="9600"></div><br>
             </span>
             <span>
                 <div>Serial port: <select id="port" value="0">
@@ -14586,14 +14577,6 @@
                 <div>End Address: <input type="text" id="input_write_end" size="20" placeholder="Write End-Address">
                 </div><br>
             </span>
-            <span>
-                <div>Data Type: <select id="Wmode" value="0">
-                        <option value="0" selected="">COIL</option>
-                        <option value="1">WORD</option>
-                        <option value="1">DOUBLE WORD</option>
-                        <option value="1">FLOAT</option>
-                    </select></div><br>
-            </span>
             <h3>Read Address</h3>
             <span>
                 <div>Start Address: <input type="text" id="input_read_start" size="20" placeholder="Read Start-Address">
@@ -14603,16 +14586,8 @@
                 <div>End Address: <input type="text" id="input_read_end" size="20" placeholder="Read End-Address"></div>
                 <br>
             </span>
-            <span>
-                <div>Data Type: <select id="Rmode" value="0">
-                        <option value="0" selected="">COIL</option>
-                        <option value="1">WORD</option>
-                        <option value="1">DOUBLE WORD</option>
-                        <option value="1">FLOAT</option>
-                    </select></div><br>
-            </span>
+            <Center><span><button id="buttonsend" class="button">SEND</button></span></Center>
         </div><br>
-        <Center><span><button id="buttonsend" class="button">SEND</button></span></Center>
     </div><br>
 
     <!-- Tab Show File -->
@@ -14712,7 +14687,6 @@
                                             <option value="2">AP-STA NORMAL</option>
                                             <option value="3">WIFI OFF</option>
                                         </select></div><br>
-                                    <div>CHANEL: <input type="number" id="Chanel" size="4" value="11"></div><br>
                                 </div>
                             </div>
                             <div id="ethernet" class="tabcontent" style="display: none">

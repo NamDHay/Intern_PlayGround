@@ -1,5 +1,8 @@
 #include <OnlineManage.h>
 #include <MB.h>
+#include <HTML.h>
+#include <File_System.h>
+#include <IO_Config.h>
 
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
@@ -19,9 +22,6 @@ const String localIPURL = "http://192.168.4.1/setting/"; // a string version of 
 const char *ntpServer = "vn.pool.ntp.org";
 const long gmtOffset_sec = 3600;
 const int daylightOffset_sec = 3600;
-
-
-
 
 void OnlineManage::Init()
 {
@@ -99,7 +99,7 @@ void OnlineManage::loadSetting()
 {
     String dataRead = "";
     JsonDocument doc;
-    dataRead = filesystem.readfile("/setting.json");
+    dataRead = filesystem.readfile("/wfsetting.json");
     deserializeJson(doc, dataRead);
 
     String SSID = doc["SSID"].as<String>();
@@ -141,7 +141,7 @@ void OnlineManage::writeSetting()
 
     serializeJson(writeDoc, setting);
     Serial.println("JSON: " + setting);
-    filesystem.writefile("/setting.json", setting, 0);
+    filesystem.writefile("/wfsetting.json", setting, 0);
 }
 
 #define DNS_INTERVAL 30
@@ -186,7 +186,6 @@ void getIOHandler()
 }
 void setModbusHandler()
 {
-    String slaveID = rdoc["slaveID"].as<String>();
     String baud = rdoc["baud"].as<String>();
     String readStart = rdoc["readStart"].as<String>();
     String readEnd = rdoc["readEnd"].as<String>();
@@ -195,25 +194,26 @@ void setModbusHandler()
     String serial = rdoc["serial"].as<String>();
     String mbmaster = rdoc["mbmaster"].as<String>();
 
-    modbus.mbmaster = (mbmaster == "0") ? true : false;
-    modbus.config.slaveID = slaveID.toInt();
+    modbus.master = (mbmaster == "0") ? 0 : 1;
     modbus.config.baud = baud.toInt();
     modbus.config.port = (serial == "0") ? &Serial1 : &Serial2;
-    if(modbus.mbmaster == 1){
+    if (modbus.master == 1)
+    {
         modbus.MasterReadReg.startAddress = readStart.toInt();
         modbus.MasterReadReg.endAddress = readEnd.toInt();
         modbus.MasterWriteReg.startAddress = writeStart.toInt();
         modbus.MasterWriteReg.endAddress = writeEnd.toInt();
     }
 
-    if(modbus.mbmaster == 0){
+    if (modbus.master == 0)
+    {
         modbus.SlaveReadReg.startAddress = readStart.toInt();
         modbus.SlaveReadReg.endAddress = readEnd.toInt();
         modbus.SlaveWriteReg.startAddress = writeStart.toInt();
         modbus.SlaveWriteReg.endAddress = writeEnd.toInt();
     }
-
-    wDoc["Command"] = "settingWifi";
+    // modbus.writeSetting();
+    wDoc["Command"] = "settingModbus";
     wDoc["Data"] = "SetingDone";
     serializeJson(wDoc, fbDataString);
     online.notifyClients(fbDataString);
@@ -289,7 +289,8 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
             getIOHandler();
         }
         else if (command == "settingModbus")
-        {
+        {   
+            filesystem.writefile("/mbsetting.json", DataStr, 0);
             setModbusHandler();
         }
         else if (command == "settingWifi")

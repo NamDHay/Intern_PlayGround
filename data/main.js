@@ -70,11 +70,11 @@ function io_ChangeState4() {
 }
 
 function saveModbusTable() {
-    var msg =[];
+    var msg = [];
     var msgOut = "{\"type\":[";
-    for (var i = 0; i < TableDataLen; i++){msg[i] = document.getElementById("SelectType"+i).value;}
+    for (var i = 0; i < TableDataLen; i++) { msg[i] = document.getElementById("SelectType" + i).value; }
     msgOut += msg[0];
-    for (var i = 1; i < TableDataLen; i++){msgOut += ","+msg[i];}
+    for (var i = 1; i < TableDataLen; i++) { msgOut += "," + msg[i]; }
     msgOut += "]}";
     console.log(msgOut);
 }
@@ -177,24 +177,18 @@ function save() {
         var json_output = "{'Command':'settingWifi','SSID':'" + ssid_input + "','PASS':'" + pass_input + "','waddress':'" + waddress_input + "','wgetway':'" + wgetway_input + "','wsubnet':'" + wsubnet_input + "','staticIP':'" + staticip_input + "','wmode':'" + wifimode_input + "'}";
         console.log(json_output);
         websocket.send(json_output);
-
+        if (IsConnect) { websocket.send(output); } else { alert("Websocket disconnected"); }
     }
 }
 function send_modbus() {
-    var slaveid_input = document.getElementById('input_slaveid').value;
     var baud_input = document.getElementById('input_baud').value;
-    var rtu_tcp_input = document.getElementById('rtu_tcp').value;
     var port_input = document.getElementById('port').value;
     var mode = document.getElementById('mode').value;
     var wsaddres_input = document.getElementById('input_write_start').value;
     var weaddres_input = document.getElementById('input_write_end').value;
     var rsaddres_input = document.getElementById('input_read_start').value;
     var readdres_input = document.getElementById('input_read_end').value;
-    var Wmode = document.getElementById('Wmode').value;
-    var Rmode = document.getElementById('Rmode').value;
-    if (slaveid_input == "") {
-        alert("chua nhap slaveID ");
-    } else if (baud_input == "") {
+    if (baud_input == "") {
         alert("chua nhap baudrate");
     } else if (rsaddres_input == "") {
         alert("chua nhap Dia chi doc dau tien");
@@ -205,10 +199,10 @@ function send_modbus() {
     } else if (weaddres_input == "") {
         alert("chua nhap Dia chi ghi ket thuc");
     } else {
-        var output = "{'Command':'settingModbus','slaveID':'" + slaveid_input + "','baud':'" + baud_input + "','readStart':'" + rsaddres_input + "','readEnd':'" + readdres_input + "','writeStart':'" + wsaddres_input + "','writeEnd':'" + weaddres_input + "','serial':'" + port_input + "','mbmaster':'" + mode + "'Wmode':'" + Wmode + "','Rmode':'" + Rmode + "'}";
+        var output = "{'Command':'settingModbus','baud':'" + baud_input + "','readStart':'" + rsaddres_input + "','readEnd':'" + readdres_input + "','writeStart':'" + wsaddres_input + "','writeEnd':'" + weaddres_input + "','serial':'" + port_input + "','mbmaster':'" + mode + "'}";
         console.log(output);
-        if(IsConnect){websocket.send(output);alert("Modbus sended!!!");}else{alert("Websocket disconnected");}
-        
+        if (IsConnect) { websocket.send(output); } else { alert("Websocket disconnected"); }
+
     }
 }
 function openSettingModalNV() {
@@ -299,7 +293,6 @@ function loadChart() {
 function loadtable(jsonValue) {
     var TableHTML = "";
     TableHTML = "<table class=\"table \"><thead class=\"thead-dark\"><th>STT</th><th>Slave ID</th><th>Address</th><th>Type Data</th><th>Data</th></thead><tbody>";
-    // TableHTML = "<table class=\"table \"><thead class=\"thead-dark\"><th>STT</th><th>Slave ID</th><th>Time</th><th>Type Data</th><th>Data</th></thead><tbody>";
     var keys = JSON.parse(jsonValue);
     var stt = 0;
     TableDataLen = keys.Data.length;
@@ -307,26 +300,21 @@ function loadtable(jsonValue) {
     for (var i = 0; i < TableDataLen; i++) {
         stt++;
         var id = keys.Data[i].slaveID;
-        var type = "<select id=\"SelectType" + i + "\"><option value=0 %0%>Coil</option><option value=1 %1%>WORD</option><option value=2 %2%>DWORD</option><option value=3 %3%>FLOAT</option></select>";
+        var type = "<select id=\"SelectType" + i + "\"><option value=0 %0%>COIL</option><option value=1 %1%>WORD</option><option value=2 %2%>DWORD</option><option value=3 %3%>FLOAT</option></select>";
 
         if (keys.Data[i].type == "0") { type = type.replace("%0%", "selected"); type = type.replace("%1%", ""); type = type.replace("%2%", ""); type = type.replace("%3%", ""); }
         if (keys.Data[i].type == "1") { type = type.replace("%1%", "selected"); type = type.replace("%0%", ""); type = type.replace("%2%", ""); type = type.replace("%3%", ""); }
         if (keys.Data[i].type == "2") { type = type.replace("%2%", "selected"); type = type.replace("%1%", ""); type = type.replace("%0%", ""); type = type.replace("%3%", ""); }
         if (keys.Data[i].type == "3") { type = type.replace("%3%", "selected"); type = type.replace("%1%", ""); type = type.replace("%2%", ""); type = type.replace("%0%", ""); }
-        // if (type == '0') type = "Coil";
-        // else if (type == '1') type = "Word";
-        // else if (type == '2') type = "DWord";
-        // else if (type == '3') type = "Float";
         const value = keys.Data[i].value;
         var address = keys.Data[i].address;
         TableHTML += "<tr><td>" + stt + "</td><td>" + id + "</td><td>" + address + "</td><td>" + type + "</td><td>" + value + "</td></tr>";
-        // TableHTML += "<tr><td>" + stt + "</td><td>" + id + "</td><td>" + address + "</td><td>" + type + "</td><td>" + value + "</td></tr>";
         // var h = new Date().getHours();
         // var m = new Date().getMinutes();
         // var s = new Date().getSeconds();
         // var thoigian = h + ":" + m + ":" + s;
     }
-    TableHTML += "</tbody></table></br></br>";
+    TableHTML += "</tbody></table></br>";
 
     document.getElementById("TableData").innerHTML = TableHTML;
 }
