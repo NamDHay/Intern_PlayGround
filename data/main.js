@@ -71,11 +71,12 @@ function io_ChangeState4() {
 
 function saveModbusTable() {
     var msg = [];
-    var msgOut = "{\"type\":[";
+    var msgOut = "{\"Command\":\"mbDataType\",\"type\":[";
     for (var i = 0; i < TableDataLen; i++) { msg[i] = document.getElementById("SelectType" + i).value; }
     msgOut += msg[0];
     for (var i = 1; i < TableDataLen; i++) { msgOut += "," + msg[i]; }
     msgOut += "]}";
+    websocket.send(msgOut);
     console.log(msgOut);
 }
 function initButton() {
@@ -114,7 +115,6 @@ function intervalHandle() {
         var StringJson = JSON.stringify(JSonObj);
         StringJson = StringJson.replaceAll("false", "0");
         StringJson = StringJson.replaceAll("true", "1");
-        console.log(StringJson);
         websocket.send(StringJson);
         StringJson = "";
     }
@@ -296,7 +296,7 @@ function loadtable(jsonValue) {
     var keys = JSON.parse(jsonValue);
     var stt = 0;
     TableDataLen = keys.Data.length;
-    console.log("datalen" + TableDataLen);
+    // console.log("datalen" + TableDataLen);
     for (var i = 0; i < TableDataLen; i++) {
         stt++;
         var id = keys.Data[i].slaveID;

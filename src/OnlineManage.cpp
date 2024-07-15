@@ -184,6 +184,26 @@ void getIOHandler()
     Serial.println("Data7: " + String(DataArr[7]));
     Serial.flush();
 }
+void mbDataTypeHandler()
+{
+    int DataArr[10];
+    int size = sizeof(DataArr);
+    for (int i = 0; i < 10; i++)
+    {
+        DataArr[i] = rdoc["type"][i];
+        modbus.mbdata[i].typeData = DataArr[i];
+    }
+
+    Serial.println("Type0: " + String(DataArr[0]));
+    Serial.println("Type1: " + String(DataArr[1]));
+    Serial.println("Type2: " + String(DataArr[2]));
+    Serial.println("Type3: " + String(DataArr[3]));
+    Serial.println("Type4: " + String(DataArr[4]));
+    Serial.println("Type5: " + String(DataArr[5]));
+    Serial.println("Type6: " + String(DataArr[6]));
+    Serial.println("Type7: " + String(DataArr[7]));
+    Serial.flush();
+}
 void setModbusHandler()
 {
     String baud = rdoc["baud"].as<String>();
@@ -289,13 +309,17 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
             getIOHandler();
         }
         else if (command == "settingModbus")
-        {   
+        {
             filesystem.writefile("/mbsetting.json", DataStr, 0);
             setModbusHandler();
         }
         else if (command == "settingWifi")
         {
             setWifiHandler();
+        }
+        else if (command == "mbDataType")
+        {
+            mbDataTypeHandler();
         }
     }
 }

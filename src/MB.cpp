@@ -155,11 +155,6 @@ bool read_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t leng
             mb.task();
             vTaskDelay(10 / portTICK_PERIOD_MS);
         }
-        for (uint8_t i = rstart; i < rstart + 30; i++)
-        {
-            Serial.print("Data " + String(i) + ": ");
-            Serial.println(Master_ReadData[i]);
-        }
         rstart = rstart + 30;
         dataLength -= 30;
         rdata += 30;
@@ -180,11 +175,6 @@ bool read_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t leng
         {
             mb.task();
             vTaskDelay(10 / portTICK_PERIOD_MS);
-        }
-        for (uint8_t i = rstart; i < rstart + dataLength; i++)
-        {
-            Serial.print("Data " + String(i) + ": ");
-            Serial.println(Master_ReadData[i]);
         }
         dataLength = 0;
         rstart = 0;
@@ -218,17 +208,10 @@ bool write_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t len
             mb.task();
             vTaskDelay(10 / portTICK_PERIOD_MS);
         }
-        for (uint8_t i = wstart; i < wstart + 30; i++)
-        {
-            Serial.print("Data " + String(i) + ": ");
-            Serial.println(Master_WriteData[i - 60]);
-        }
 
         wstart = wstart + 30;
         wdataLength -= 30;
         wdata += 30;
-        Serial.println("Current data length: " + String(wdataLength));
-        Serial.println("Next Write Start Address: " + String(wstart));
         if (wdataLength == 0)
         {
             return true;
@@ -247,16 +230,9 @@ bool write_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t len
             mb.task();
             vTaskDelay(10 / portTICK_PERIOD_MS);
         }
-        for (uint8_t i = wstart; i < wstart + wdataLength; i++)
-        {
-            Serial.print("Data " + String(i) + ": ");
-            Serial.println(Master_WriteData[i - 60]);
-        }
         wdataLength = 0;
         wstart = 0;
         wdata = NULL;
-        Serial.println("Current data length: " + String(wdataLength));
-        Serial.println("Next Write Start Address: " + String(wstart));
         return true;
     }
     return false;
@@ -350,7 +326,6 @@ void TaskModbus(void *pvParameter)
     {
         Master_WriteData[i] = i;
     }
-    modbus.config.slaveID = 1;
 
     static long startUpdateIntervalTime = millis();
 
