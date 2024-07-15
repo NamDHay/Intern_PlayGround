@@ -7,7 +7,7 @@
 
   var io_obj = "{\"Command\": \"getIO\",\"id\": \"1\",\"Data\":[]}";
 
-  const intervalId = setInterval(intervalHandle, 1000);
+  const intervalId = setInterval(intervalHandle, 5000);
   window.addEventListener('beforeunload', () => clearInterval(intervalId));
   window.addEventListener('load', onLoad);
   function getReadings() {
@@ -25,7 +25,7 @@
   }
   function onOpen(event) {
     console.log('Connection opened');
-    IsConnect = true;
+    
   }
   function onClose(event) {
     console.log('Connection closed');
@@ -43,14 +43,14 @@
     } else if (message.Command == "getIO") {
   
     } else if (message.Command == "settingWifi") {
-      alert("Setting Done")
+      alert("Setting Done");
     }
     else if(message.Command == "settingModbus"){
       alert("Completed setting!!!");
     }
     else if (message.Command == "Data") {
       loadtable(event.data);
-      console.log(event.data)
+      console.log(event.data);
     }
     else if(message.Command == "ShowFile"){
       tablefile(event.data); 
@@ -85,7 +85,10 @@
     document.getElementById('button2').addEventListener('click', io_ChangeState2);
     document.getElementById('button3').addEventListener('click', io_ChangeState3);
     document.getElementById('button4').addEventListener('click', io_ChangeState4);
-
+    document.getElementById('buttontoggle').addEventListener('click',buttontoggle);
+  }
+  function buttontoggle(){
+    IsConnect = !IsConnect;
   }
   function intervalHandle() {
     var json_output;
@@ -184,6 +187,7 @@
     var weaddres_input = document.getElementById('input_write_end').value;
     var rsaddres_input = document.getElementById('input_read_start').value;
     var readdres_input = document.getElementById('input_read_end').value;
+    var typedata_input = document.getElementById('typedata').value;
     if (slaveid_input == "") {
       alert("chua nhap slaveID ");
     } else if (baud_input == "") {
@@ -197,7 +201,7 @@
     } else if (weaddres_input == "") {
       alert("chua nhap Dia chi ghi ket thuc");
     } else{
-      var output = "{'Command':'settingModbus','slaveID':'" + slaveid_input + "','baud':'" + baud_input + "','readStart':'" + rsaddres_input + "','readEnd':'" + readdres_input + "','writeStart':'" + wsaddres_input + "','writeEnd':'" + weaddres_input + "','serial':'" + port_input + "','mbmaster':'" + mode + "'}";
+      var output = "{'Command':'settingModbus','slaveID':'" + slaveid_input + "','baud':'" + baud_input + "','readStart':'" + rsaddres_input + "','readEnd':'" + readdres_input + "','writeStart':'" + wsaddres_input + "','writeEnd':'" + weaddres_input + "','serial':'" + port_input + "','mbmaster':'" + mode + "','typedata':'"+ typedata_input +"'}";
       console.log(output);
       websocket.send(output);
     }
@@ -283,23 +287,24 @@
   }
   function loadChart() {
     var datalogHuy1 = " {\"Data\":[{\"value\":\"1\",\"type\":\"0\",\"slaveID\":\"1\"},{\"value\":\"2\",\"type\":\"3\",\"slaveID\":\"10\"},{\"value\":\"3\",\"type\":\"2\",\"slaveID\":\"3\"},{\"value\":\"4\",\"type\":\"1\",\"slaveID\":\"5\"},{\"value\":\"5\",\"type\":\"3\",\"slaveID\":\"133\"},{\"value\":\"6\",\"type\":\"1\",\"slaveID\":\"44\"},{\"value\":\"7\",\"type\":\"0\",\"slaveID\":\"20\"}]}";
-    loadtable(datalogHuy1);
+    // loadtable(datalogHuy1);
     var datafile = "{\"ShowFile\":[{\"slaveID\":\"1\",\"name\":\"test.txt\",\"type\":\"0\",\"space\":\"100\"},{\"slaveID\":\"10\",\"name\":\"test1.json\",\"type\":\"1\",\"space\":\"20\"},{\"slaveID\":\"5\",\"name\":\"test2.html\",\"type\":\"1\",\"space\":\"10\"}]}";
-    tablefile(datafile);
+    // tablefile(datafile);
   }
   function loadtable(jsonValue){
     var TableHTML = "";
-    TableHTML = "<table class=\"table \"><thead class=\"thead-dark\"><th>STT</th><th>Slave ID</th><th>Time</th><th>Type Data</th><th>Data</th></thead><tbody>";
+    TableHTML = "<table class=\"table \"><thead class=\"thead-dark\"><th>STT</th><th>Slave ID</th><th>Time</th><th>Type Data: </th><th>Data</th></thead><tbody>";
     var keys = JSON.parse(jsonValue);
     var stt = 0;
     for (var i = 0; i < keys.Data.length; i++) {
       stt++;
       var id = keys.Data[i].slaveID;
-      var type = keys.Data[i].type;
-      if(type == '0') type = "Coil";
-      else if(type == '1') type = "Word";
-      else if(type == '2') type = "DWord";
-      else if(type == '3') type = "Float";
+      var type ="<select id=\"typedata\" value=\"0\"><option value=\"0\" selected=\"\">Coil</option><option value=\"1\">Word</option><option value=\"2\">DWord</option><option value=\"3\">Float</option></select>"; 
+      // +keys.Data[i].type;
+      // if(type == '0') type = "Coil";
+      // else if(type == '1') type = "Word";
+      // else if(type == '2') type = "DWord";
+      // else if(type == '3') type = "Float";
       var h = new Date().getHours();
       var m = new Date().getMinutes();
       var s = new Date().getSeconds();
@@ -307,6 +312,7 @@
       var thoigian = h + ":" + m + ":" + s;
       TableHTML += "<tr><td>"+stt+"</td><td>"+id+"</td><td>"+thoigian+"</td><td>"+type+"</td><td>"+value+"</td></tr>";
     }
+    
     TableHTML += "</tbody></table>";
     
     document.getElementById("TableData").innerHTML = TableHTML;
@@ -317,7 +323,7 @@
     TableHTML = "<table class=\"table \"><thead class=\"thead-dark\"><th>STT</th><th>ID</th><th>Time</th><th>File Name</th><th>Use Space</th><th>Type Memory</th></thead><tbody>";
     var file = JSON.parse(jsonValue);
     var stt = 0;
-    var total = 1024 * 5;
+    var total;
     var use = 0;
     var free = 0;
     for (var i = 0; i < file.ShowFile.length; i++) {
@@ -332,13 +338,14 @@
       const space = file.ShowFile[i].space;
       var thoigian = h + ":" + m + ":" + s;
       var name = file.ShowFile[i].name;
-      TableHTML += "<tr><td>"+stt+"</td><td>"+id+"</td><td>"+thoigian+"</td><td>"+name+"</td><td>"+space+"KB"+"</td><td>"+type+"</td></tr>";
+      total = file.ShowFile[i].total;
+      TableHTML += "<tr><td>"+stt+"</td><td>"+id+"</td><td>"+thoigian+"</td><td>"+name+"</td><td>"+(space/1024).toFixed(2)+"KB"+"</td><td>"+type+"</td></tr>";
       use += Number(file.ShowFile[i].space);
       free = total - use;
     }
     TableHTML += "</tbody></table>";
     document.getElementById("TableFile").innerHTML = TableHTML;
-    document.getElementById("total").innerHTML = total + "KB/"+(total/1024).toFixed(2) + "MB";
-    document.getElementById("use").innerHTML = use + "KB/" + (use /1024).toFixed(2) + "MB";
-    document.getElementById("free").innerHTML = free + "KB/" + (free/1024).toFixed(2) + "MB";
+    document.getElementById("total").innerHTML = (total/1024).toFixed(2) + "KB";
+    document.getElementById("use").innerHTML = (use /1024).toFixed(2) + "KB";
+    document.getElementById("free").innerHTML = (free/1024).toFixed(2) + "KB";
   }

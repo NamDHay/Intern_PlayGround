@@ -84,13 +84,14 @@ void setModbusHandler()
     String writeEnd = rdoc["writeEnd"].as<String>();
     String serial = rdoc["serial"].as<String>();
     String mbmaster = rdoc["mbmaster"].as<String>();
+    String typedata = rdoc["typedata"].as<String>();
 
     mbusconfig.mode = (mbmaster == "0") ? true : false;
     mbusconfig.SlaveID_Config = slaveID.toInt();
     mbusconfig.baud = baud.toInt();
 
     wDoc["Command"] = "settingModbus";
-    wDoc["Data"] = "SetingDone";
+    // wDoc["Data"] = "SetingDone";
     serializeJson(wDoc, fbDataString);
     notifyClients(fbDataString);
 }
@@ -133,10 +134,39 @@ void setWifiHandler()
     loadSetting();
 }
 void tabledata(){
-  String json_data = " {\"Data\":[{\"value\":\"1\",\"type\":\"0\",\"slaveID\":\"1\"},{\"value\":\"2\",\"type\":\"3\",\"slaveID\":\"10\"},{\"value\":\"3\",\"type\":\"2\",\"slaveID\":\"3\"},{\"value\":\"4\",\"type\":\"1\",\"slaveID\":\"5\"},{\"value\":\"5\",\"type\":\"3\",\"slaveID\":\"133\"},{\"value\":\"6\",\"type\":\"1\",\"slaveID\":\"44\"},{\"value\":\"7\",\"type\":\"0\",\"slaveID\":\"20\"}]}";
+  JsonDocument data;
+  String datatable = "";
+  JsonArray dataArray;
+  data["value"] = rand() % 10;
+  data["slaveID"] = rand() % 10;
+  data["type"] = random(0,3);
   wDoc["Command"] = "Data";
-  serializeJson(wDoc,json_data);
-  notifyClients(json_data);
+  dataArray = wDoc["Data"].to<JsonArray>();
+  dataArray.add(data);
+  serializeJson(wDoc, datatable);
+  notifyClients(datatable);
+}
+void showfile(){
+  File root = SPIFFS.open("/");
+  File file = root.openNextFile();
+  JsonDocument fileDoc;
+  JsonArray dataArray;
+  JsonDocument datafile;
+  String showfile = "";
+  uint32_t fileCount = 0;
+  fileDoc["Command"] = "ShowFile";
+  dataArray = fileDoc["ShowFile"].to<JsonArray>();
+  while(file) {
+    datafile["slaveID"] = random(1,10);
+    datafile["type"] = random(0,2);
+    datafile["name"] = file.name();
+    datafile["space"] = file.size();
+    datafile["total"] = SPIFFS.totalBytes();
+    dataArray.add(datafile);
+    file = root.openNextFile();
+  }
+  serializeJson(fileDoc,showfile);
+  notifyClients(showfile);
 }
 //Receive data from websocket
 void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
@@ -175,6 +205,9 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         else if (command == "settingWifi")
         {
             setWifiHandler();
+        }
+        else {
+          tabledata();
         }
     }
 }
@@ -218,8 +251,10 @@ void WB_setup(){
   pinMode(ledPin, OUTPUT);
   digitalWrite(ledPin, LOW);      
   initWebSocket();
+  showfile();
 }
 void WB_loop() {
   ws.cleanupClients();
   digitalWrite(ledPin, ledState);
+  // tabledata();
 } 

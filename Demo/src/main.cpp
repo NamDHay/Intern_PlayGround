@@ -260,7 +260,6 @@ void setup() {
   setUpWebserver(server, WiFi.softAPIP());
   WebInit();
   WB_setup();
-  // Modbus_MasterInit(&Serial2);
   xTaskCreatePinnedToCore(TaskCaptivePortal, "CaptivePortal",30000,NULL, 1, NULL, 1);
   xTaskCreatePinnedToCore(TaskFunction, "Function", 30000, NULL, 2,NULL, 1);
   xTaskCreatePinnedToCore(TaskModbus, "Modbus", 10000, NULL, 3, NULL, 1);
@@ -276,7 +275,7 @@ void TaskCaptivePortal(void *pvParameter){
 void TaskFunction(void *pvParameter){
   for(;;){
     WB_loop();
-    vTaskDelay(10/portTICK_PERIOD_MS);
+    vTaskDelay(1000/portTICK_PERIOD_MS);
   }
 }
 void TaskModbus(void *pvParameter){
