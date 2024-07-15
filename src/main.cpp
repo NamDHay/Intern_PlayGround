@@ -17,8 +17,8 @@ void setup() {
   io_config.Init();
   filesystem.Init();
   online.Init();
-  xTaskCreatePinnedToCore(TaskOnlineManager,"TaskOnlineManager",5000,NULL,2,NULL,1);
-  xTaskCreatePinnedToCore(TaskModbus,"TaskModbusRTU", 5000, NULL,1,NULL,1);
+  xTaskCreatePinnedToCore(TaskOnlineManager,"TaskOnlineManager",5000,NULL,3,NULL,1);
+  xTaskCreatePinnedToCore(TaskModbus,"TaskModbusRTU", 7000, NULL,2,NULL,1);
 }
 
 void loop(){

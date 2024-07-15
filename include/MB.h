@@ -36,17 +36,20 @@ public:
         long endAddress;
     } SlaveWriteReg;
 
-    enum TypeData_t
+    // enum TypeData_t
+    // {
+    //     COIL,
+    //     WORD,
+    //     DWORDS,
+    //     FLOAT,
+    // };
+    struct modbus_data_t
     {
-        COIL,
-        WORD,
-        DWORDS,
-        FLOAT,
+        long address;
+        // TypeData_t typeData;
+        uint8_t typeData;
     };
-
-    TypeData_t readTypeData;
-    TypeData_t writeTypeData;
-
+    struct modbus_data_t mbdata[10];
     void MasterInit(HardwareSerial *port, unsigned long baud);
     void SlaveInit(HardwareSerial *port, unsigned long baud);
 
