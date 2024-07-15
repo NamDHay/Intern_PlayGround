@@ -3,7 +3,9 @@
 
 bool ledState = 0;
 const int ledPin = 25;
-
+bool FlagFile = false;
+bool writeshowfile = false;
+bool writename = false;
 JsonDocument rdoc;
 JsonDocument wDoc;
 String DataStr = "";
@@ -52,7 +54,7 @@ void stationMode(){
     server.begin();
 }//stationMode
 String ws_load = "";
-void notifyClients(String value) {
+void notifyClients(const String &value) {
   ws.textAll(value);
 }
 void getIOHandler()
@@ -131,7 +133,8 @@ void setWifiHandler()
     serializeJson(wDoc, fbDataString);
     notifyClients(fbDataString);
     bool IsMessage = true;
-    loadSetting();
+    // loadSetting();
+    stationMode();
 }
 void tabledata(){
   JsonDocument data;
@@ -146,27 +149,33 @@ void tabledata(){
   serializeJson(wDoc, datatable);
   notifyClients(datatable);
 }
+//showfile
 void showfile(){
-  File root = SPIFFS.open("/");
-  File file = root.openNextFile();
+
   JsonDocument fileDoc;
   JsonArray dataArray;
   JsonDocument datafile;
   String showfile = "";
-  uint32_t fileCount = 0;
   fileDoc["Command"] = "ShowFile";
   dataArray = fileDoc["ShowFile"].to<JsonArray>();
-  while(file) {
+
+  File root = SPIFFS.open("/");
+  File file = root.openNextFile();
+  while(file){
     datafile["slaveID"] = random(1,10);
     datafile["type"] = random(0,2);
-    datafile["name"] = file.name();
+    String name = file.name(); 
+    datafile["name"] = name; 
     datafile["space"] = file.size();
     datafile["total"] = SPIFFS.totalBytes();
     dataArray.add(datafile);
     file = root.openNextFile();
+    writeshowfile = false;
   }
+  
   serializeJson(fileDoc,showfile);
   notifyClients(showfile);
+  Serial.println(showfile);
 }
 //Receive data from websocket
 void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
@@ -196,15 +205,15 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         }
         else if (command == "getIO")
         {
-            getIOHandler();
+          getIOHandler();
         }
         else if (command == "settingModbus")
         {
-            setModbusHandler();
+          setModbusHandler();
         }
         else if (command == "settingWifi")
         {
-            setWifiHandler();
+          setWifiHandler();
         }
         else {
           tabledata();
@@ -216,6 +225,8 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
   switch (type) {
     case WS_EVT_CONNECT:
       Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
+      FlagFile = true;
+      writeshowfile = true;
       break;
     case WS_EVT_DISCONNECT:
       Serial.printf("WebSocket client #%u disconnected\n", client->id());
@@ -251,10 +262,13 @@ void WB_setup(){
   pinMode(ledPin, OUTPUT);
   digitalWrite(ledPin, LOW);      
   initWebSocket();
-  showfile();
 }
 void WB_loop() {
   ws.cleanupClients();
   digitalWrite(ledPin, ledState);
   // tabledata();
+  if(FlagFile == true){
+    showfile();
+    FlagFile = false;
+  }
 } 
