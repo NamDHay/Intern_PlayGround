@@ -80,8 +80,9 @@ void getIOHandler()
     Serial.println("Data7: " + String(DataArr[7]));
     Serial.flush();
 }
+//setupModbus
 void setModbusHandler()
-{
+{ 
     String slaveID = rdoc["slaveID"].as<String>();
     String baud = rdoc["baud"].as<String>();
     String readStart = rdoc["readStart"].as<String>();
@@ -90,7 +91,8 @@ void setModbusHandler()
     String writeEnd = rdoc["writeEnd"].as<String>();
     String serial = rdoc["serial"].as<String>();
     String mbmaster = rdoc["mbmaster"].as<String>();
-    String typedata = rdoc["typedata"].as<String>();
+
+    mbusconfig.slaveID = slaveID.toInt();
     master = (mbmaster == "0") ? 0 : 1;
     mbusconfig.baud = baud.toInt();
     mbusconfig.port = (serial == "0") ? &Serial1 : &Serial2;
@@ -109,12 +111,14 @@ void setModbusHandler()
         SlaveWriteReg.startAddress = writeStart.toInt();
         SlaveWriteReg.endAddress = writeEnd.toInt();
     }
+
     wDoc["Command"] = "settingModbus";
     wDoc["Data"] = "SetingDone";
     serializeJson(wDoc, fbDataString);
     notifyClients(fbDataString);
-    Modbus_loadSetting();
+    Modbus_writeSetting();
 }
+//updateWeb
 void update_WebData_Interval()
 {
   union f2w_t
@@ -273,6 +277,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
     else if (command == "settingModbus")
     {
       setModbusHandler();
+      Modbus_loadSetting();
     }
     else if (command == "settingWifi")
     {
@@ -280,7 +285,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
     }
   }
 }
-
+//onEvent
 void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
   switch (type) {
     case WS_EVT_CONNECT:
@@ -299,7 +304,7 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
       break;
   }
 }
-
+//initwebsocket
 void initWebSocket() {
   ws.onEvent(onEvent);
   server.addHandler(&ws);
@@ -330,13 +335,16 @@ void WB_loop() {
   digitalWrite(ledPin, ledState);
   if(FlagFile == true){
     showfile();
-    // Modbus send data
-    if (millis() - startUpdateIntervalTime >= 2000)
-    {
-      startUpdateIntervalTime = millis();
-      update_WebData_Interval();
-    }
+    Modbus_loadSetting();
+    
+
     FlagFile = false;
+  }
+  // Modbus send data
+  if (millis() - startUpdateIntervalTime >= 2000)
+  {
+    startUpdateIntervalTime = millis();
+    update_WebData_Interval();
   }
 }
 void TaskFunction(void *pvParameter){

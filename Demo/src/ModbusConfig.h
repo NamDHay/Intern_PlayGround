@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <ModbusRTU.h>
-bool master;
+bool master = false;
 ModbusRTU mb;
 #define MODBUS_BAUD_ 9600
 
@@ -17,6 +17,8 @@ int16_t Master_ReadData[60];
 int16_t Master_WriteData[60];
 int16_t Slave_ReadData[60];
 int16_t Slave_WriteData[60];
+String settingmodbus = "";
+String dataReadmodbus = "";
 struct ModBusConfig
 {
   unsigned long baud;
@@ -78,69 +80,58 @@ void Modbus_SlaveInit(HardwareSerial *port, unsigned long baud)
 }
 void Modbus_writeSetting()
 {
-  String setting = "";
-  JsonDocument writeDoc;
+  JsonDocument mbwriteDoc;
 
-  writeDoc["baud"] = mbusconfig.baud;
-  writeDoc["readStart"] = MasterReadReg.startAddress;
-  writeDoc["readEnd"] = MasterReadReg.endAddress;
-  writeDoc["writeStart"] = MasterWriteReg.startAddress;
-  writeDoc["writeEnd"] = MasterWriteReg.endAddress;
-  writeDoc["serial"] = (mbusconfig.port == &Serial1) ? "0" : "1";
-  writeDoc["mbmaster"] = master;
+  mbwriteDoc["slaveID"] = mbusconfig.slaveID;
+  mbwriteDoc["baud"] = mbusconfig.baud;
+  mbwriteDoc["readStart"] = MasterReadReg.startAddress;
+  mbwriteDoc["readEnd"] = MasterReadReg.endAddress;
+  mbwriteDoc["writeStart"] = MasterWriteReg.startAddress;
+  mbwriteDoc["writeEnd"] = MasterWriteReg.endAddress;
+  mbwriteDoc["serial"] = (mbusconfig.port == &Serial1) ? "0" : "1";
+  mbwriteDoc["mbmaster"] = master;
 
-  serializeJson(writeDoc, setting);
-  Serial.println("JSON: " + setting);
-  writefile("/mbsetting.json", setting);
+
+  serializeJson(mbwriteDoc, settingmodbus);
+  LOGLN("JSON: " + settingmodbus);
+  writefile("/mbsetting.json", settingmodbus);
+
 }
 void Modbus_loadSetting()
 {
-  String dataRead = "";
-  JsonDocument doc;
-  dataRead = readfile("/mbsetting.json");
-  deserializeJson(doc, dataRead);
+  JsonDocument mbdoc;
+  dataReadmodbus = readfile("/mbsetting.json");
+  deserializeJson(mbdoc, dataReadmodbus);
 
-  unsigned long baud = doc["baud"];
-  long readStart = doc["readStart"];
-  long readEnd = doc["readEnd"];
-  long writeStart = doc["writeStart"];
-  long writeEnd = doc["writeEnd"];
-  String serial = doc["serial"];
-  String mbmaster = doc["mbmaster"];
+  String slaveID = mbdoc["slaveID"].as<String>();
+  String baud = mbdoc["baud"].as<String>();
+  String readStart = mbdoc["readStart"].as<String>();
+  String readEnd = mbdoc["readEnd"].as<String>();
+  String writeStart = mbdoc["writeStart"].as<String>();
+  String writeEnd = mbdoc["writeEnd"].as<String>();
+  String serial = mbdoc["serial"].as<String>();
+  String mbmaster = mbdoc["mbmaster"].as<String>();
 
+  mbusconfig.slaveID = slaveID.toInt();
   master = (mbmaster == "0") ? 0 : 1;
-  mbusconfig.baud = baud;
+  mbusconfig.baud = baud.toInt();
   mbusconfig.port = (serial == "0") ? &Serial1 : &Serial2;
   if (master == 1)
   {
-    MasterReadReg.startAddress = readStart;
-    MasterReadReg.endAddress = readEnd;
-    MasterWriteReg.startAddress = writeStart;
-    MasterWriteReg.endAddress = writeEnd;
+      MasterReadReg.startAddress = readStart.toInt();
+      MasterReadReg.endAddress = readEnd.toInt();
+      MasterWriteReg.startAddress = writeStart.toInt();
+      MasterWriteReg.endAddress = writeEnd.toInt();
   }
 
   if (master == 0)
   {
-    SlaveReadReg.startAddress = readStart;
-    SlaveReadReg.endAddress = readEnd;
-    SlaveWriteReg.startAddress = writeStart;
-    SlaveWriteReg.endAddress = writeEnd;
+      SlaveReadReg.startAddress = readStart.toInt();
+      SlaveReadReg.endAddress = readEnd.toInt();
+      SlaveWriteReg.startAddress = writeStart.toInt();
+      SlaveWriteReg.endAddress = writeEnd.toInt();
   }
 
-  Serial.print("baudrate: ");
-  Serial.println(mbusconfig.baud);
-  Serial.print("Readstart: ");
-  Serial.println((MasterReadReg.startAddress));
-  Serial.print("Readend: ");
-  Serial.println((MasterReadReg.endAddress));
-  Serial.print("WriteStart: ");
-  Serial.println((MasterWriteReg.startAddress));
-  Serial.print("WriteEnd: ");
-  Serial.println((MasterWriteReg.endAddress));
-  Serial.print("Serial: ");
-  Serial.println((serial));
-  Serial.print("MBmaster: ");
-  Serial.println((mbmaster));
   Modbus_writeSetting();
 }
 
@@ -284,7 +275,7 @@ void TaskModbus(void *pvParameter)
   // MasterReadReg.endAddress = 19;
   // MasterWriteReg.startAddress = 20;
   // MasterWriteReg.endAddress = 39;
-
+  Modbus_loadSetting();
   mbdata[0].typeData = COIL_TYPE;
   mbdata[1].typeData = WORD_TYPE;
   mbdata[2].typeData = COIL_TYPE;
@@ -307,11 +298,11 @@ void TaskModbus(void *pvParameter)
 
   if (master == 1)
   {
-    Modbus_MasterInit(&Serial2, MODBUS_BAUD_);
+    Modbus_MasterInit(mbusconfig.port, mbusconfig.baud);
   }
   else
   {
-    Modbus_SlaveInit(&Serial2, MODBUS_BAUD_);
+    Modbus_SlaveInit(mbusconfig.port, mbusconfig.baud);
     mb.slave(mbusconfig.slaveID);
     mb.addHreg(SlaveWriteReg.startAddress, 0, SlaveWriteReg.endAddress - SlaveWriteReg.startAddress);
     mb.addHreg(SlaveReadReg.startAddress, 0, SlaveReadReg.endAddress - SlaveReadReg.startAddress);

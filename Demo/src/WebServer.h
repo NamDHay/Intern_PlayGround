@@ -21,7 +21,7 @@ void writeSetting(){
 }
 void loadSetting(){
     //load setting
-    JsonDocument doc;//
+    JsonDocument doc;
     dataRead = readfile("/setting.json");
     deserializeJson(doc, dataRead);
     String SSID = doc["SSID"].as<String>();
@@ -32,16 +32,6 @@ void loadSetting(){
     String wgetway = doc["wgetway"].as<String>(); 
     String wmode = doc["wmode"].as<String>(); 
 
-    String slaveID = doc["slaveID"].as<String>(); 
-    String baud = doc["baud"].as<String>(); 
-    String typedata = doc["typedata"].as<String>();
-    String serial = doc["serial"].as<String>(); 
-    String mbmaster = doc["mbmaster"].as<String>(); 
-    String writeStart = doc["writeStart"].as<String>(); 
-    String writeEnd = doc["writeEnd"].as<String>(); 
-    String readStart = doc["readStart"].as<String>(); 
-    String readEnd = doc["readEnd"].as<String>(); 
-
     LOGLN("SSID: " + SSID);
     LOGLN("PASS: " + PASS);
     LOGLN("staip: "+ staip); 
@@ -49,15 +39,6 @@ void loadSetting(){
     LOGLN("waddress: "+ waddress); 
     LOGLN("wgetway: "+ wgetway); 
     LOGLN("wmode: "+ wmode);
-
-    LOGLN("slaveID: "+ slaveID); 
-    LOGLN("baud: "+ baud); 
-    LOGLN("serial: "+ serial); 
-    LOGLN("mbmaster: "+ mbmaster); 
-    LOGLN("writeStart: "+ writeStart); 
-    LOGLN("writeEnd: "+ writeEnd); 
-    LOGLN("readStart: "+ readStart); 
-    LOGLN("readEnd: "+ readEnd); 
 
     settings.ssid = SSID;
     settings.pass = PASS;
