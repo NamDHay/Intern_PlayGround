@@ -71,7 +71,7 @@ function io_ChangeState4() {
 
 function saveModbusTable() {
     var msg = [];
-    var msgOut = "{\"Command\":\"mbDataType\",\"type\":[";
+    var msgOut = "{\"Command\":\"mbDataType\",\"lengh\":\"" + TableDataLen + "\",\"type\":[";
     for (var i = 0; i < TableDataLen; i++) { msg[i] = document.getElementById("SelectType" + i).value; }
     msgOut += msg[0];
     for (var i = 1; i < TableDataLen; i++) { msgOut += "," + msg[i]; }
@@ -286,7 +286,7 @@ if (!!window.EventSource) {
 }
 function loadChart() {
     var datalogHuy1 = " {\"Data\":[{\"address\":\"1\",\"value\":\"1\",\"type\":\"0\",\"slaveID\":\"1\"},{\"address\":\"2\",\"value\":\"2\",\"type\":\"3\",\"slaveID\":\"10\"},{\"address\":\"3\",\"value\":\"3\",\"type\":\"2\",\"slaveID\":\"3\"},{\"address\":\"4\",\"value\":\"4\",\"type\":\"1\",\"slaveID\":\"5\"},{\"address\":\"5\",\"value\":\"5\",\"type\":\"3\",\"slaveID\":\"133\"},{\"address\":\"6\",\"value\":\"6\",\"type\":\"1\",\"slaveID\":\"44\"},{\"address\":\"7\",\"value\":\"7\",\"type\":\"0\",\"slaveID\":\"20\"}]}";
-    loadtable(datalogHuy1);
+    // loadtable(datalogHuy1);
     var datafile = "{\"ShowFile\":[{\"slaveID\":\"1\",\"name\":\"test.txt\",\"type\":\"0\",\"space\":\"100\"},{\"slaveID\":\"10\",\"name\":\"test1.json\",\"type\":\"1\",\"space\":\"20\"},{\"slaveID\":\"5\",\"name\":\"test2.html\",\"type\":\"1\",\"space\":\"10\"}]}";
     tablefile(datafile);
 }

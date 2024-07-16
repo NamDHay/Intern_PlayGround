@@ -174,35 +174,17 @@ void getIOHandler()
     {
         DataArr[i] = rdoc["Data"][i];
     }
-    Serial.println("Data0: " + String(DataArr[0]));
-    Serial.println("Data1: " + String(DataArr[1]));
-    Serial.println("Data2: " + String(DataArr[2]));
-    Serial.println("Data3: " + String(DataArr[3]));
-    Serial.println("Data4: " + String(DataArr[4]));
-    Serial.println("Data5: " + String(DataArr[5]));
-    Serial.println("Data6: " + String(DataArr[6]));
-    Serial.println("Data7: " + String(DataArr[7]));
     Serial.flush();
 }
 void mbDataTypeHandler()
 {
-    int DataArr[10];
-    int size = sizeof(DataArr);
-    for (int i = 0; i < 10; i++)
+    size_t size = rdoc["lengh"];
+    Serial.println("Size of type: " + String(size));
+    for (int i = 0; i < size; i++)
     {
-        DataArr[i] = rdoc["type"][i];
-        modbus.mbdata[i].typeData = DataArr[i];
+        modbus.typeData[i] = rdoc["type"][i];
+        Serial.println("Type " + String(i) + ": " + String(modbus.typeData[i]));
     }
-
-    Serial.println("Type0: " + String(DataArr[0]));
-    Serial.println("Type1: " + String(DataArr[1]));
-    Serial.println("Type2: " + String(DataArr[2]));
-    Serial.println("Type3: " + String(DataArr[3]));
-    Serial.println("Type4: " + String(DataArr[4]));
-    Serial.println("Type5: " + String(DataArr[5]));
-    Serial.println("Type6: " + String(DataArr[6]));
-    Serial.println("Type7: " + String(DataArr[7]));
-    Serial.flush();
 }
 void setModbusHandler()
 {
@@ -303,7 +285,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         }
         else if (command == "getIO")
         {
-            getIOHandler();
+            // getIOHandler();
         }
         else if (command == "settingModbus")
         {

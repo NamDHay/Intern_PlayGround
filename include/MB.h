@@ -35,11 +35,7 @@ public:
         long startAddress;
         long endAddress;
     } SlaveWriteReg;
-    struct modbus_data_t
-    {
-        uint8_t typeData;
-    };
-    struct modbus_data_t mbdata[20];
+    uint8_t typeData[100];
     void MasterInit(HardwareSerial *port, unsigned long baud);
     void SlaveInit(HardwareSerial *port, unsigned long baud);
     bool read_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t length);

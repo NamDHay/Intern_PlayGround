@@ -5,6 +5,11 @@
 
 ModbusRTU mb;
 
+int16_t Master_ReadData[100];
+int16_t Master_WriteData[100];
+int16_t Slave_ReadData[100];
+int16_t Slave_WriteData[100];
+
 #define MODBUS_BAUD_ 9600
 
 #define COIL_TYPE 0
@@ -150,11 +155,11 @@ bool MODBUS_RTU::read_Multiple_Data(byte ID, uint16_t *value, long startAddress,
             mb.task();
             vTaskDelay(10 / portTICK_PERIOD_MS);
         }
-        for (uint8_t i = rstart; i < rstart + 30; i++)
-        {
-            Serial.print("Data " + String(i) + ": ");
-            Serial.println(rdata[i]);
-        }
+        // for (uint8_t i = rstart; i < rstart + 30; i++)
+        // {
+        //     Serial.print("Data " + String(i) + ": ");
+        //     Serial.println(rdata[i]);
+        // }
         rstart = rstart + 30;
         dataLength -= 30;
         rdata += 30;
@@ -176,11 +181,11 @@ bool MODBUS_RTU::read_Multiple_Data(byte ID, uint16_t *value, long startAddress,
             mb.task();
             vTaskDelay(10 / portTICK_PERIOD_MS);
         }
-        for (uint8_t i = rstart; i < rstart + dataLength; i++)
-        {
-            Serial.print("Data " + String(i) + ": ");
-            Serial.println(rdata[i]);
-        }
+        // for (uint8_t i = rstart; i < rstart + dataLength; i++)
+        // {
+        //     Serial.print("Data " + String(i) + ": ");
+        //     Serial.println(rdata[i]);
+        // }
         dataLength = 0;
         rstart = 0;
         rdata = NULL;
@@ -243,7 +248,7 @@ bool MODBUS_RTU::write_Multiple_Data(byte ID, uint16_t *value, long startAddress
     return false;
 }
 
-bool update_WebData_Interval(int16_t *Master_ReadData)
+void update_WebData_Interval() // Must be void function to avoid control reaches end of non-void function [-Wreturn-type]
 {
     union f2w_t
     {
@@ -255,81 +260,64 @@ bool update_WebData_Interval(int16_t *Master_ReadData)
         int32_t dw;
         int16_t w[2];
     } dw2w;
-    JsonDocument wDoc;
-    JsonDocument mbOjb;
+    JsonDocument Doc; // this guy make error messages if not return void
     String fbDataString = "";
-    JsonArray dataArray;
     long Address;
     if (online.isConnected == true)
     {
-        wDoc["Command"] = "Data";
-        dataArray = wDoc["Data"].to<JsonArray>();
-        mbOjb["slaveID"] = modbus.config.slaveID;
-
+        Doc["Command"] = "Data";
         Address = modbus.MasterReadReg.startAddress;
         for (uint8_t i = 0; i < (modbus.MasterReadReg.endAddress - modbus.MasterReadReg.startAddress + 1); i++)
         {
+            Doc["Data"][i]["slaveID"] = modbus.config.slaveID;
             if (Address > modbus.MasterReadReg.endAddress)
             {
                 Serial.println("Out of range");
                 break;
             }
-            mbOjb["address"] = Address;
-            mbOjb["type"] = modbus.mbdata[i].typeData;
-            switch (modbus.mbdata[i].typeData)
+            Doc["Data"][i]["address"] = Address;
+            Doc["Data"][i]["type"] = modbus.typeData[i];
+            switch (modbus.typeData[i])
             {
             case COIL_TYPE:
-                mbOjb["value"] = CHECKCOIL(Master_ReadData[Address], 0);
+                Doc["Data"][i]["value"] = CHECKCOIL(Master_ReadData[Address], 0);
                 Address++;
                 break;
             case WORD_TYPE:
-                mbOjb["value"] = Master_ReadData[Address];
+                Doc["Data"][i]["value"] = Master_ReadData[Address];
                 Address += 1;
                 break;
             case DWORDS_TYPE:
                 dw2w.w[0] = Master_ReadData[Address];
                 dw2w.w[1] = Master_ReadData[Address + 1];
-                mbOjb["value"] = dw2w.dw;
+                Doc["Data"][i]["value"] = dw2w.dw;
                 Address += 2;
                 break;
             case FLOAT_TYPE:
                 f2w.w[0] = Master_ReadData[Address];
                 f2w.w[1] = Master_ReadData[Address + 1];
-                mbOjb["value"] = f2w.f;
+                Doc["Data"][i]["value"] = f2w.f;
                 Address += 2;
                 break;
             default:
                 break;
             }
-            dataArray.add(mbOjb);
         }
-        serializeJson(wDoc, fbDataString);
+        serializeJson(Doc, fbDataString);
+        // serializeJsonPretty(Doc, Serial);
         online.notifyClients(fbDataString);
-        return true;
     }
 }
 
 void TaskModbus(void *pvParameter)
 {
-    int16_t *Master_ReadData;
-
     modbus.master = 1;
-    modbus.config.slaveID = 1;
+
     modbus.MasterReadReg.startAddress = 0;
     modbus.MasterReadReg.endAddress = 19;
     modbus.MasterWriteReg.startAddress = 20;
     modbus.MasterWriteReg.endAddress = 39;
     size_t reglengh = (modbus.MasterReadReg.endAddress - modbus.MasterReadReg.startAddress + 1);
-    // modbus.mbdata[0].typeData = COIL_TYPE;
-    // modbus.mbdata[1].typeData = WORD_TYPE;
-    // modbus.mbdata[2].typeData = COIL_TYPE;
-    // modbus.mbdata[3].typeData = DWORDS_TYPE;
-    // modbus.mbdata[4].typeData = FLOAT_TYPE;
-    // modbus.mbdata[5].typeData = COIL_TYPE;
-    // modbus.mbdata[6].typeData = WORD_TYPE;
-    // modbus.mbdata[7].typeData = COIL_TYPE;
-    // modbus.mbdata[8].typeData = DWORDS_TYPE;
-    // modbus.mbdata[9].typeData = COIL_TYPE;
 
     static long startUpdateIntervalTime = millis();
 
@@ -349,24 +337,28 @@ void TaskModbus(void *pvParameter)
     {
         if (modbus.master == 1) // Master part
         {
-            Master_ReadData = (int16_t *)malloc(reglengh * sizeof(int16_t));
 
             if (!mb.slave())
             {
+                modbus.config.slaveID = 1;
                 while (modbus.read_Multiple_Data(modbus.config.slaveID,
                                                  (uint16_t *)&Master_ReadData,
                                                  modbus.MasterReadReg.startAddress,
                                                  (modbus.MasterReadReg.endAddress - modbus.MasterReadReg.startAddress + 1)) != true)
                     ;
+                modbus.config.slaveID = 2;
+                while (modbus.write_Multiple_Data(modbus.config.slaveID,
+                                                  (uint16_t *)&Master_ReadData,
+                                                  modbus.MasterWriteReg.startAddress,
+                                                  (modbus.MasterWriteReg.endAddress - modbus.MasterWriteReg.startAddress + 1)) != true)
+                    ;
             }
             if (millis() - startUpdateIntervalTime >= UPDATE_INTERVAL_MS)
             {
                 startUpdateIntervalTime = millis();
-                while (update_WebData_Interval(Master_ReadData) != true)
-                    ;
-                Serial.println("update_WebData_Interval success");
-                Serial.println("Free data");
-                free(Master_ReadData);
+                update_WebData_Interval();
+                Serial.println("Free RAM: " + String(ESP.getFreeHeap() / 1024) + "Kb");
+                Serial.println("Current RAM: " + String((ESP.getHeapSize() - ESP.getFreeHeap()) / 1024) + "Kb");
             }
         } // Master part
     }
