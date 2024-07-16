@@ -88,6 +88,7 @@
     document.getElementById('button3').addEventListener('click', io_ChangeState3);
     document.getElementById('button4').addEventListener('click', io_ChangeState4);
     document.getElementById('buttontoggle').addEventListener('click',buttontoggle);
+    document.getElementById('buttonsavetable').addEventListener('click', saveModbusTable);
   }
   function buttontoggle(){
     IsConnect = !IsConnect;
@@ -291,6 +292,16 @@
     // loadtable(datalogHuy1);
     var datafile = "{\"ShowFile\":[{\"slaveID\":\"1\",\"name\":\"test.txt\",\"type\":\"0\",\"space\":\"100\"},{\"slaveID\":\"10\",\"name\":\"test1.json\",\"type\":\"1\",\"space\":\"20\"},{\"slaveID\":\"5\",\"name\":\"test2.html\",\"type\":\"1\",\"space\":\"10\"}]}";
     // tablefile(datafile);
+  }
+  function saveModbusTable() {
+    var msg = [];
+    var msgOut = "{\"Command\":\"mbDataType\",\"lengh\":\"" + TableDataLen + "\",\"type\":[";
+    for (var i = 0; i < TableDataLen; i++) { msg[i] = document.getElementById("SelectType" + i).value; }
+    msgOut += msg[0];
+    for (var i = 1; i < TableDataLen; i++) { msgOut += "," + msg[i]; }
+    msgOut += "]}";
+    websocket.send(msgOut);
+    console.log(msgOut);
   }
   function loadtable(jsonValue) {
     var TableHTML = "";

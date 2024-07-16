@@ -2,7 +2,6 @@
 #include <ModbusRTU.h>
 bool master = false;
 ModbusRTU mb;
-#define MODBUS_BAUD_ 9600
 
 #define COIL_TYPE 0
 #define WORD_TYPE 1
@@ -53,7 +52,7 @@ struct modbus_data_t
   uint8_t typeData;
 };
 struct modbus_data_t mbdata[10];
-
+uint8_t typeData[100];
 bool cb(Modbus::ResultCode event, uint16_t transactionId, void *data)
 { // Callback to monitor errors
   if (event != Modbus::EX_SUCCESS)
@@ -276,16 +275,6 @@ void TaskModbus(void *pvParameter)
   // MasterWriteReg.startAddress = 20;
   // MasterWriteReg.endAddress = 39;
   Modbus_loadSetting();
-  mbdata[0].typeData = COIL_TYPE;
-  mbdata[1].typeData = WORD_TYPE;
-  mbdata[2].typeData = COIL_TYPE;
-  mbdata[3].typeData = DWORDS_TYPE;
-  mbdata[4].typeData = FLOAT_TYPE;
-  mbdata[5].typeData = COIL_TYPE;
-  mbdata[6].typeData = WORD_TYPE;
-  mbdata[7].typeData = COIL_TYPE;
-  mbdata[8].typeData = DWORDS_TYPE;
-  mbdata[9].typeData = COIL_TYPE;
 
   for (uint8_t i = 0; i < (MasterReadReg.endAddress - MasterReadReg.startAddress + 1); i++)
   {

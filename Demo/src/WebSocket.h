@@ -119,7 +119,7 @@ void setModbusHandler()
     Modbus_writeSetting();
 }
 //updateWeb
-void update_WebData_Interval()
+void update_WebData_Interval() // Must be void function to avoid control reaches end of non-void function [-Wreturn-type]
 {
   union f2w_t
   {
@@ -131,51 +131,63 @@ void update_WebData_Interval()
     int32_t dw;
     int16_t w[2];
   } dw2w;
-  JsonDocument wDoc;
-  JsonDocument mbOjb;
+  JsonDocument Doc; // this guy make error messages if not return void
   String fbDataString = "";
-  JsonArray dataArray;
-  long nextAddress;
+  long Address;
   if (isConnected == true)
   {
-    wDoc["Command"] = "Data";
-    dataArray = wDoc["Data"].to<JsonArray>();
-    mbOjb["slaveID"] = mbusconfig.slaveID;
-
-    nextAddress = MasterReadReg.startAddress;
-    for (uint8_t i = 0; i < 10; i++)
+    Doc["Command"] = "Data";
+    Address = MasterReadReg.startAddress;
+    for (uint8_t i = 0; i < (MasterReadReg.endAddress - MasterReadReg.startAddress + 1); i++)
     {
-      mbdata[i].address = nextAddress;
-      mbOjb["address"] = mbdata[i].address;
-      mbOjb["type"] = mbdata[i].typeData;
-      switch (mbdata[i].typeData)
+      Doc["Data"][i]["slaveID"] = mbusconfig.slaveID;
+      if (Address > MasterReadReg.endAddress)
       {
-      case COIL_TYPE:
-        mbOjb["value"] = CHECKCOIL(Master_ReadData[nextAddress], 0);
-        nextAddress++;
-        break;
-      case WORD_TYPE:
-        mbOjb["value"] = Master_ReadData[nextAddress];
-        nextAddress += 1;
-        break;
-      case DWORDS_TYPE:
-        dw2w.w[0] = Master_ReadData[nextAddress];
-        dw2w.w[1] = Master_ReadData[nextAddress + 1];
-        mbOjb["value"] = dw2w.dw;
-        nextAddress += 2;
-        break;
-      case FLOAT_TYPE:
-        f2w.w[0] = Master_ReadData[nextAddress];
-        f2w.w[1] = Master_ReadData[nextAddress + 1];
-        mbOjb["value"] = f2w.f;
-        nextAddress += 2;
+        Serial.println("Out of range");
         break;
       }
-      dataArray.add(mbOjb);
+      Doc["Data"][i]["address"] = Address;
+      Doc["Data"][i]["type"] = typeData[i];
+      switch (typeData[i])
+      {
+      case COIL_TYPE:
+        Doc["Data"][i]["value"] = CHECKCOIL(Master_ReadData[Address], 0);
+        Address++;
+        break;
+      case WORD_TYPE:
+        Doc["Data"][i]["value"] = Master_ReadData[Address];
+        Address += 1;
+        break;
+      case DWORDS_TYPE:
+        dw2w.w[0] = Master_ReadData[Address];
+        dw2w.w[1] = Master_ReadData[Address + 1];
+        Doc["Data"][i]["value"] = dw2w.dw;
+        Address += 2;
+        break;
+      case FLOAT_TYPE:
+        f2w.w[0] = Master_ReadData[Address];
+        f2w.w[1] = Master_ReadData[Address + 1];
+        Doc["Data"][i]["value"] = f2w.f;
+        Address += 2;
+        break;
+      default:
+        break;
+      }
     }
-    serializeJson(wDoc, fbDataString);
+    serializeJson(Doc, fbDataString);
     notifyClients(fbDataString);
   }
+}
+//ModbusDataType
+void mbDataTypeHandler()
+{
+    size_t size = rdoc["lengh"];
+    Serial.println("Size of type: " + String(size));
+    for (int i = 0; i < size; i++)
+    {
+        typeData[i] = rdoc["type"][i];
+        Serial.println("Type " + String(i) + ": " + String(typeData[i]));
+    }
 }
 //setwifi
 void setWifiHandler()
@@ -230,7 +242,7 @@ void showfile(){
   File root = SPIFFS.open("/");
   File file = root.openNextFile();
   while(file){
-    datafile["slaveID"] = random(1,10);
+    datafile["slaveID"] = mbusconfig.slaveID;
     datafile["type"] = random(0,2);
     String name = file.name(); 
     datafile["name"] = name; 
@@ -282,6 +294,10 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
     else if (command == "settingWifi")
     {
       setWifiHandler();
+    }
+    else if (command == "mbDataType")
+    {
+        mbDataTypeHandler();
     }
   }
 }
