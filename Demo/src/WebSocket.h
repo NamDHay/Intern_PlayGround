@@ -352,12 +352,10 @@ void WB_loop() {
   if(FlagFile == true){
     showfile();
     Modbus_loadSetting();
-    
-
     FlagFile = false;
   }
   // Modbus send data
-  if (millis() - startUpdateIntervalTime >= 2000)
+  if (millis() - startUpdateIntervalTime >= 5000)
   {
     startUpdateIntervalTime = millis();
     update_WebData_Interval();
@@ -367,6 +365,6 @@ void TaskFunction(void *pvParameter){
   
   for(;;){
     WB_loop();
-    vTaskDelay(1000/portTICK_PERIOD_MS);
+    // vTaskDelay(1000/portTICK_PERIOD_MS);
   }
 } 
