@@ -283,12 +283,9 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
             DataStr += (char)data[i];
         }
         deserializeJson(rdoc, DataStr);
-        Serial.println(DataStr);
         String command = rdoc["Command"].as<String>();
-        Serial.println(command);
         if (command == "toggleLed")
         {
-            Serial.println("I'm here toggleLed");
             wDoc["Command"] = "toggleLed";
             wDoc["Data"] = digitalRead(LED);
             serializeJson(wDoc, fbDataString);

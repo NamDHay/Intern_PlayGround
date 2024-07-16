@@ -16,11 +16,6 @@ ModbusRTU mb;
 #define SETCOIL(CoilGroup, CoilBit) ((CoilGroup) |= (1UL << CoilBit))
 #define CLEARCOIL(CoilGroup, CoilBit) (CoilGroup &= ~(1UL << CoilBit))
 
-int16_t Master_ReadData[60];
-int16_t Master_WriteData[60];
-int16_t Slave_ReadData[60];
-int16_t Slave_WriteData[60];
-
 bool cb(Modbus::ResultCode event, uint16_t transactionId, void *data)
 { // Callback to monitor errors
     if (event != Modbus::EX_SUCCESS)
@@ -130,7 +125,7 @@ void MODBUS_RTU::writeSetting()
     Serial.println("JSON: " + setting);
     filesystem.writefile("/mbsetting.json", setting, 0);
 }
-bool read_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t length)
+bool MODBUS_RTU::read_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t length)
 {
     static uint16_t rstart;
     static long dataLength = 0;
@@ -155,6 +150,11 @@ bool read_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t leng
             mb.task();
             vTaskDelay(10 / portTICK_PERIOD_MS);
         }
+        for (uint8_t i = rstart; i < rstart + 30; i++)
+        {
+            Serial.print("Data " + String(i) + ": ");
+            Serial.println(rdata[i]);
+        }
         rstart = rstart + 30;
         dataLength -= 30;
         rdata += 30;
@@ -176,6 +176,11 @@ bool read_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t leng
             mb.task();
             vTaskDelay(10 / portTICK_PERIOD_MS);
         }
+        for (uint8_t i = rstart; i < rstart + dataLength; i++)
+        {
+            Serial.print("Data " + String(i) + ": ");
+            Serial.println(rdata[i]);
+        }
         dataLength = 0;
         rstart = 0;
         rdata = NULL;
@@ -183,7 +188,7 @@ bool read_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t leng
     }
     return false;
 }
-bool write_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t length)
+bool MODBUS_RTU::write_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t length)
 {
     static uint16_t wstart;
     static long wdataLength = 0;
@@ -238,94 +243,93 @@ bool write_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t len
     return false;
 }
 
-void update_WebData_Interval()
+bool update_WebData_Interval(int16_t *Master_ReadData)
 {
     union f2w_t
     {
         float f;
         int16_t w[2];
-    }f2w;
+    } f2w;
     union dw2w_t
     {
         int32_t dw;
         int16_t w[2];
-    }dw2w;
+    } dw2w;
     JsonDocument wDoc;
     JsonDocument mbOjb;
     String fbDataString = "";
     JsonArray dataArray;
-    long nextAddress;
+    long Address;
     if (online.isConnected == true)
     {
         wDoc["Command"] = "Data";
         dataArray = wDoc["Data"].to<JsonArray>();
         mbOjb["slaveID"] = modbus.config.slaveID;
 
-        nextAddress = modbus.MasterReadReg.startAddress;
-        for (uint8_t i = 0; i < 10; i++)
+        Address = modbus.MasterReadReg.startAddress;
+        for (uint8_t i = 0; i < (modbus.MasterReadReg.endAddress - modbus.MasterReadReg.startAddress + 1); i++)
         {
-            modbus.mbdata[i].address = nextAddress;
-            mbOjb["address"] = modbus.mbdata[i].address;
+            if (Address > modbus.MasterReadReg.endAddress)
+            {
+                Serial.println("Out of range");
+                break;
+            }
+            mbOjb["address"] = Address;
             mbOjb["type"] = modbus.mbdata[i].typeData;
             switch (modbus.mbdata[i].typeData)
             {
             case COIL_TYPE:
-                mbOjb["value"] = CHECKCOIL(Master_ReadData[nextAddress], 0);
-                nextAddress++;
+                mbOjb["value"] = CHECKCOIL(Master_ReadData[Address], 0);
+                Address++;
                 break;
             case WORD_TYPE:
-                mbOjb["value"] = Master_ReadData[nextAddress];
-                nextAddress += 1;
+                mbOjb["value"] = Master_ReadData[Address];
+                Address += 1;
                 break;
             case DWORDS_TYPE:
-                dw2w.w[0] = Master_ReadData[nextAddress];
-                dw2w.w[1] = Master_ReadData[nextAddress + 1];
+                dw2w.w[0] = Master_ReadData[Address];
+                dw2w.w[1] = Master_ReadData[Address + 1];
                 mbOjb["value"] = dw2w.dw;
-                nextAddress += 2;
+                Address += 2;
                 break;
             case FLOAT_TYPE:
-                f2w.w[0] = Master_ReadData[nextAddress];
-                f2w.w[1] = Master_ReadData[nextAddress + 1];
+                f2w.w[0] = Master_ReadData[Address];
+                f2w.w[1] = Master_ReadData[Address + 1];
                 mbOjb["value"] = f2w.f;
-                nextAddress += 2;
+                Address += 2;
+                break;
+            default:
                 break;
             }
             dataArray.add(mbOjb);
         }
         serializeJson(wDoc, fbDataString);
         online.notifyClients(fbDataString);
+        return true;
     }
 }
 
 void TaskModbus(void *pvParameter)
 {
-    // modbus.loadSetting();
+    int16_t *Master_ReadData;
+
     modbus.master = 1;
     modbus.config.slaveID = 1;
     modbus.MasterReadReg.startAddress = 0;
-    modbus.MasterReadReg.endAddress = 59;
-    modbus.MasterWriteReg.startAddress = 60;
-    modbus.MasterWriteReg.endAddress = 119;
-
-    modbus.mbdata[0].typeData = COIL_TYPE;
-    modbus.mbdata[1].typeData = WORD_TYPE;
-    modbus.mbdata[2].typeData = COIL_TYPE;
-    modbus.mbdata[3].typeData = DWORDS_TYPE;
-    modbus.mbdata[4].typeData = FLOAT_TYPE;
-    modbus.mbdata[5].typeData = COIL_TYPE;
-    modbus.mbdata[6].typeData = WORD_TYPE;
-    modbus.mbdata[7].typeData = COIL_TYPE;
-    modbus.mbdata[8].typeData = DWORDS_TYPE;
-    modbus.mbdata[9].typeData = COIL_TYPE;
-
-    for (uint8_t i = 0; i < (modbus.MasterReadReg.endAddress - modbus.MasterReadReg.startAddress + 1); i++)
-    {
-        Master_ReadData[i] = 0;
-    }
-    for (uint8_t i = 0; i < (modbus.MasterWriteReg.endAddress - modbus.MasterWriteReg.startAddress + 1); i++)
-    {
-        Master_WriteData[i] = i;
-    }
+    modbus.MasterReadReg.endAddress = 19;
+    modbus.MasterWriteReg.startAddress = 20;
+    modbus.MasterWriteReg.endAddress = 39;
+    size_t reglengh = (modbus.MasterReadReg.endAddress - modbus.MasterReadReg.startAddress + 1);
+    // modbus.mbdata[0].typeData = COIL_TYPE;
+    // modbus.mbdata[1].typeData = WORD_TYPE;
+    // modbus.mbdata[2].typeData = COIL_TYPE;
+    // modbus.mbdata[3].typeData = DWORDS_TYPE;
+    // modbus.mbdata[4].typeData = FLOAT_TYPE;
+    // modbus.mbdata[5].typeData = COIL_TYPE;
+    // modbus.mbdata[6].typeData = WORD_TYPE;
+    // modbus.mbdata[7].typeData = COIL_TYPE;
+    // modbus.mbdata[8].typeData = DWORDS_TYPE;
+    // modbus.mbdata[9].typeData = COIL_TYPE;
 
     static long startUpdateIntervalTime = millis();
 
@@ -345,77 +349,25 @@ void TaskModbus(void *pvParameter)
     {
         if (modbus.master == 1) // Master part
         {
+            Master_ReadData = (int16_t *)malloc(reglengh * sizeof(int16_t));
+
             if (!mb.slave())
             {
-                if (!mb.slave())
-                {
-                    while (read_Multiple_Data(modbus.config.slaveID,
-                                              (uint16_t *)&Master_ReadData,
-                                              modbus.MasterReadReg.startAddress,
-                                              (modbus.MasterReadReg.endAddress - modbus.MasterReadReg.startAddress + 1)) != true)
-                        ;
-                    while (write_Multiple_Data(modbus.config.slaveID,
-                                               (uint16_t *)&Master_WriteData,
-                                               modbus.MasterWriteReg.startAddress,
-                                               (modbus.MasterWriteReg.endAddress - modbus.MasterWriteReg.startAddress + 1)) != true)
-                        ;
-                }
+                while (modbus.read_Multiple_Data(modbus.config.slaveID,
+                                                 (uint16_t *)&Master_ReadData,
+                                                 modbus.MasterReadReg.startAddress,
+                                                 (modbus.MasterReadReg.endAddress - modbus.MasterReadReg.startAddress + 1)) != true)
+                    ;
             }
             if (millis() - startUpdateIntervalTime >= UPDATE_INTERVAL_MS)
             {
                 startUpdateIntervalTime = millis();
-                update_WebData_Interval();
+                while (update_WebData_Interval(Master_ReadData) != true)
+                    ;
+                Serial.println("update_WebData_Interval success");
+                Serial.println("Free data");
+                free(Master_ReadData);
             }
         } // Master part
     }
 }
-
-// void Word2Byte(uint16_t value, byte *dataArray)
-// {
-//     byte *pShort = (byte *)&value;
-
-//     for (byte i = 0; i < 2; i++)
-//     {
-//         dataArray[i] = *(pShort + i);
-//         Serial.printf("0x%x \n", dataArray[i]);
-//     }
-// }
-// uint16_t Byte2Word(byte *dataArray)
-// {
-//     uint16_t value;
-//     byte *pValue = (byte *)&value;
-//     for (byte i = 0; i < 2; i++)
-//     {
-//         *(pValue + i) = dataArray[i];
-//     }
-//     return value;
-// }
-
-// void Bit2Byte(bool *bitArray, byte *byteArray, int numBits)
-// {
-//     int numBytes = (numBits + 7) / 8; // Calculate the number of bytes needed
-
-//     for (int i = 0; i < numBytes; i++)
-//     {
-//         byteArray[i] = 0;
-//     }
-
-//     for (int i = 0; i < numBits; i++)
-//     {
-//         if (bitArray[i])
-//         {
-//             byteArray[i / 8] |= (1 << (i % 8));
-//         }
-//     }
-// }
-
-// void Byte2Bit(byte *byteArray, bool *bitArray, int numBytes)
-// {
-//     for (int i = 0; i < numBytes; i++)
-//     {
-//         for (int j = 0; j < 8; j++)
-//         {
-//             bitArray[i * 8 + j] = (byteArray[i] & (1 << j)) != 0;
-//         }
-//     }
-// }

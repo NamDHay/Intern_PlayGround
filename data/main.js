@@ -7,7 +7,7 @@ var io_array = [1, 1, 1, 1, 1, 1, 1, 1];
 var TableDataLen = 0;
 var io_obj = "{\"Command\": \"getIO\",\"id\": \"1\",\"Data\":[]}";
 
-const intervalId = setInterval(intervalHandle, 1000);
+const intervalId = setInterval(intervalHandle, 2000);
 window.addEventListener('beforeunload', () => clearInterval(intervalId));
 window.addEventListener('load', onLoad);
 
