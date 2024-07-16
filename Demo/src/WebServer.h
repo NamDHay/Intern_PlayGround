@@ -66,14 +66,5 @@ void loadSetting(){
     settings.wsubnet = wsubnet;
     settings.wgetway = wgetway;
     settings.wifimode = wmode;
-
-    // (String)mbusconfig.SlaveID_Config = SLAVE_ID;
-    // (String)mbusconfig.baud = BAUD;
-    // mbusconfig.port = SERIAL_PORT;
-    // (String)mbusconfig.mode = MODE;
-    // (String)writeTemp.startAddress = WRITE_START;
-    // (String)writeTemp.endAddress = WRITE_END;
-    // (String)readTemp.startAddress = READ_START;
-    // (String)readTemp.endAddress = READ_END;
     writeSetting();
 }

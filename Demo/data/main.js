@@ -8,7 +8,7 @@
 
   var io_obj = "{\"Command\": \"getIO\",\"id\": \"1\",\"Data\":[]}";
 
-  const intervalId = setInterval(intervalHandle, 5000);
+  const intervalId = setInterval(intervalHandle, 1000);
   window.addEventListener('beforeunload', () => clearInterval(intervalId));
   window.addEventListener('load', onLoad);
   function getReadings() {
@@ -182,7 +182,6 @@
   function send_modbus(){
     var slaveid_input = document.getElementById('input_slaveid').value;
     var baud_input = document.getElementById('input_baud').value;
-    var rtu_tcp_input = document.getElementById('rtu_tcp').value;
     var port_input = document.getElementById('port').value;
     var mode = document.getElementById('mode').value;
     var wsaddres_input = document.getElementById('input_write_start').value;
@@ -288,38 +287,34 @@
     }, false);
   }
   function loadChart() {
-    var datalogHuy1 = " {\"Data\":[{\"value\":\"1\",\"type\":\"0\",\"slaveID\":\"1\"},{\"value\":\"2\",\"type\":\"3\",\"slaveID\":\"10\"},{\"value\":\"3\",\"type\":\"2\",\"slaveID\":\"3\"},{\"value\":\"4\",\"type\":\"1\",\"slaveID\":\"5\"},{\"value\":\"5\",\"type\":\"3\",\"slaveID\":\"133\"},{\"value\":\"6\",\"type\":\"1\",\"slaveID\":\"44\"},{\"value\":\"7\",\"type\":\"0\",\"slaveID\":\"20\"}]}";
+    var datalogHuy1 = " {\"Data\":[{\"address\":\"1\",\"value\":\"1\",\"type\":\"0\",\"slaveID\":\"1\"},{\"address\":\"2\",\"value\":\"2\",\"type\":\"3\",\"slaveID\":\"10\"},{\"address\":\"3\",\"value\":\"3\",\"type\":\"2\",\"slaveID\":\"3\"},{\"address\":\"4\",\"value\":\"4\",\"type\":\"1\",\"slaveID\":\"5\"},{\"address\":\"5\",\"value\":\"5\",\"type\":\"3\",\"slaveID\":\"133\"},{\"address\":\"6\",\"value\":\"6\",\"type\":\"1\",\"slaveID\":\"44\"},{\"address\":\"7\",\"value\":\"7\",\"type\":\"0\",\"slaveID\":\"20\"}]}";
     // loadtable(datalogHuy1);
     var datafile = "{\"ShowFile\":[{\"slaveID\":\"1\",\"name\":\"test.txt\",\"type\":\"0\",\"space\":\"100\"},{\"slaveID\":\"10\",\"name\":\"test1.json\",\"type\":\"1\",\"space\":\"20\"},{\"slaveID\":\"5\",\"name\":\"test2.html\",\"type\":\"1\",\"space\":\"10\"}]}";
     // tablefile(datafile);
   }
-  function loadtable(jsonValue){
+  function loadtable(jsonValue) {
     var TableHTML = "";
-    TableHTML = "<table class=\"table \"><thead class=\"thead-dark\"><th>STT</th><th>Slave ID</th><th>Time</th><th>Type Data: </th><th>Data</th></thead><tbody>";
+    TableHTML = "<table class=\"table \"><thead class=\"thead-dark\"><th>STT</th><th>Slave ID</th><th>Address</th><th>Type Data</th><th>Data</th></thead><tbody>";
     var keys = JSON.parse(jsonValue);
     var stt = 0;
-    for (var i = 0; i < keys.Data.length; i++) {
+    TableDataLen = keys.Data.length;
+    for (var i = 0; i < TableDataLen; i++) {
       stt++;
       var id = keys.Data[i].slaveID;
-      var type ="<select id=\"typedata\" value=\"0\"><option value=\"0\" selected=\"\">Coil</option><option value=\"1\">Word</option><option value=\"2\">DWord</option><option value=\"3\">Float</option></select>"; 
-      // +keys.Data[i].type;
-      // if(type == '0') type = "Coil";
-      // else if(type == '1') type = "Word";
-      // else if(type == '2') type = "DWord";
-      // else if(type == '3') type = "Float";
-      var h = new Date().getHours();
-      var m = new Date().getMinutes();
-      var s = new Date().getSeconds();
+      var type = "<select id=\"SelectType" + i + "\"><option value=0 %0%>COIL</option><option value=1 %1%>WORD</option><option value=2 %2%>DWORD</option><option value=3 %3%>FLOAT</option></select>";
+
+      if (keys.Data[i].type == "0") { type = type.replace("%0%", "selected"); type = type.replace("%1%", ""); type = type.replace("%2%", ""); type = type.replace("%3%", ""); }
+      if (keys.Data[i].type == "1") { type = type.replace("%1%", "selected"); type = type.replace("%0%", ""); type = type.replace("%2%", ""); type = type.replace("%3%", ""); }
+      if (keys.Data[i].type == "2") { type = type.replace("%2%", "selected"); type = type.replace("%1%", ""); type = type.replace("%0%", ""); type = type.replace("%3%", ""); }
+      if (keys.Data[i].type == "3") { type = type.replace("%3%", "selected"); type = type.replace("%1%", ""); type = type.replace("%2%", ""); type = type.replace("%0%", ""); }
       const value = keys.Data[i].value;
-      var thoigian = h + ":" + m + ":" + s;
-      TableHTML += "<tr><td>"+stt+"</td><td>"+id+"</td><td>"+thoigian+"</td><td>"+type+"</td><td>"+value+"</td></tr>";
+      var address = keys.Data[i].address;
+      TableHTML += "<tr><td>" + stt + "</td><td>" + id + "</td><td>" + address + "</td><td>" + type + "</td><td>" + value + "</td></tr>";
     }
-    
-    TableHTML += "</tbody></table>";
-    
+    TableHTML += "</tbody></table></br>";
+
     document.getElementById("TableData").innerHTML = TableHTML;
-  
-  }
+}
   function tablefile(jsonValue){
       var TableHTML = "";
       TableHTML = "<table class=\"table \"><thead class=\"thead-dark\"><th>STT</th><th>ID</th><th>Time</th><th>File Name</th><th>Use Space</th><th>Type Memory</th></thead><tbody>";

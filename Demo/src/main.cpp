@@ -9,7 +9,7 @@
 #include <DNSServer.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
-#include <ModbusConfig.h>
+
 // #include <MergeData.h>
 void TaskCaptivePortal(void *pvParameter);
 void TaskFunction(void *pvParameter);
@@ -40,7 +40,7 @@ const char* ssid_AP = "NODE_IOT";
 const char* password_AP = "123456789";
 
 short timeout = 0;
-
+bool isConnected = false;
 DNSServer dnsServer;
 #include "WebSocket.h"
 String header;
@@ -262,7 +262,7 @@ void setup() {
   WB_setup();
   xTaskCreatePinnedToCore(TaskCaptivePortal, "CaptivePortal",30000,NULL, 1, NULL, 1);
   xTaskCreatePinnedToCore(TaskFunction, "Function", 30000, NULL, 2,NULL, 1);
-  xTaskCreatePinnedToCore(TaskModbus, "Modbus", 10000, NULL, 3, NULL, 1);
+  xTaskCreatePinnedToCore(TaskModbus, "Modbus", 10000, NULL, 2, NULL, 1);
 }
 void loop(){}
 
@@ -272,19 +272,4 @@ void TaskCaptivePortal(void *pvParameter){
     vTaskDelay(30/portTICK_PERIOD_MS);
   } 
 }
-void TaskFunction(void *pvParameter){
-  for(;;){
-    WB_loop();
-    vTaskDelay(1000/portTICK_PERIOD_MS);
-  }
-}
-void TaskModbus(void *pvParameter){
-  if(mbusconfig.mode == "0") Modbus_MasterInit();
-  else if(mbusconfig.mode == "1") Modbus_SlaveInit();
-  for (;;)
-  {
-    Modbus_loop();
-    vTaskDelay(500/portTICK_PERIOD_MS);
-  }
-  
-}
+

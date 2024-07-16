@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include "WebServer.h"
-
+#include <ModbusConfig.h>
 bool ledState = 0;
 const int ledPin = 25;
 bool FlagFile = false;
@@ -10,9 +10,10 @@ JsonDocument rdoc;
 JsonDocument wDoc;
 String DataStr = "";
 String fbDataString = "";
-
+static long startUpdateIntervalTime = millis();
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
+//AP
 void accessPointMode(){
   WiFi.mode(WIFI_AP);
   Serial.println("Configuring access point!");
@@ -22,6 +23,7 @@ void accessPointMode(){
   Serial.println(IP);
   server.begin();
 }//accessPointMode
+//Switch
 void Switch(){
   while(WiFi.status() != WL_CONNECTED){
     delay(500);
@@ -34,6 +36,7 @@ void Switch(){
     }
   }
 }//Switch
+//STA
 void stationMode(){
   Serial.println();
   Serial.println();
@@ -53,10 +56,11 @@ void stationMode(){
     Serial.println(WiFi.localIP());
     server.begin();
 }//stationMode
-String ws_load = "";
+//Send data to web
 void notifyClients(const String &value) {
   ws.textAll(value);
 }
+//getIO
 void getIOHandler()
 {
     Serial.println("I'm here getIO");
@@ -87,16 +91,89 @@ void setModbusHandler()
     String serial = rdoc["serial"].as<String>();
     String mbmaster = rdoc["mbmaster"].as<String>();
     String typedata = rdoc["typedata"].as<String>();
-
-    mbusconfig.mode = (mbmaster == "0") ? true : false;
-    mbusconfig.SlaveID_Config = slaveID.toInt();
+    master = (mbmaster == "0") ? 0 : 1;
     mbusconfig.baud = baud.toInt();
+    mbusconfig.port = (serial == "0") ? &Serial1 : &Serial2;
+    if (master == 1)
+    {
+        MasterReadReg.startAddress = readStart.toInt();
+        MasterReadReg.endAddress = readEnd.toInt();
+        MasterWriteReg.startAddress = writeStart.toInt();
+        MasterWriteReg.endAddress = writeEnd.toInt();
+    }
 
+    if (master == 0)
+    {
+        SlaveReadReg.startAddress = readStart.toInt();
+        SlaveReadReg.endAddress = readEnd.toInt();
+        SlaveWriteReg.startAddress = writeStart.toInt();
+        SlaveWriteReg.endAddress = writeEnd.toInt();
+    }
     wDoc["Command"] = "settingModbus";
-    // wDoc["Data"] = "SetingDone";
+    wDoc["Data"] = "SetingDone";
     serializeJson(wDoc, fbDataString);
     notifyClients(fbDataString);
+    Modbus_loadSetting();
 }
+void update_WebData_Interval()
+{
+  union f2w_t
+  {
+    float f;
+    int16_t w[2];
+  } f2w;
+  union dw2w_t
+  {
+    int32_t dw;
+    int16_t w[2];
+  } dw2w;
+  JsonDocument wDoc;
+  JsonDocument mbOjb;
+  String fbDataString = "";
+  JsonArray dataArray;
+  long nextAddress;
+  if (isConnected == true)
+  {
+    wDoc["Command"] = "Data";
+    dataArray = wDoc["Data"].to<JsonArray>();
+    mbOjb["slaveID"] = mbusconfig.slaveID;
+
+    nextAddress = MasterReadReg.startAddress;
+    for (uint8_t i = 0; i < 10; i++)
+    {
+      mbdata[i].address = nextAddress;
+      mbOjb["address"] = mbdata[i].address;
+      mbOjb["type"] = mbdata[i].typeData;
+      switch (mbdata[i].typeData)
+      {
+      case COIL_TYPE:
+        mbOjb["value"] = CHECKCOIL(Master_ReadData[nextAddress], 0);
+        nextAddress++;
+        break;
+      case WORD_TYPE:
+        mbOjb["value"] = Master_ReadData[nextAddress];
+        nextAddress += 1;
+        break;
+      case DWORDS_TYPE:
+        dw2w.w[0] = Master_ReadData[nextAddress];
+        dw2w.w[1] = Master_ReadData[nextAddress + 1];
+        mbOjb["value"] = dw2w.dw;
+        nextAddress += 2;
+        break;
+      case FLOAT_TYPE:
+        f2w.w[0] = Master_ReadData[nextAddress];
+        f2w.w[1] = Master_ReadData[nextAddress + 1];
+        mbOjb["value"] = f2w.f;
+        nextAddress += 2;
+        break;
+      }
+      dataArray.add(mbOjb);
+    }
+    serializeJson(wDoc, fbDataString);
+    notifyClients(fbDataString);
+  }
+}
+//setwifi
 void setWifiHandler()
 {
     String SSID = rdoc["SSID"].as<String>();
@@ -136,19 +213,6 @@ void setWifiHandler()
     // loadSetting();
     stationMode();
 }
-void tabledata(){
-  JsonDocument data;
-  String datatable = "";
-  JsonArray dataArray;
-  data["value"] = rand() % 10;
-  data["slaveID"] = rand() % 10;
-  data["type"] = random(0,3);
-  wDoc["Command"] = "Data";
-  dataArray = wDoc["Data"].to<JsonArray>();
-  dataArray.add(data);
-  serializeJson(wDoc, datatable);
-  notifyClients(datatable);
-}
 //showfile
 void showfile(){
 
@@ -175,50 +239,46 @@ void showfile(){
   
   serializeJson(fileDoc,showfile);
   notifyClients(showfile);
-  Serial.println(showfile);
 }
 //Receive data from websocket
 void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
 {
-    AwsFrameInfo *info = (AwsFrameInfo *)arg;
-    if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT)
+  AwsFrameInfo *info = (AwsFrameInfo *)arg;
+  if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT)
+  {
+    data[len] = 0;
+    DataStr = "";
+    for (int i = 0; i < len; i++)
     {
-        data[len] = 0;
-        DataStr = "";
-        for (int i = 0; i < len; i++)
-        {
-            DataStr += (char)data[i];
-        }
-        deserializeJson(rdoc, DataStr);
-        Serial.println(DataStr);
-        String command = rdoc["Command"].as<String>();
-        Serial.println(command);
-        if (command == "toggleLed")
-        {
-            Serial.println("I'm here toggleLed");
-            ledState = !ledState;
-            wDoc["Command"] = "toggleLed";
-            wDoc["Data"] = ledState;
-            digitalWrite(ledPin, ledState);
-            serializeJson(wDoc, fbDataString);
-            notifyClients(fbDataString);
-        }
-        else if (command == "getIO")
-        {
-          getIOHandler();
-        }
-        else if (command == "settingModbus")
-        {
-          setModbusHandler();
-        }
-        else if (command == "settingWifi")
-        {
-          setWifiHandler();
-        }
-        else {
-          tabledata();
-        }
+        DataStr += (char)data[i];
     }
+    deserializeJson(rdoc, DataStr);
+    Serial.println(DataStr);
+    String command = rdoc["Command"].as<String>();
+    Serial.println(command);
+    if (command == "toggleLed")
+    {
+        Serial.println("I'm here toggleLed");
+        ledState = !ledState;
+        wDoc["Command"] = "toggleLed";
+        wDoc["Data"] = ledState;
+        digitalWrite(ledPin, ledState);
+        serializeJson(wDoc, fbDataString);
+        notifyClients(fbDataString);
+    }
+    else if (command == "getIO")
+    {
+      getIOHandler();
+    }
+    else if (command == "settingModbus")
+    {
+      setModbusHandler();
+    }
+    else if (command == "settingWifi")
+    {
+      setWifiHandler();
+    }
+  }
 }
 
 void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
@@ -226,7 +286,7 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
     case WS_EVT_CONNECT:
       Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
       FlagFile = true;
-      writeshowfile = true;
+      isConnected = true;
       break;
     case WS_EVT_DISCONNECT:
       Serial.printf("WebSocket client #%u disconnected\n", client->id());
@@ -262,13 +322,27 @@ void WB_setup(){
   pinMode(ledPin, OUTPUT);
   digitalWrite(ledPin, LOW);      
   initWebSocket();
+  
 }
+
 void WB_loop() {
   ws.cleanupClients();
   digitalWrite(ledPin, ledState);
-  // tabledata();
   if(FlagFile == true){
     showfile();
+    // Modbus send data
+    if (millis() - startUpdateIntervalTime >= 2000)
+    {
+      startUpdateIntervalTime = millis();
+      update_WebData_Interval();
+    }
     FlagFile = false;
+  }
+}
+void TaskFunction(void *pvParameter){
+  
+  for(;;){
+    WB_loop();
+    vTaskDelay(1000/portTICK_PERIOD_MS);
   }
 } 
