@@ -30,6 +30,7 @@ function onClose(event) {
 function onMessage(event) {
     var state;
     var message = JSON.parse(event.data);
+    // console.log(message);
     if (message.Command == "toggleLed") {
         if (message.Data == "0")
             state = "ON";
@@ -43,12 +44,15 @@ function onMessage(event) {
     else if (message.Command == "settingModbus") {
         alert("Completed setting!!!");
     }
-    else if (message.Command == "Data") {
+    else if (message.Command == "TableID") {
         loadtable(event.data);
     }
     else if (message.Command == "ShowFile") {
         tablefile(event.data);
         console.log("ShowFile");
+    }
+    else if (message.Command == "tableData") {
+        loaddata(event.data);
     }
 }
 function onLoad(event) {
@@ -72,7 +76,7 @@ function io_ChangeState4() {
 function saveModbusTable() {
     var msg = [];
     var msgOut = "{\"Command\":\"mbDataType\",\"lengh\":\"" + TableDataLen + "\",\"type\":[";
-    for (var i = 0; i < TableDataLen; i++) { msg[i] = document.getElementById("SelectType" + i).value; }
+    for (var i = 0; i < TableDataLen; i++) { if (document.getElementById("SelectType" + i).value != null) msg[i] = document.getElementById("SelectType" + i).value; }
     msgOut += msg[0];
     for (var i = 1; i < TableDataLen; i++) { msgOut += "," + msg[i]; }
     msgOut += "]}";
@@ -181,6 +185,7 @@ function save() {
     }
 }
 function send_modbus() {
+    var slaveid_input = document.getElementById('input_slaveid').value;
     var baud_input = document.getElementById('input_baud').value;
     var port_input = document.getElementById('port').value;
     var mode = document.getElementById('mode').value;
@@ -188,7 +193,10 @@ function send_modbus() {
     var weaddres_input = document.getElementById('input_write_end').value;
     var rsaddres_input = document.getElementById('input_read_start').value;
     var readdres_input = document.getElementById('input_read_end').value;
-    if (baud_input == "") {
+    var typedata_input = document.getElementById('typedata').value;
+    if (slaveid_input == "") {
+        alert("chua nhap slaveID ");
+    } else if (baud_input == "") {
         alert("chua nhap baudrate");
     } else if (rsaddres_input == "") {
         alert("chua nhap Dia chi doc dau tien");
@@ -199,10 +207,9 @@ function send_modbus() {
     } else if (weaddres_input == "") {
         alert("chua nhap Dia chi ghi ket thuc");
     } else {
-        var output = "{'Command':'settingModbus','baud':'" + baud_input + "','readStart':'" + rsaddres_input + "','readEnd':'" + readdres_input + "','writeStart':'" + wsaddres_input + "','writeEnd':'" + weaddres_input + "','serial':'" + port_input + "','mbmaster':'" + mode + "'}";
+        var output = "{'Command':'settingModbus','slaveID':'" + slaveid_input + "','baud':'" + baud_input + "','readStart':'" + rsaddres_input + "','readEnd':'" + readdres_input + "','writeStart':'" + wsaddres_input + "','writeEnd':'" + weaddres_input + "','serial':'" + port_input + "','mbmaster':'" + mode + "','typedata':'" + typedata_input + "'}";
         console.log(output);
-        if (IsConnect) { websocket.send(output); } else { alert("Websocket disconnected"); }
-
+        websocket.send(output);
     }
 }
 function openSettingModalNV() {
@@ -296,9 +303,11 @@ function loadtable(jsonValue) {
     var keys = JSON.parse(jsonValue);
     var stt = 0;
     TableDataLen = keys.Data.length;
-    // console.log("datalen" + TableDataLen);
+    console.log("datalen" + TableDataLen);
     for (var i = 0; i < TableDataLen; i++) {
         stt++;
+        var address = keys.Data[i].address;
+        if (keys.Data[i].address == null) { TableDataLen = i; break; }
         var id = keys.Data[i].slaveID;
         var type = "<select id=\"SelectType" + i + "\"><option value=0 %0%>COIL</option><option value=1 %1%>WORD</option><option value=2 %2%>DWORD</option><option value=3 %3%>FLOAT</option></select>";
 
@@ -306,20 +315,18 @@ function loadtable(jsonValue) {
         if (keys.Data[i].type == "1") { type = type.replace("%1%", "selected"); type = type.replace("%0%", ""); type = type.replace("%2%", ""); type = type.replace("%3%", ""); }
         if (keys.Data[i].type == "2") { type = type.replace("%2%", "selected"); type = type.replace("%1%", ""); type = type.replace("%0%", ""); type = type.replace("%3%", ""); }
         if (keys.Data[i].type == "3") { type = type.replace("%3%", "selected"); type = type.replace("%1%", ""); type = type.replace("%2%", ""); type = type.replace("%0%", ""); }
-        const value = keys.Data[i].value;
-        var address = keys.Data[i].address;
-        TableHTML += "<tr><td>" + stt + "</td><td>" + id + "</td><td>" + address + "</td><td>" + type + "</td><td>" + value + "</td></tr>";
-        // var h = new Date().getHours();
-        // var m = new Date().getMinutes();
-        // var s = new Date().getSeconds();
-        // var thoigian = h + ":" + m + ":" + s;
+        TableHTML += "<tr><td>" + stt + "</td><td>" + id + "</td><td>" + address + "</td><td>" + type + "</td><td><div id=\"value" + i + "\">NULL</div></td></tr>";
     }
     TableHTML += "</tbody></table></br>";
-
     document.getElementById("TableData").innerHTML = TableHTML;
 }
-
-
+function loaddata(jsonValue) {
+    var keys = JSON.parse(jsonValue);
+    for (var i = 0; i < keys.Data.length; i++) {
+        var value = keys.Data[i];
+        document.getElementById("value" + i).innerHTML = value;
+    }
+}
 function tablefile(jsonValue) {
     var TableHTML = "";
     TableHTML = "<table class=\"table \"><thead class=\"thead-dark\"><th>STT</th><th>ID</th><th>Time</th><th>File Name</th><th>Use Space</th><th>Type Memory</th></thead><tbody>";

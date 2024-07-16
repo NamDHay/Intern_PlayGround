@@ -185,9 +185,12 @@ void mbDataTypeHandler()
         modbus.typeData[i] = rdoc["type"][i];
         Serial.println("Type " + String(i) + ": " + String(modbus.typeData[i]));
     }
+    bool IsSetTable = true;
+    xQueueSend(modbus.qUpdateTable, (void *)&IsSetTable, 1 / portTICK_PERIOD_MS);
 }
 void setModbusHandler()
 {
+    String slaveID = rdoc["slaveID"].as<String>();
     String baud = rdoc["baud"].as<String>();
     String readStart = rdoc["readStart"].as<String>();
     String readEnd = rdoc["readEnd"].as<String>();
@@ -196,6 +199,7 @@ void setModbusHandler()
     String serial = rdoc["serial"].as<String>();
     String mbmaster = rdoc["mbmaster"].as<String>();
 
+    modbus.config.slaveID = slaveID.toInt();
     modbus.master = (mbmaster == "0") ? 0 : 1;
     modbus.config.baud = baud.toInt();
     modbus.config.port = (serial == "0") ? &Serial1 : &Serial2;
@@ -214,11 +218,11 @@ void setModbusHandler()
         modbus.SlaveWriteReg.startAddress = writeStart.toInt();
         modbus.SlaveWriteReg.endAddress = writeEnd.toInt();
     }
-    // modbus.writeSetting();
     wDoc["Command"] = "settingModbus";
     wDoc["Data"] = "SetingDone";
     serializeJson(wDoc, fbDataString);
     online.notifyClients(fbDataString);
+    modbus.writeSetting();
 }
 void setWifiHandler()
 {
@@ -314,6 +318,7 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
     case WS_EVT_DISCONNECT:
         Serial.printf("WebSocket client #%u disconnected\n", client->id());
         online.isConnected = false;
+        modbus.loadTable = true;
         break;
     case WS_EVT_DATA:
         handleWebSocketMessage(arg, data, len);

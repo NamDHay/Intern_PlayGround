@@ -7,7 +7,9 @@ class MODBUS_RTU
 {
 private:
 public:
+    bool loadTable;
     bool master;
+    QueueHandle_t qUpdateTable;
     struct Config_t
     {
         byte slaveID;
@@ -42,6 +44,8 @@ public:
     bool write_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t length);
     void loadSetting();
     void writeSetting();
+    void update_WebTable();
+    void update_WebData_Interval();
 };
 void TaskModbus(void *pvParameter);
 
