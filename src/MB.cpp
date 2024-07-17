@@ -5,15 +5,15 @@
 
 ModbusRTU mb;
 
-int16_t Master_ReadData[100];
-int16_t Master_WriteData[100];
+int16_t Master_ReadData[200];
+int16_t Master_WriteData[200];
 int16_t Slave_ReadData[100];
 int16_t Slave_WriteData[100];
 
 #define MODBUS_BAUD_ 9600
 
-#define COIL_TYPE 0
-#define WORD_TYPE 1
+#define WORD_TYPE 0
+#define COIL_TYPE 1
 #define DWORDS_TYPE 2
 #define FLOAT_TYPE 3
 
@@ -359,11 +359,11 @@ void TaskModbus(void *pvParameter)
                                                  modbus.MasterReadReg.startAddress,
                                                  (modbus.MasterReadReg.endAddress - modbus.MasterReadReg.startAddress + 1)) != true)
                     ;
-                while (modbus.write_Multiple_Data(modbus.config.slaveID,
-                                                  (uint16_t *)&Master_ReadData,
-                                                  modbus.MasterWriteReg.startAddress,
-                                                  (modbus.MasterWriteReg.endAddress - modbus.MasterWriteReg.startAddress + 1)) != true)
-                    ;
+                // while (modbus.write_Multiple_Data(modbus.config.slaveID,
+                //                                   (uint16_t *)&Master_ReadData,
+                //                                   modbus.MasterWriteReg.startAddress,
+                //                                   (modbus.MasterWriteReg.endAddress - modbus.MasterWriteReg.startAddress + 1)) != true)
+                //     ;
             }
             if (millis() - startUpdateIntervalTime >= UPDATE_INTERVAL_MS)
             {

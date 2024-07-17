@@ -45,6 +45,8 @@ function onMessage(event) {
         alert("Completed setting!!!");
     }
     else if (message.Command == "TableID") {
+        firstload = 1;
+        loading = 0;
         loadtable(event.data);
     }
     else if (message.Command == "ShowFile") {
@@ -80,6 +82,7 @@ function saveModbusTable() {
     msgOut += msg[0];
     for (var i = 1; i < TableDataLen; i++) { msgOut += "," + msg[i]; }
     msgOut += "]}";
+    loading = 0;
     websocket.send(msgOut);
     console.log(msgOut);
 }
@@ -154,7 +157,7 @@ function save() {
     var waddress_input = document.getElementById('waddress').value;
     var wgetway_input = document.getElementById('wgetway').value;
     var wsubnet_input = document.getElementById('wsubnet').value;
-    var Chanel_input = document.getElementById('Chanel').value;
+    // var Chanel_input = document.getElementById('Chanel').value;
     var staticip_input = document.getElementById('staticip').value;
     var wifimode_input = document.getElementById('wifimode').value;
     if (ssid_input == "") {
@@ -297,7 +300,10 @@ function loadChart() {
     var datafile = "{\"ShowFile\":[{\"slaveID\":\"1\",\"name\":\"test.txt\",\"type\":\"0\",\"space\":\"100\"},{\"slaveID\":\"10\",\"name\":\"test1.json\",\"type\":\"1\",\"space\":\"20\"},{\"slaveID\":\"5\",\"name\":\"test2.html\",\"type\":\"1\",\"space\":\"10\"}]}";
     tablefile(datafile);
 }
+var loading = 0;
+var firstload = 0;
 function loadtable(jsonValue) {
+    if(firstload == 1){firstload = 0
     var TableHTML = "";
     TableHTML = "<table class=\"table \"><thead class=\"thead-dark\"><th>STT</th><th>Slave ID</th><th>Address</th><th>Type Data</th><th>Data</th></thead><tbody>";
     var keys = JSON.parse(jsonValue);
@@ -309,7 +315,7 @@ function loadtable(jsonValue) {
         var address = keys.Data[i].address;
         if (keys.Data[i].address == null) { TableDataLen = i; break; }
         var id = keys.Data[i].slaveID;
-        var type = "<select id=\"SelectType" + i + "\"><option value=0 %0%>COIL</option><option value=1 %1%>WORD</option><option value=2 %2%>DWORD</option><option value=3 %3%>FLOAT</option></select>";
+        var type = "<select id=\"SelectType" + i + "\"><option value=0 %0%>WORD</option><option value=1 %1%>COIL</option><option value=2 %2%>DWORD</option><option value=3 %3%>FLOAT</option></select>";
 
         if (keys.Data[i].type == "0") { type = type.replace("%0%", "selected"); type = type.replace("%1%", ""); type = type.replace("%2%", ""); type = type.replace("%3%", ""); }
         if (keys.Data[i].type == "1") { type = type.replace("%1%", "selected"); type = type.replace("%0%", ""); type = type.replace("%2%", ""); type = type.replace("%3%", ""); }
@@ -319,12 +325,13 @@ function loadtable(jsonValue) {
     }
     TableHTML += "</tbody></table></br>";
     document.getElementById("TableData").innerHTML = TableHTML;
+    loading = 1;}
 }
 function loaddata(jsonValue) {
     var keys = JSON.parse(jsonValue);
     for (var i = 0; i < keys.Data.length; i++) {
         var value = keys.Data[i];
-        document.getElementById("value" + i).innerHTML = value;
+        if(loading == 1) {document.getElementById("value" + i).innerHTML = value;}
     }
 }
 function tablefile(jsonValue) {
