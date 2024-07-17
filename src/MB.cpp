@@ -3,12 +3,19 @@
 #include <ArduinoJson.h>
 #include <File_System.h>
 
-ModbusRTU mb;
+ModbusRTU mbRTU;
+ModbusIP mbTCP;
+bool EthernetAvilable;
 
 int16_t Master_ReadData[200];
 int16_t Master_WriteData[200];
-int16_t Slave_ReadData[100];
-int16_t Slave_WriteData[100];
+int16_t Slave_ReadData[200];
+int16_t Slave_WriteData[200];
+
+int16_t Client_ReadData[200];
+int16_t Client_WriteData[200];
+int16_t Server_ReadData[200];
+int16_t Server_WriteData[200];
 
 #define MODBUS_BAUD_ 9600
 
@@ -17,10 +24,18 @@ int16_t Slave_WriteData[100];
 #define DWORDS_TYPE 2
 #define FLOAT_TYPE 3
 
+#define ETH_ADDR 1
+#define ETH_POWER_PIN -1 // Do not use it, it can cause conflict during the software reset.
+#define ETH_POWER_PIN_ALTERNATIVE 14
+#define ETH_MDC_PIN 23
+#define ETH_MDIO_PIN 18
+#define ETH_TYPE ETH_PHY_LAN8720
+#define ETH_CLK_MODE ETH_CLOCK_GPIO0_IN
+
 #define CHECKCOIL(CoilGroup, CoilBit) ((((CoilGroup) & (1UL << CoilBit)) == (1UL << CoilBit)) ? 1 : 0)
 #define SETCOIL(CoilGroup, CoilBit) ((CoilGroup) |= (1UL << CoilBit))
 #define CLEARCOIL(CoilGroup, CoilBit) (CoilGroup &= ~(1UL << CoilBit))
-
+/*********************************************START RTU PART**************************************************************/
 bool cb(Modbus::ResultCode event, uint16_t transactionId, void *data)
 { // Callback to monitor errors
     if (event != Modbus::EX_SUCCESS)
@@ -30,22 +45,20 @@ bool cb(Modbus::ResultCode event, uint16_t transactionId, void *data)
     }
     return true;
 }
-
 void MODBUS_RTU::MasterInit(HardwareSerial *port, unsigned long baud)
 {
-    modbus.config.port = port;
-    modbus.config.baud = baud;
+    modbusRTU.config.port = port;
+    modbusRTU.config.baud = baud;
     port->begin(baud, SERIAL_8N1);
-    mb.begin(port);
-    mb.master();
+    mbRTU.begin(port);
+    mbRTU.master();
 }
-
 void MODBUS_RTU::SlaveInit(HardwareSerial *port, unsigned long baud)
 {
-    modbus.config.port = port;
-    modbus.config.baud = baud;
+    modbusRTU.config.port = port;
+    modbusRTU.config.baud = baud;
     port->begin(baud, SERIAL_8N1);
-    mb.begin(port);
+    mbRTU.begin(port);
 }
 
 void MODBUS_RTU::loadSetting()
@@ -64,41 +77,41 @@ void MODBUS_RTU::loadSetting()
     String serial = doc["serial"].as<String>();
     String mbmaster = doc["mbmaster"].as<String>();
 
-    modbus.config.slaveID = slaveID.toInt();
-    modbus.master = (mbmaster == "0") ? 0 : 1;
-    modbus.config.baud = baud.toInt();
-    modbus.config.port = (serial == "0") ? &Serial1 : &Serial2;
-    if (modbus.master == 1)
+    modbusRTU.config.slaveID = slaveID.toInt();
+    modbusRTU.master = (mbmaster == "0") ? 0 : 1;
+    modbusRTU.config.baud = baud.toInt();
+    modbusRTU.config.port = (serial == "0") ? &Serial1 : &Serial2;
+    if (modbusRTU.master == 1)
     {
-        modbus.MasterReadReg.startAddress = readStart.toInt();
-        modbus.MasterReadReg.endAddress = readEnd.toInt();
-        modbus.MasterWriteReg.startAddress = writeStart.toInt();
-        modbus.MasterWriteReg.endAddress = writeEnd.toInt();
+        modbusRTU.MasterReadReg.startAddress = readStart.toInt();
+        modbusRTU.MasterReadReg.endAddress = readEnd.toInt();
+        modbusRTU.MasterWriteReg.startAddress = writeStart.toInt();
+        modbusRTU.MasterWriteReg.endAddress = writeEnd.toInt();
     }
 
-    if (modbus.master == 0)
+    if (modbusRTU.master == 0)
     {
-        modbus.SlaveReadReg.startAddress = readStart.toInt();
-        modbus.SlaveReadReg.endAddress = readEnd.toInt();
-        modbus.SlaveWriteReg.startAddress = writeStart.toInt();
-        modbus.SlaveWriteReg.endAddress = writeEnd.toInt();
+        modbusRTU.SlaveReadReg.startAddress = readStart.toInt();
+        modbusRTU.SlaveReadReg.endAddress = readEnd.toInt();
+        modbusRTU.SlaveWriteReg.startAddress = writeStart.toInt();
+        modbusRTU.SlaveWriteReg.endAddress = writeEnd.toInt();
     }
 
-    modbus.writeSetting();
+    modbusRTU.writeSetting();
 }
 void MODBUS_RTU::writeSetting()
 {
     String setting = "";
     JsonDocument writeDoc;
 
-    writeDoc["slaveID"] = modbus.config.slaveID;
-    writeDoc["baud"] = modbus.config.baud;
-    writeDoc["readStart"] = modbus.MasterReadReg.startAddress;
-    writeDoc["readEnd"] = modbus.MasterReadReg.endAddress;
-    writeDoc["writeStart"] = modbus.MasterWriteReg.startAddress;
-    writeDoc["writeEnd"] = modbus.MasterWriteReg.endAddress;
-    writeDoc["serial"] = (modbus.config.port == &Serial1) ? "0" : "1";
-    writeDoc["mbmaster"] = modbus.master;
+    writeDoc["slaveID"] = modbusRTU.config.slaveID;
+    writeDoc["baud"] = modbusRTU.config.baud;
+    writeDoc["readStart"] = modbusRTU.MasterReadReg.startAddress;
+    writeDoc["readEnd"] = modbusRTU.MasterReadReg.endAddress;
+    writeDoc["writeStart"] = modbusRTU.MasterWriteReg.startAddress;
+    writeDoc["writeEnd"] = modbusRTU.MasterWriteReg.endAddress;
+    writeDoc["serial"] = (modbusRTU.config.port == &Serial1) ? "0" : "1";
+    writeDoc["mbmaster"] = modbusRTU.master;
 
     serializeJson(writeDoc, setting);
     Serial.println("JSON: " + setting);
@@ -119,14 +132,14 @@ bool MODBUS_RTU::read_Multiple_Data(byte ID, uint16_t *value, long startAddress,
     }
     if (dataLength >= 30)
     {
-        mb.readHreg(ID,
+        mbRTU.readHreg(ID,
                     rstart,
                     rdata,
                     30,
                     cb);
-        while (mb.slave())
+        while (mbRTU.slave())
         {
-            mb.task();
+            mbRTU.task();
             vTaskDelay(10 / portTICK_PERIOD_MS);
         }
         // for (uint8_t i = rstart; i < rstart + 30; i++)
@@ -145,14 +158,14 @@ bool MODBUS_RTU::read_Multiple_Data(byte ID, uint16_t *value, long startAddress,
     }
     else if (dataLength < 30)
     {
-        mb.readHreg(ID,
+        mbRTU.readHreg(ID,
                     rstart,
                     rdata,
                     dataLength,
                     cb);
-        while (mb.slave())
+        while (mbRTU.slave())
         {
-            mb.task();
+            mbRTU.task();
             vTaskDelay(10 / portTICK_PERIOD_MS);
         }
         // for (uint8_t i = rstart; i < rstart + dataLength; i++)
@@ -182,14 +195,14 @@ bool MODBUS_RTU::write_Multiple_Data(byte ID, uint16_t *value, long startAddress
     }
     if (wdataLength >= 30)
     {
-        mb.writeHreg(ID,
+        mbRTU.writeHreg(ID,
                      wstart,
                      wdata,
                      30,
                      cb);
-        while (mb.slave())
+        while (mbRTU.slave())
         {
-            mb.task();
+            mbRTU.task();
             vTaskDelay(10 / portTICK_PERIOD_MS);
         }
 
@@ -204,14 +217,14 @@ bool MODBUS_RTU::write_Multiple_Data(byte ID, uint16_t *value, long startAddress
     }
     else if (wdataLength < 30)
     {
-        mb.writeHreg(ID,
+        mbRTU.writeHreg(ID,
                      wstart,
                      wdata,
                      wdataLength,
                      cb);
-        while (mb.slave())
+        while (mbRTU.slave())
         {
-            mb.task();
+            mbRTU.task();
             vTaskDelay(10 / portTICK_PERIOD_MS);
         }
         wdataLength = 0;
@@ -230,18 +243,18 @@ void MODBUS_RTU::update_WebTable()
     if (online.isConnected == true)
     {
         Doc["Command"] = "TableID";
-        Address = modbus.MasterReadReg.startAddress;
-        for (uint8_t i = 0; i < (modbus.MasterReadReg.endAddress - modbus.MasterReadReg.startAddress + 1); i++)
+        Address = modbusRTU.MasterReadReg.startAddress;
+        for (uint8_t i = 0; i < (modbusRTU.MasterReadReg.endAddress - modbusRTU.MasterReadReg.startAddress + 1); i++)
         {
-            Doc["Data"][i]["slaveID"] = modbus.config.slaveID;
-            if (Address > modbus.MasterReadReg.endAddress)
+            Doc["Data"][i]["slaveID"] = modbusRTU.config.slaveID;
+            if (Address > modbusRTU.MasterReadReg.endAddress)
             {
                 Serial.println("Out of range");
                 break;
             }
             Doc["Data"][i]["address"] = Address;
-            Doc["Data"][i]["type"] = modbus.typeData[i];
-            switch (modbus.typeData[i])
+            Doc["Data"][i]["type"] = modbusRTU.typeData[i];
+            switch (modbusRTU.typeData[i])
             {
             case COIL_TYPE:
                 Address++;
@@ -282,15 +295,15 @@ void MODBUS_RTU::update_WebData_Interval() // Must be void function to avoid con
     if (online.isConnected == true)
     {
         Doc["Command"] = "tableData";
-        Address = modbus.MasterReadReg.startAddress;
-        for (uint8_t i = 0; i < (modbus.MasterReadReg.endAddress - modbus.MasterReadReg.startAddress + 1); i++)
+        Address = modbusRTU.MasterReadReg.startAddress;
+        for (uint8_t i = 0; i < (modbusRTU.MasterReadReg.endAddress - modbusRTU.MasterReadReg.startAddress + 1); i++)
         {
-            if (Address > modbus.MasterReadReg.endAddress)
+            if (Address > modbusRTU.MasterReadReg.endAddress)
             {
                 Serial.println("Out of range");
                 break;
             }
-            switch (modbus.typeData[i])
+            switch (modbusRTU.typeData[i])
             {
             case COIL_TYPE:
                 Doc["Data"][i] = CHECKCOIL(Master_ReadData[Address], 0);
@@ -321,62 +334,66 @@ void MODBUS_RTU::update_WebData_Interval() // Must be void function to avoid con
         online.notifyClients(fbDataString);
     }
 }
+/**************************************************END RTU PART***********************************************************/
+
+/*********************************************START TCP PART**************************************************************/
+
+
+
+/*********************************************END TCP PART****************************************************************/
+
+
+
 
 void TaskModbus(void *pvParameter)
 {
+    modbusRTU.loadSetting();
     bool setTable = false;
-    modbus.loadTable = true;
-    modbus.master = 1;
-    modbus.config.slaveID = 1;
-    modbus.MasterReadReg.startAddress = 0;
-    modbus.MasterReadReg.endAddress = 19;
-    modbus.MasterWriteReg.startAddress = 20;
-    modbus.MasterWriteReg.endAddress = 39;
-    size_t reglengh = (modbus.MasterReadReg.endAddress - modbus.MasterReadReg.startAddress + 1);
-    modbus.qUpdateTable = xQueueCreate(1, sizeof(bool));
+    modbusRTU.loadTable = true;
+    size_t reglengh = (modbusRTU.MasterReadReg.endAddress - modbusRTU.MasterReadReg.startAddress + 1);
+    modbusRTU.qUpdateTable = xQueueCreate(1, sizeof(bool));
     static long startUpdateIntervalTime = millis();
 
-    if (modbus.master == 1)
+    if (modbusRTU.master == 1)
     {
-        modbus.MasterInit(&Serial2, MODBUS_BAUD_);
+        modbusRTU.MasterInit(modbusRTU.config.port, modbusRTU.config.baud);
     }
     else
     {
-        modbus.SlaveInit(&Serial2, MODBUS_BAUD_);
-        mb.slave(modbus.config.slaveID);
-        mb.addHreg(modbus.SlaveWriteReg.startAddress, 0, modbus.SlaveWriteReg.endAddress - modbus.SlaveWriteReg.startAddress);
-        mb.addHreg(modbus.SlaveReadReg.startAddress, 0, modbus.SlaveReadReg.endAddress - modbus.SlaveReadReg.startAddress);
+        modbusRTU.SlaveInit(modbusRTU.config.port, modbusRTU.config.baud);
+        mbRTU.slave(modbusRTU.config.slaveID);
+        mbRTU.addHreg(modbusRTU.SlaveWriteReg.startAddress, 0, modbusRTU.SlaveWriteReg.endAddress - modbusRTU.SlaveWriteReg.startAddress);
+        mbRTU.addHreg(modbusRTU.SlaveReadReg.startAddress, 0, modbusRTU.SlaveReadReg.endAddress - modbusRTU.SlaveReadReg.startAddress);
     }
-
     for (;;)
     {
-        if (modbus.master == 1) // Master part
+        if (modbusRTU.master == 1) // Master part
         {
-            if (!mb.slave())
+            if (!mbRTU.slave())
             {
-                while (modbus.read_Multiple_Data(modbus.config.slaveID,
+                while (modbusRTU.read_Multiple_Data(modbusRTU.config.slaveID,
                                                  (uint16_t *)&Master_ReadData,
-                                                 modbus.MasterReadReg.startAddress,
-                                                 (modbus.MasterReadReg.endAddress - modbus.MasterReadReg.startAddress + 1)) != true)
+                                                 modbusRTU.MasterReadReg.startAddress,
+                                                 (modbusRTU.MasterReadReg.endAddress - modbusRTU.MasterReadReg.startAddress + 1)) != true)
                     ;
-                // while (modbus.write_Multiple_Data(modbus.config.slaveID,
+                // while (modbusRTU.write_Multiple_Data(modbusRTU.config.slaveID,
                 //                                   (uint16_t *)&Master_ReadData,
-                //                                   modbus.MasterWriteReg.startAddress,
-                //                                   (modbus.MasterWriteReg.endAddress - modbus.MasterWriteReg.startAddress + 1)) != true)
+                //                                   modbusRTU.MasterWriteReg.startAddress,
+                //                                   (modbusRTU.MasterWriteReg.endAddress - modbusRTU.MasterWriteReg.startAddress + 1)) != true)
                 //     ;
             }
             if (millis() - startUpdateIntervalTime >= UPDATE_INTERVAL_MS)
             {
                 startUpdateIntervalTime = millis();
-                modbus.update_WebData_Interval();
+                modbusRTU.update_WebData_Interval();
                 // Serial.println("Free RAM: " + String(ESP.getFreeHeap() / 1024) + "Kb");
                 // Serial.println("Current RAM: " + String((ESP.getHeapSize() - ESP.getFreeHeap()) / 1024) + "Kb");
             }
-            if (xQueueReceive(modbus.qUpdateTable, (void *)&setTable, 1 / portTICK_PERIOD_MS) == pdTRUE || (modbus.loadTable == true && online.isConnected == true))
+            if (xQueueReceive(modbusRTU.qUpdateTable, (void *)&setTable, 1 / portTICK_PERIOD_MS) == pdTRUE || (modbusRTU.loadTable == true && online.isConnected == true))
             {
-                modbus.update_WebTable();
+                modbusRTU.update_WebTable();
                 setTable = false;
-                modbus.loadTable = false;
+                modbusRTU.loadTable = false;
             }
 
         } // Master part

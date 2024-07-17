@@ -182,11 +182,11 @@ void mbDataTypeHandler()
     Serial.println("Size of type: " + String(size));
     for (int i = 0; i < size; i++)
     {
-        modbus.typeData[i] = rdoc["type"][i];
-        Serial.println("Type " + String(i) + ": " + String(modbus.typeData[i]));
+        modbusRTU.typeData[i] = rdoc["type"][i];
+        Serial.println("Type " + String(i) + ": " + String(modbusRTU.typeData[i]));
     }
     bool IsSetTable = true;
-    xQueueSend(modbus.qUpdateTable, (void *)&IsSetTable, 1 / portTICK_PERIOD_MS);
+    xQueueSend(modbusRTU.qUpdateTable, (void *)&IsSetTable, 1 / portTICK_PERIOD_MS);
 }
 void setModbusHandler()
 {
@@ -199,30 +199,30 @@ void setModbusHandler()
     String serial = rdoc["serial"].as<String>();
     String mbmaster = rdoc["mbmaster"].as<String>();
 
-    modbus.config.slaveID = slaveID.toInt();
-    modbus.master = (mbmaster == "0") ? 0 : 1;
-    modbus.config.baud = baud.toInt();
-    modbus.config.port = (serial == "0") ? &Serial1 : &Serial2;
-    if (modbus.master == 1)
+    modbusRTU.config.slaveID = slaveID.toInt();
+    modbusRTU.master = (mbmaster == "0") ? 0 : 1;
+    modbusRTU.config.baud = baud.toInt();
+    modbusRTU.config.port = (serial == "0") ? &Serial1 : &Serial2;
+    if (modbusRTU.master == 1)
     {
-        modbus.MasterReadReg.startAddress = readStart.toInt();
-        modbus.MasterReadReg.endAddress = readEnd.toInt();
-        modbus.MasterWriteReg.startAddress = writeStart.toInt();
-        modbus.MasterWriteReg.endAddress = writeEnd.toInt();
+        modbusRTU.MasterReadReg.startAddress = readStart.toInt();
+        modbusRTU.MasterReadReg.endAddress = readEnd.toInt();
+        modbusRTU.MasterWriteReg.startAddress = writeStart.toInt();
+        modbusRTU.MasterWriteReg.endAddress = writeEnd.toInt();
     }
 
-    if (modbus.master == 0)
+    if (modbusRTU.master == 0)
     {
-        modbus.SlaveReadReg.startAddress = readStart.toInt();
-        modbus.SlaveReadReg.endAddress = readEnd.toInt();
-        modbus.SlaveWriteReg.startAddress = writeStart.toInt();
-        modbus.SlaveWriteReg.endAddress = writeEnd.toInt();
+        modbusRTU.SlaveReadReg.startAddress = readStart.toInt();
+        modbusRTU.SlaveReadReg.endAddress = readEnd.toInt();
+        modbusRTU.SlaveWriteReg.startAddress = writeStart.toInt();
+        modbusRTU.SlaveWriteReg.endAddress = writeEnd.toInt();
     }
     wDoc["Command"] = "settingModbus";
     wDoc["Data"] = "SetingDone";
     serializeJson(wDoc, fbDataString);
     online.notifyClients(fbDataString);
-    modbus.writeSetting();
+    modbusRTU.writeSetting();
 }
 void setWifiHandler()
 {
@@ -318,7 +318,7 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
     case WS_EVT_DISCONNECT:
         Serial.printf("WebSocket client #%u disconnected\n", client->id());
         online.isConnected = false;
-        modbus.loadTable = true;
+        modbusRTU.loadTable = true;
         break;
     case WS_EVT_DATA:
         handleWebSocketMessage(arg, data, len);
