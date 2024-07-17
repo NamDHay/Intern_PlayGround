@@ -31,7 +31,7 @@
       margin: 0 auto;
     }
     .card {
-      background-color: #F8F7F9;;
+      background-color: #f7f8f9;;
       box-shadow: 2px 2px 12px 1px rgba(140,140,140,.5);
       padding-top:10px;
       padding-bottom:20px;
@@ -380,13 +380,15 @@
         </li>
         <li class="nav-item">
           <a class="navbar-brand" id="tabshowdata" style="font-size: 2.0rem; font-weight: bold; text-align: center; color: yellow; ">Show Data</a>
-        </li>
-
+        </li> 
       </ul>
         <ul class="navbar-nav" style="height: 40px;">
           <li class="nav-item dropdown" style="position: absolute; right: 0px;">
               <a class="nav-link dropdown-toggle" href="http://192.168.1.23/" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <svg class="bi" width="24" height="24"><use xlink:href="#gear_fill_icon"></use></svg>
+              </a>
+              <a class="navbar-nav" id="buttonadd" style="position: absolute; right: 70px;top: 9px;" role="button" data-bs-toggle="modal" aria-expanded="false">
+                <svg class="bi" width="30" height="30"><use xlink:href="#icon-add"></use></svg>
               </a>
               <ul class="dropdown-menu" style="background-color: #143642; margin-left: -350px;">
                 <li class="nav-item d-flex flex-row">
@@ -439,47 +441,47 @@
       </div><br>
       <div class="cardcuatao">
         <CENTER>
-            <h2>DEVICE </h2>
-            <p class="statecuatao">INPUT</p>
-            <div style="display: inline-flex;">
-                <div class="cardcuatao_input">
-                    <p class="statecuatao">1</p>
-                    <p class="statecuatao"><span id="input1">ON</span></p>
-                </div>
-                <div class="cardcuatao_input">
-                    <p class="statecuatao">2</p>
-                    <p class="statecuatao"><span id="input2">ON</span></p>
-                </div>
-                <div class="cardcuatao_input">
-                    <p class="statecuatao">3</p>
-                    <p class="statecuatao"><span id="input3">ON</span></p>
-                </div>
-                <div class="cardcuatao_input">
-                    <p class="statecuatao">4</p>
-                    <p class="statecuatao"><span id="input4">ON</span></p>
-                </div>
+          <h2>DEVICE </h2>
+          <p class="statecuatao">INPUT</p>
+          <div style="display: inline-flex;">
+            <div class="cardcuatao_input">
+              <p class="statecuatao">1</p>
+              <p class="statecuatao"><span id="input1">ON</span></p>
             </div>
+            <div class="cardcuatao_input">
+              <p class="statecuatao">2</p>
+              <p class="statecuatao"><span id="input2">ON</span></p>
+            </div>
+            <div class="cardcuatao_input">
+              <p class="statecuatao">3</p>
+              <p class="statecuatao"><span id="input3">ON</span></p>
+            </div>
+            <div class="cardcuatao_input">
+              <p class="statecuatao">4</p>
+              <p class="statecuatao"><span id="input4">ON</span></p>
+            </div>
+          </div>
         </CENTER>
         <CENTER>
-            <p class="statecuatao">OUTPUT</p>
-            <div style="display: inline-flex;">
-                <div class="cardcuatao_input">
-                    <p class="statecuatao">1</p>
-                    <p><button id="button1" class="buttoncuatao_output"><span id="output1">ON</span></button></p>
-                </div>
-                <div class="cardcuatao_input">
-                    <p class="statecuatao">2</p>
-                    <p><button id="button2" class="buttoncuatao_output"><span id="output2">ON</span></button></p>
-                </div>
-                <div class="cardcuatao_input">
-                    <p class="statecuatao">3</p>
-                    <p><button id="button3" class="buttoncuatao_output"><span id="output3">ON</span></button></p>
-                </div>
-                <div class="cardcuatao_input">
-                    <p class="statecuatao">4</p>
-                    <p><button id="button4" class="buttoncuatao_output"><span id="output4">ON</span></button></p>
-                </div>
+          <p class="statecuatao">OUTPUT</p>
+          <div style="display: inline-flex;">
+            <div class="cardcuatao_input">
+              <p class="statecuatao">1</p>
+              <p><button id="button1" class="buttoncuatao_output"><span id="output1">ON</span></button></p>
             </div>
+            <div class="cardcuatao_input">
+              <p class="statecuatao">2</p>
+              <p><button id="button2" class="buttoncuatao_output"><span id="output2">ON</span></button></p>
+            </div>
+            <div class="cardcuatao_input">
+              <p class="statecuatao">3</p>
+              <p><button id="button3" class="buttoncuatao_output"><span id="output3">ON</span></button></p>
+            </div>
+            <div class="cardcuatao_input">
+              <p class="statecuatao">4</p>
+              <p><button id="button4" class="buttoncuatao_output"><span id="output4">ON</span></button></p>
+            </div>
+          </div>
         </CENTER>
     </div><br>
     </div>
@@ -524,12 +526,129 @@
   <!-- Tab Show Data -->
   <div id="cardshowdata" class="contentcuatao" style="display: none;">
     <div class="cardcuatao">
-      <Center><h2>SHOW DATA</h2></Center>
-
-      <Center><span><button id="buttonadd" class="button">ADD</button></span></Center>
+      <span><input type="text" id="jsonApp"/>
+        <button id="bntLoadcard" class="button">load card</button>
+</span>
+    </div>
+    <div id="test"></div>
+    <!-- <div id="card1" style="display:none;">
+      <div class="cardcuatao">
+        <Center>
+          <h2><span id="namecard1">NAME CARD</span> </h2>
+          <p class="statecuatao">ID: <span id="idcard1"></span></p>
+          <div class="container overflow-hidden text-center">
+            <div class="row gy-5">
+              <div class="col-4">
+                <div class="state">Value 1:</div>
+              </div>
+              <div class="col-5">
+                <div class="state" id="card1-value1">VALUE</div>
+              </div>
+              <div class="col-4">
+                <div class="state">Value 2:</div>
+              </div>
+              <div class="col-5">
+                <div class="state" id="card1-value2">VALUE</div>
+              </div>
+              <div class="col-4">
+                <div class="state">Value 3:</div>
+              </div>
+              <div class="col-5">
+                <div class="state" id="card1-value3">VALUE</div>
+              </div>
+              <div class="col-4">
+                <div class="state">Value 4:</div>
+              </div>
+              <div class="col-5">
+                <div class="state" id="card1-value4">VALUE</div>
+              </div>
+              <div class="col-4">
+                <div class="state">Value 5:</div>
+              </div>
+              <div class="col-5">
+                <div class="state" id="card1-value5">VALUE</div>
+              </div>
+            </div>
+          </div>
+        </Center>
+      </div>
     </div><br>
+
+
+    <div id="card2" style="display:none;">
+      <div class="cardcuatao">
+        <Center>
+          <h2><span id="namecard2">NAME CARD</span> </h2>
+          <p class="statecuatao">ID: <span id="idcard2"></span></p>
+          <div class="container overflow-hidden text-center">
+            <div class="row gy-5">
+              <div class="col-4">
+                <div class="state">Value 1:</div>
+              </div>
+              <div class="col-5">
+                <div class="state" id="card2-value1">VALUE</div>
+              </div>
+              <div class="col-4">
+                <div class="state">Value 2:</div>
+              </div>
+              <div class="col-5">
+                <div class="state" id="card2-value2">VALUE</div>
+              </div>
+              <div class="col-4">
+                <div class="state">Value 3:</div>
+              </div>
+              <div class="col-5">
+                <div class="state" id="card2-value3">VALUE</div>
+              </div>
+              <div class="col-4">
+                <div class="state">Value 4:</div>
+              </div>
+              <div class="col-5">
+                <div class="state" id="card2-value4">VALUE</div>
+              </div>
+              <div class="col-4">
+                <div class="state">Value 5:</div>
+              </div>
+              <div class="col-5">
+                <div class="state" id="card2-value5">VALUE</div>
+              </div>
+            </div>
+          </div>
+        </Center>
+      </div>
+    </div> -->
   </div>
-  
+  <!-- Tab Card -->
+  <div class="modal fade" id="cardadd" tabindex="-1" aria-labelledby="settingModalSPLabel" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog">
+      <div class="modal-content" style="width: fit-content;">
+        <div class="modal-header">
+            <h5 class="modal-title" id="settingModalLabel " style="font-size: 1.5rem; font-weight: bold;">Thêm thẻ mới</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div style="padding: 20px;" class="state">
+          <div>Name: <input type="text" class="state" id="input_namecard" size="15" placeholder="Name Card"></div><br>
+
+          <div class="row gx-6"><div class="col">Number_Values: </div><div class="col"><select id="values" value="0" class="state"><option value="0" selected="">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div></div><br>
+          
+          <div id="gencard"></div>
+          <!-- <div class="row gx-5"><div class="col">Type Card: </div><div class="col"><select id="typecard" value="0" class="state"><option value="0" selected="">Test1</option><option value="1">Test2</option><option value="2">Test3</option><option value="3">Test4</option></select></div></div><br>
+
+          <div class="row gx-5"><div class="col">Value1: </div><div class="col"><span id="value1" class="state"> Value </span></div><div class="col"><select id="selectvalue1" value="0" class="state"><option value="0" selected="">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div></div><br>
+          
+          <div class="row gx-5"><div class="col">Value2: </div><div class="col"><span id="value2" class="state"> Value </span></div><div class="col"><select id="selectvalue2" value="0" class="state"><option value="0" selected="">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div></div><br>
+          
+          <div class="row gx-5"><div class="col">Value3: </div><div class="col"><span id="value3" class="state"> Value </span></div><div class="col"><select id="selectvalue3" value="0" class="state"><option value="0" selected="">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div></div><br>
+          
+          <div class="row gx-5"><div class="col">Value4: </div><div class="col"><span id="value4" class="state"> Value </span></div><div class="col"><select id="selectvalue4" value="0" class="state"><option value="0" selected="">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div></div><br>
+          
+          <div class="row gx-5"><div class="col">Value5: </div><div class="col"><span id="value5" class="state"> Value </span></div><div class="col"><select id="selectvalue5" value="0" class="state"><option value="0" selected="">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div></div><br> -->
+          
+          <Center><span><button id="buttonsavecard" class="button">SAVE</button></span></Center>
+        </div>                      
+      </div>
+    </div>
+  </div>
   <!-- settingModalSetting -->
   <div class="modal fade" id="settingModalSetting" tabindex="-1" aria-labelledby="settingModalSettingSPLabel" aria-hidden="true">
     <div class="modal-dialog" style="width: 100%;">
