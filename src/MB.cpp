@@ -1,41 +1,27 @@
+#include "Arduino.h"
 #include <OnlineManage.h>
 #include <MB.h>
 #include <ArduinoJson.h>
 #include <File_System.h>
-
-ModbusRTU mbRTU;
-ModbusIP mbTCP;
-bool EthernetAvilable;
-
-int16_t Master_ReadData[200];
-int16_t Master_WriteData[200];
-int16_t Slave_ReadData[200];
-int16_t Slave_WriteData[200];
-
-int16_t Client_ReadData[200];
-int16_t Client_WriteData[200];
-int16_t Server_ReadData[200];
-int16_t Server_WriteData[200];
-
-#define MODBUS_BAUD_ 9600
 
 #define WORD_TYPE 0
 #define COIL_TYPE 1
 #define DWORDS_TYPE 2
 #define FLOAT_TYPE 3
 
-#define ETH_ADDR 1
-#define ETH_POWER_PIN -1 // Do not use it, it can cause conflict during the software reset.
-#define ETH_POWER_PIN_ALTERNATIVE 14
-#define ETH_MDC_PIN 23
-#define ETH_MDIO_PIN 18
-#define ETH_TYPE ETH_PHY_LAN8720
-#define ETH_CLK_MODE ETH_CLOCK_GPIO0_IN
-
+/*********************************************START RTU PART**************************************************************/
 #define CHECKCOIL(CoilGroup, CoilBit) ((((CoilGroup) & (1UL << CoilBit)) == (1UL << CoilBit)) ? 1 : 0)
 #define SETCOIL(CoilGroup, CoilBit) ((CoilGroup) |= (1UL << CoilBit))
 #define CLEARCOIL(CoilGroup, CoilBit) (CoilGroup &= ~(1UL << CoilBit))
-/*********************************************START RTU PART**************************************************************/
+
+ModbusRTU mbRTU;
+#define MODBUS_BAUD_ 9600
+
+int16_t Master_ReadData[200];
+int16_t Master_WriteData[200];
+int16_t Slave_ReadData[200];
+int16_t Slave_WriteData[200];
+
 bool cb(Modbus::ResultCode event, uint16_t transactionId, void *data)
 { // Callback to monitor errors
     if (event != Modbus::EX_SUCCESS)
@@ -60,7 +46,6 @@ void MODBUS_RTU::SlaveInit(HardwareSerial *port, unsigned long baud)
     port->begin(baud, SERIAL_8N1);
     mbRTU.begin(port);
 }
-
 void MODBUS_RTU::loadSetting()
 {
     String dataRead = "";
@@ -133,10 +118,10 @@ bool MODBUS_RTU::read_Multiple_Data(byte ID, uint16_t *value, long startAddress,
     if (dataLength >= 30)
     {
         mbRTU.readHreg(ID,
-                    rstart,
-                    rdata,
-                    30,
-                    cb);
+                       rstart,
+                       rdata,
+                       30,
+                       cb);
         while (mbRTU.slave())
         {
             mbRTU.task();
@@ -159,10 +144,10 @@ bool MODBUS_RTU::read_Multiple_Data(byte ID, uint16_t *value, long startAddress,
     else if (dataLength < 30)
     {
         mbRTU.readHreg(ID,
-                    rstart,
-                    rdata,
-                    dataLength,
-                    cb);
+                       rstart,
+                       rdata,
+                       dataLength,
+                       cb);
         while (mbRTU.slave())
         {
             mbRTU.task();
@@ -196,10 +181,10 @@ bool MODBUS_RTU::write_Multiple_Data(byte ID, uint16_t *value, long startAddress
     if (wdataLength >= 30)
     {
         mbRTU.writeHreg(ID,
-                     wstart,
-                     wdata,
-                     30,
-                     cb);
+                        wstart,
+                        wdata,
+                        30,
+                        cb);
         while (mbRTU.slave())
         {
             mbRTU.task();
@@ -218,10 +203,10 @@ bool MODBUS_RTU::write_Multiple_Data(byte ID, uint16_t *value, long startAddress
     else if (wdataLength < 30)
     {
         mbRTU.writeHreg(ID,
-                     wstart,
-                     wdata,
-                     wdataLength,
-                     cb);
+                        wstart,
+                        wdata,
+                        wdataLength,
+                        cb);
         while (mbRTU.slave())
         {
             mbRTU.task();
@@ -234,7 +219,6 @@ bool MODBUS_RTU::write_Multiple_Data(byte ID, uint16_t *value, long startAddress
     }
     return false;
 }
-
 void MODBUS_RTU::update_WebTable()
 {
     JsonDocument Doc;
@@ -337,34 +321,190 @@ void MODBUS_RTU::update_WebData_Interval() // Must be void function to avoid con
 /**************************************************END RTU PART***********************************************************/
 
 /*********************************************START TCP PART**************************************************************/
+#define I2C_SDA 32 // khai bao chan I2C
+#define I2C_SCL 33
+#define ETH_ADDR 1
+#define ETH_POWER_PIN -1 // Do not use it, it can cause conflict during the software reset.
+#define ETH_POWER_PIN_ALTERNATIVE 14
+#define ETH_MDC_PIN 23
+#define ETH_MDIO_PIN 18
+#define ETH_TYPE ETH_PHY_LAN8720
+#define ETH_CLK_MODE ETH_CLOCK_GPIO0_IN
+#define BUZZ 12
+#define BUZZ_ON digitalWrite(BUZZ, HIGH)
+#define BUZZ_OFF digitalWrite(BUZZ, LOW)
+ModbusIP mbTCP;
 
+String _ip = "192.168.137.3";
+String _gw = "192.168.137.1";
+String _sn = "255.255.255.0";
+String dns1 = "8.8.8.8";
+String remote = "192.168.137.2"; // Address of Modbus Slave device
 
+int16_t Client_ReadData[200];
+int16_t Client_WriteData[200];
+int16_t Server_ReadData[200];
+int16_t Server_WriteData[200];
 
+int getIpBlock(int index, String str)
+{
+    char separator = '.';
+    int found = 0;
+    int strIndex[] = {0, -1};
+    int maxIndex = str.length() - 1;
+
+    for (int i = 0; i <= maxIndex && found <= index; i++)
+    {
+        if (str.charAt(i) == separator || i == maxIndex)
+        {
+            found++;
+            strIndex[0] = strIndex[1] + 1;
+            strIndex[1] = (i == maxIndex) ? i + 1 : i;
+        }
+    }
+
+    return found > index ? str.substring(strIndex[0], strIndex[1]).toInt() : 0;
+}
+IPAddress str2IP(String str)
+{
+    IPAddress ret(getIpBlock(0, str), getIpBlock(1, str), getIpBlock(2, str), getIpBlock(3, str));
+    return ret;
+}
+static bool eth_connected = false;
+void WiFiEvent(WiFiEvent_t event)
+{
+    switch (event)
+    {
+    case SYSTEM_EVENT_ETH_START:
+        Serial.println("ETH Started");
+        // set eth hostname here
+        ETH.setHostname("esp32-ethernet");
+        break;
+    case SYSTEM_EVENT_ETH_CONNECTED:
+        Serial.println("ETH Connected");
+        break;
+    case SYSTEM_EVENT_ETH_GOT_IP:
+        Serial.print("ETH MAC: ");
+        Serial.print(ETH.macAddress());
+        Serial.print(", IPv4: ");
+        Serial.print(ETH.localIP());
+        if (ETH.fullDuplex())
+        {
+            Serial.print(", FULL_DUPLEX");
+        }
+        Serial.print(", ");
+        Serial.print(ETH.linkSpeed());
+        Serial.println("Mbps");
+        eth_connected = true;
+        break;
+    case SYSTEM_EVENT_ETH_DISCONNECTED:
+        Serial.println("ETH Disconnected");
+        eth_connected = false;
+        break;
+    case SYSTEM_EVENT_ETH_STOP:
+        Serial.println("ETH Stopped");
+        eth_connected = false;
+        break;
+    default:
+        break;
+    }
+}
+void MODBUS_TCP::EthernetInit()
+{
+    Serial.println("Connect Lan...");
+    pinMode(ETH_POWER_PIN_ALTERNATIVE, OUTPUT);
+    digitalWrite(ETH_POWER_PIN_ALTERNATIVE, HIGH);
+    WiFi.onEvent(WiFiEvent);
+    ETH.begin(ETH_ADDR, ETH_POWER_PIN, ETH_MDC_PIN, ETH_MDIO_PIN, ETH_TYPE, ETH_CLK_MODE);
+    // ETH.config(str2IP(modbusTCP.ethernet.ipAdress),
+    //            str2IP(modbusTCP.ethernet.gateway),
+    //            str2IP(modbusTCP.ethernet.subnet),
+    //            str2IP(modbusTCP.ethernet.primaryDNS));
+    ETH.config(str2IP(_ip), str2IP(_gw), str2IP(_sn), str2IP(dns1));
+}
+void MODBUS_TCP::ClientInit()
+{
+    mbTCP.client();
+}
+void MODBUS_TCP::ServerInit()
+{
+}
+bool MODBUS_TCP::read_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t length)
+{
+    return false;
+}
+bool MODBUS_TCP::write_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t length)
+{
+    return false;
+}
+void MODBUS_TCP::loadSetting()
+{
+}
+void MODBUS_TCP::writeSetting()
+{
+}
+void MODBUS_TCP::update_WebTable()
+{
+}
+void MODBUS_TCP::update_WebData_Interval()
+{
+}
 /*********************************************END TCP PART****************************************************************/
 
-
-
-
+/*********************************************START MODBUS TASK***********************************************************/
 void TaskModbus(void *pvParameter)
 {
+    /*Start Test Part*/
+    modbusTCP.client = 1;
+    modbusTCP.ethernet.ipAdress = "192.168.137.3";
+    modbusTCP.ethernet.gateway = "192.168.137.1";
+    modbusTCP.ethernet.subnet = "255.255.255.0";
+    modbusTCP.ethernet.primaryDNS = "8.8.8.8";
+    modbusTCP.remote = "192.168.137.2";
+
+    modbusTCP.ClientWriteReg.startAddress = 0;
+    modbusTCP.ClientWriteReg.endAddress = 9;
+    /*End Test Part*/
+
     modbusRTU.loadSetting();
+    modbusTCP.loadSetting();
+
     bool setTable = false;
     modbusRTU.loadTable = true;
+
     size_t reglengh = (modbusRTU.MasterReadReg.endAddress - modbusRTU.MasterReadReg.startAddress + 1);
     modbusRTU.qUpdateTable = xQueueCreate(1, sizeof(bool));
-    static long startUpdateIntervalTime = millis();
 
-    if (modbusRTU.master == 1)
-    {
-        modbusRTU.MasterInit(modbusRTU.config.port, modbusRTU.config.baud);
-    }
-    else
-    {
-        modbusRTU.SlaveInit(modbusRTU.config.port, modbusRTU.config.baud);
-        mbRTU.slave(modbusRTU.config.slaveID);
-        mbRTU.addHreg(modbusRTU.SlaveWriteReg.startAddress, 0, modbusRTU.SlaveWriteReg.endAddress - modbusRTU.SlaveWriteReg.startAddress);
-        mbRTU.addHreg(modbusRTU.SlaveReadReg.startAddress, 0, modbusRTU.SlaveReadReg.endAddress - modbusRTU.SlaveReadReg.startAddress);
-    }
+    pinMode(BUZZ, OUTPUT);
+    Wire.begin(I2C_SDA, I2C_SCL);
+    modbusTCP.EthernetInit();
+    BUZZ_ON;
+    delay(200);
+    BUZZ_OFF;
+
+    static long startUpdateIntervalTime = millis();
+    modbusRTU.master = 0;
+    // if (modbusRTU.master == 1)
+    // {
+    //     modbusRTU.MasterInit(modbusRTU.config.port, modbusRTU.config.baud);
+    // }
+    // else
+    // {
+    //     modbusRTU.SlaveInit(modbusRTU.config.port, modbusRTU.config.baud);
+    //     mbRTU.slave(modbusRTU.config.slaveID);
+    //     mbRTU.addHreg(modbusRTU.SlaveWriteReg.startAddress, 0, modbusRTU.SlaveWriteReg.endAddress - modbusRTU.SlaveWriteReg.startAddress);
+    //     mbRTU.addHreg(modbusRTU.SlaveReadReg.startAddress, 0, modbusRTU.SlaveReadReg.endAddress - modbusRTU.SlaveReadReg.startAddress);
+    // }
+    Serial.println("Init TCP");
+    mbTCP.client();
+    // if (modbusTCP.client == 1)
+    // {
+    //     modbusTCP.ClientInit();
+    // }
+    // else
+    // {
+    //     modbusTCP.ServerInit();
+    // }
     for (;;)
     {
         if (modbusRTU.master == 1) // Master part
@@ -372,9 +512,9 @@ void TaskModbus(void *pvParameter)
             if (!mbRTU.slave())
             {
                 while (modbusRTU.read_Multiple_Data(modbusRTU.config.slaveID,
-                                                 (uint16_t *)&Master_ReadData,
-                                                 modbusRTU.MasterReadReg.startAddress,
-                                                 (modbusRTU.MasterReadReg.endAddress - modbusRTU.MasterReadReg.startAddress + 1)) != true)
+                                                    (uint16_t *)&Master_ReadData,
+                                                    modbusRTU.MasterReadReg.startAddress,
+                                                    (modbusRTU.MasterReadReg.endAddress - modbusRTU.MasterReadReg.startAddress + 1)) != true)
                     ;
                 // while (modbusRTU.write_Multiple_Data(modbusRTU.config.slaveID,
                 //                                   (uint16_t *)&Master_ReadData,
@@ -386,8 +526,6 @@ void TaskModbus(void *pvParameter)
             {
                 startUpdateIntervalTime = millis();
                 modbusRTU.update_WebData_Interval();
-                // Serial.println("Free RAM: " + String(ESP.getFreeHeap() / 1024) + "Kb");
-                // Serial.println("Current RAM: " + String((ESP.getHeapSize() - ESP.getFreeHeap()) / 1024) + "Kb");
             }
             if (xQueueReceive(modbusRTU.qUpdateTable, (void *)&setTable, 1 / portTICK_PERIOD_MS) == pdTRUE || (modbusRTU.loadTable == true && online.isConnected == true))
             {
@@ -397,5 +535,29 @@ void TaskModbus(void *pvParameter)
             }
 
         } // Master part
+
+        if (modbusTCP.client == 1) // Client part
+        {
+            Serial.println("Start to get data");
+            if (mbTCP.isConnected(str2IP(remote)))
+            {
+                Serial.print("Connected");
+                mbTCP.readHreg(str2IP(remote),
+                               modbusTCP.ClientReadReg.startAddress,
+                               (uint16_t *)&Client_ReadData,
+                               (modbusTCP.ClientWriteReg.endAddress - modbusTCP.ClientWriteReg.startAddress + 1));
+                for (uint8_t i = 0; i < (modbusTCP.ClientWriteReg.endAddress - modbusTCP.ClientWriteReg.startAddress + 1); i++)
+                {
+                    Serial.println("Data " + String(i) + ": " + String(Client_ReadData[i]));
+                }
+            }
+            else
+            {
+                mbTCP.connect(str2IP(remote));
+            }
+            mbTCP.task();
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+        } // Client part
     }
 }
+/*********************************************END MODBUS TASK*************************************************************/

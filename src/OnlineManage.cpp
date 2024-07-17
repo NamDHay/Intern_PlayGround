@@ -33,7 +33,7 @@ void OnlineManage::Init()
     {
         Serial.println("STA Failed to configure");
     }
-    if (online.CheckConnect(500))
+    if (online.CheckConnect(100))
     {
         Serial.print("Connected!\n");
         online.Get_STA_IP();

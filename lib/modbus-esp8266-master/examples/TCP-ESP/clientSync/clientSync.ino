@@ -16,7 +16,7 @@
 #include <ModbusTCP.h>
 
 const int REG = 528;               // Modbus Hreg Offset
-IPAddress remote(192, 168, 30, 13);  // Address of Modbus Slave device
+IPAddress remote(192, 168, 137, 2);  // Address of Modbus Slave device
 
 ModbusIP mb;  //ModbusTCP object
 

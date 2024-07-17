@@ -11,6 +11,7 @@ IO_CONFIG io_config;
 FFS filesystem;
 OnlineManage online;
 MODBUS_RTU modbusRTU;
+MODBUS_TCP modbusTCP;
 
 void setup() {
   Serial.begin(115200);

@@ -3,6 +3,7 @@
 
 #include <SPI.h>
 #include <ETH.h>
+#include "Wire.h"
 #include <ModbusIP_ESP8266.h>
 #include <ModbusRTU.h>
 
@@ -18,27 +19,21 @@ public:
         unsigned long baud;
         HardwareSerial *port;
     } config;
-    struct MRead_t
+    struct Write_t
     {
         long startAddress;
         long endAddress;
-    } MasterReadReg;
-    struct MWrite_t
+    };
+    struct Read_t
     {
         long startAddress;
         long endAddress;
-    } MasterWriteReg;
+    };
+    Write_t MasterWriteReg;
+    Read_t MasterReadReg;
+    Write_t SlaveWriteReg;
+    Read_t SlaveReadReg;
 
-    struct SRead_t
-    {
-        long startAddress;
-        long endAddress;
-    } SlaveReadReg;
-    struct SWrite_t
-    {
-        long startAddress;
-        long endAddress;
-    } SlaveWriteReg;
     uint8_t typeData[200];
     void MasterInit(HardwareSerial *port, unsigned long baud);
     void SlaveInit(HardwareSerial *port, unsigned long baud);
@@ -53,27 +48,43 @@ public:
 class MODBUS_TCP
 {
 public:
-    struct CRead_t
+    uint8_t client;
+    struct ethernet_t
+    {
+        String ipAdress;
+        String gateway;
+        String subnet;
+        String primaryDNS;
+        String secondaryDNS;
+    };
+    ethernet_t ethernet;
+    String remote;
+    struct Write_t
     {
         long startAddress;
         long endAddress;
-    } ClientReadReg;
-    struct CWrite_t
+    };
+    struct Read_t
     {
         long startAddress;
         long endAddress;
-    } ClientWriteReg;
+    };
+    Write_t ServerWriteReg;
+    Read_t ServerReadReg;
+    Write_t ClientWriteReg;
+    Read_t ClientReadReg;
 
-    struct SRead_t
-    {
-        long startAddress;
-        long endAddress;
-    } ServerReadReg;
-    struct SWrite_t
-    {
-        long startAddress;
-        long endAddress;
-    } ServerWriteReg;
+    uint8_t typeData[200];
+
+    void EthernetInit();
+    void ClientInit();
+    void ServerInit();
+    bool read_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t length);
+    bool write_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t length);
+    void loadSetting();
+    void writeSetting();
+    void update_WebTable();
+    void update_WebData_Interval();
 };
 void TaskModbus(void *pvParameter);
 
