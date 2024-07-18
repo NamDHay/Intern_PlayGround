@@ -240,7 +240,7 @@
   </style>
   <title>WIFI SETTING</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" href="http://192.168.4.1/">
+  <link rel="icon">
 </head>
 <body>
   <svg class="icon" xmlns="http://www.w3.org/2000/svg" style="display: none; ">
@@ -530,93 +530,8 @@
         <button id="bntLoadcard" class="button">load card</button>
 </span>
     </div>
-    <div id="test"></div>
-    <!-- <div id="card1" style="display:none;">
-      <div class="cardcuatao">
-        <Center>
-          <h2><span id="namecard1">NAME CARD</span> </h2>
-          <p class="statecuatao">ID: <span id="idcard1"></span></p>
-          <div class="container overflow-hidden text-center">
-            <div class="row gy-5">
-              <div class="col-4">
-                <div class="state">Value 1:</div>
-              </div>
-              <div class="col-5">
-                <div class="state" id="card1-value1">VALUE</div>
-              </div>
-              <div class="col-4">
-                <div class="state">Value 2:</div>
-              </div>
-              <div class="col-5">
-                <div class="state" id="card1-value2">VALUE</div>
-              </div>
-              <div class="col-4">
-                <div class="state">Value 3:</div>
-              </div>
-              <div class="col-5">
-                <div class="state" id="card1-value3">VALUE</div>
-              </div>
-              <div class="col-4">
-                <div class="state">Value 4:</div>
-              </div>
-              <div class="col-5">
-                <div class="state" id="card1-value4">VALUE</div>
-              </div>
-              <div class="col-4">
-                <div class="state">Value 5:</div>
-              </div>
-              <div class="col-5">
-                <div class="state" id="card1-value5">VALUE</div>
-              </div>
-            </div>
-          </div>
-        </Center>
-      </div>
-    </div><br>
-
-
-    <div id="card2" style="display:none;">
-      <div class="cardcuatao">
-        <Center>
-          <h2><span id="namecard2">NAME CARD</span> </h2>
-          <p class="statecuatao">ID: <span id="idcard2"></span></p>
-          <div class="container overflow-hidden text-center">
-            <div class="row gy-5">
-              <div class="col-4">
-                <div class="state">Value 1:</div>
-              </div>
-              <div class="col-5">
-                <div class="state" id="card2-value1">VALUE</div>
-              </div>
-              <div class="col-4">
-                <div class="state">Value 2:</div>
-              </div>
-              <div class="col-5">
-                <div class="state" id="card2-value2">VALUE</div>
-              </div>
-              <div class="col-4">
-                <div class="state">Value 3:</div>
-              </div>
-              <div class="col-5">
-                <div class="state" id="card2-value3">VALUE</div>
-              </div>
-              <div class="col-4">
-                <div class="state">Value 4:</div>
-              </div>
-              <div class="col-5">
-                <div class="state" id="card2-value4">VALUE</div>
-              </div>
-              <div class="col-4">
-                <div class="state">Value 5:</div>
-              </div>
-              <div class="col-5">
-                <div class="state" id="card2-value5">VALUE</div>
-              </div>
-            </div>
-          </div>
-        </Center>
-      </div>
-    </div> -->
+    <div id="addcard"></div>
+    
   </div>
   <!-- Tab Card -->
   <div class="modal fade" id="cardadd" tabindex="-1" aria-labelledby="settingModalSPLabel" aria-hidden="true" style="display: none;">
@@ -629,10 +544,10 @@
         <div style="padding: 20px;" class="state">
           <div>Name: <input type="text" class="state" id="input_namecard" size="15" placeholder="Name Card"></div><br>
 
-          <div class="row gx-6"><div class="col">Number_Values: </div><div class="col"><select id="values" value="0" class="state"><option value="0" selected="">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div></div><br>
+          <!-- <div class="row gx-6"><div class="col">Number_Values: </div><div class="col"><select id="values" value="0" class="state"><option value="0" selected="">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div></div><br> -->
           
-          <div id="gencard"></div>
-          <!-- <div class="row gx-5"><div class="col">Type Card: </div><div class="col"><select id="typecard" value="0" class="state"><option value="0" selected="">Test1</option><option value="1">Test2</option><option value="2">Test3</option><option value="3">Test4</option></select></div></div><br>
+          <!-- <div id="gencard"></div> -->
+          <div class="row gx-5"><div class="col">Type Card: </div><div class="col"><select id="typecard" value="0" class="state"><option value="0" selected="">Test1</option><option value="1">Test2</option><option value="2">Test3</option><option value="3">Test4</option></select></div></div><br>
 
           <div class="row gx-5"><div class="col">Value1: </div><div class="col"><span id="value1" class="state"> Value </span></div><div class="col"><select id="selectvalue1" value="0" class="state"><option value="0" selected="">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div></div><br>
           
@@ -642,7 +557,7 @@
           
           <div class="row gx-5"><div class="col">Value4: </div><div class="col"><span id="value4" class="state"> Value </span></div><div class="col"><select id="selectvalue4" value="0" class="state"><option value="0" selected="">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div></div><br>
           
-          <div class="row gx-5"><div class="col">Value5: </div><div class="col"><span id="value5" class="state"> Value </span></div><div class="col"><select id="selectvalue5" value="0" class="state"><option value="0" selected="">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div></div><br> -->
+          <div class="row gx-5"><div class="col">Value5: </div><div class="col"><span id="value5" class="state"> Value </span></div><div class="col"><select id="selectvalue5" value="0" class="state"><option value="0" selected="">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div></div><br>
           
           <Center><span><button id="buttonsavecard" class="button">SAVE</button></span></Center>
         </div>                      

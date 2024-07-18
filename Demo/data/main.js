@@ -5,7 +5,7 @@ var websocket;
 var IsConnect;
 var Flagfile;
 var io_array = [1, 1, 1, 1, 1, 1, 1, 1];
-var jsonCard = "{\"Application\":[{\"app\":\"0,0,6,0,0,name1,0,1,4,3,4\"},{\"app\":\"1,0,7,0,0,name2,10,7,6,0,0\"}]}";
+
 
 var io_obj = "{\"Command\": \"getIO\",\"id\": \"1\",\"Data\":[]}";
 
@@ -53,7 +53,7 @@ function onMessage(event) {
   }
   else if (message.Command == "Data") {
     loadtable(event.data);
-    generationCard(event.data);
+    addvaluecard(event.data);
     console.log(event.data);
   }
   else if(message.Command == "ShowFile"){
@@ -95,12 +95,9 @@ function initButton() {
   document.getElementById('tabshowdata').addEventListener('click', TabShowData);
   document.getElementById('buttonadd').addEventListener('click', AddCard);
   document.getElementById('bntLoadcard').addEventListener('click', buildCard);
+  document.getElementById('buttonsavecard').addEventListener('click', SaveCard);
 }
-function buildCard() {
-  var jsonAppInput = document.getElementById("jsonApp").value;
-  console.log(jsonAppInput);
-  buildcard(jsonCard);
-}
+
 function buttontoggle(){
   IsConnect = !IsConnect;
 }
@@ -119,7 +116,7 @@ function intervalHandle() {
     document.getElementById('output2').innerHTML = io_array[5];
     document.getElementById('output3').innerHTML = io_array[6];
     document.getElementById('output4').innerHTML = io_array[7];
-
+                         
     var JSonObj = JSON.parse(io_obj);
     for (var i = 0; i < io_array.length; i++) {
       JSonObj.Data[i] = io_array[i];
@@ -361,6 +358,7 @@ function loadtable(jsonValue) {
 
   document.getElementById("TableData").innerHTML = TableHTML;
 }
+
 function tablefile(jsonValue){
   var TableHTML = "";
   TableHTML = "<table class=\"table table-borderless \"><thead class=\"thead-dark\"><th>STT</th><th>ID</th><th>Time</th><th>File Name</th><th>Use Space</th><th>Type Memory</th></thead><tbody>";
@@ -371,7 +369,7 @@ function tablefile(jsonValue){
   var free = 0;
   for (var i = 0; i < file.ShowFile.length; i++) {
     stt++;
-    var id = file.ShowFile[i].slaveID;
+     var id = file.ShowFile[i].slaveID;
     var type = file.ShowFile[i].type;
     if(type == '0') type = "Memory";
     else if(type == '1') type = "SD Card";
@@ -410,8 +408,7 @@ function generationCard(jsonValue){
   document.getElementById("gencard").innerHTML = TableHTML;
 }
 
-var namecard = "test";
-var AppID = 0;
+
 var a = 0;
 var b = 0;
 var c = 0;
@@ -424,17 +421,15 @@ var value5 = 0;
 var id_card =1; 
 var html="";
 function buildcard(jsoninput){
+  html = "";
   var jsonObj = JSON.parse(jsoninput);
   var appLen = jsonObj.Application.length;
-  // var GetData = ;
-  console.log("json /: " + jsoninput);
-  console.log("appLen : " + appLen);
-
+  
   for(var i = 0 ; i < appLen ; i++){
     var arrayData = [AppID,a,id_card,c,d,namecard,value1, value2, value3,value4, value5] = jsonObj.Application[i].app.split(",");
     AddCardBody();
   }
-  document.getElementById("test").innerHTML = html;
+  document.getElementById("addcard").innerHTML = html;
 }
 function AddCardBody(){
   html+="<div class='cardcuatao'>\
@@ -478,80 +473,67 @@ function AddCardBody(){
       </div>\
     </div><br></br>";
 }
+var id_slave;
+function addvaluecard(jsonValue){
+  var keys = JSON.parse(jsonValue);
+  var selectvalue1 = document.getElementById('selectvalue1').value;  
+  var selectvalue2 = document.getElementById('selectvalue2').value;  
+  var selectvalue3 = document.getElementById('selectvalue3').value;  
+  var selectvalue4 = document.getElementById('selectvalue4').value;  
+  var selectvalue5 = document.getElementById('selectvalue5').value;
+  for(var i = 0; i < keys.Data.length;i++){
+    id_slave = keys.Data.slaveID;
+    if(selectvalue1 == keys.Data[i].address){
+      value1 = keys.Data[i].value;
+      document.getElementById("value1").innerHTML = keys.Data[i].value; 
+    }
+    if(selectvalue2 == keys.Data[i].address){
+      value2 = keys.Data[i].value;
+      document.getElementById("value2").innerHTML = keys.Data[i].value;
+    } 
+    if(selectvalue3 == keys.Data[i].address){
+      value3 = keys.Data[i].value;
+      document.getElementById("value3").innerHTML = keys.Data[i].value; 
+    }
+    if(selectvalue4 == keys.Data[i].address){
+      value4 = keys.Data[i].value;
+      document.getElementById("value4").innerHTML = keys.Data[i].value;
+    } 
+    if(selectvalue5 == keys.Data[i].address){
+      value5 = keys.Data[i].value;
+      document.getElementById("value5").innerHTML = keys.Data[i].value;
+    }
+  }
+}
 
-// var card2_value1 = 0;
-// var card2_value2 = 0;
-// var card2_value3 = 0;
-// var card2_value4 = 0;
-// var card2_value5 = 0;
-// var card2_id; 
-// function addcard(jsonValue){
-//   var keys = JSON.parse(jsonValue);
-//   var selectvalue1 = document.getElementById('selectvalue1').value;  
-//   var selectvalue2 = document.getElementById('selectvalue2').value;  
-//   var selectvalue3 = document.getElementById('selectvalue3').value;  
-//   var selectvalue4 = document.getElementById('selectvalue4').value;  
-//   var selectvalue5 = document.getElementById('selectvalue5').value;
-//   for(var i = 0; i < keys.Data.length;i++){
-//     if(selectvalue1 == keys.Data[i].address){
-//       card1_value1 = keys.Data[i].value; 
-//       card2_value1 = keys.Data[i].value; 
-//       document.getElementById("value1").innerHTML = keys.Data[i].value; 
-//     }
-//     if(selectvalue2 == keys.Data[i].address){
-//       card1_value2 = keys.Data[i].value;
-//       card2_value2 = keys.Data[i].value;
-//       document.getElementById("value2").innerHTML = keys.Data[i].value;
-//     } 
-//     if(selectvalue3 == keys.Data[i].address){
-//       card1_value3 = keys.Data[i].value;
-//       card2_value3 = keys.Data[i].value;
-//       document.getElementById("value3").innerHTML = keys.Data[i].value; 
-//     }
-//     if(selectvalue4 == keys.Data[i].address){
-//       card1_value4 = keys.Data[i].value;
-//       card2_value4 = keys.Data[i].value;
-//       document.getElementById("value4").innerHTML = keys.Data[i].value;
-//     } 
-//     if(selectvalue5 == keys.Data[i].address){
-//       card1_value5 = keys.Data[i].value;
-//       card2_value5 = keys.Data[i].value;
-//       document.getElementById("value5").innerHTML = keys.Data[i].value;
-//     }
-//     card1_id = keys.Data[i].slaveID; 
-//     card2_id = keys.Data[i].slaveID; 
-//   }
-// }
-// function SaveCard(){
-//   var stt_card = 0;
-//   stt_card++;
-//   if(stt_card == 1) card1();
-//   if(stt_card == 2) card2();
-// }
-// function card1(){
-//   document.getElementById("card1").style.display = "block";
-//   var namecard1 = document.getElementById('input_namecard').value;
-//   document.getElementById("card1-value1").innerHTML = card1_value1; 
-//   document.getElementById("card1-value2").innerHTML = card1_value2; 
-//   document.getElementById("card1-value3").innerHTML = card1_value3; 
-//   document.getElementById("card1-value4").innerHTML = card1_value4; 
-//   document.getElementById("card1-value5").innerHTML = card1_value5;
-//   document.getElementById("idcard1").innerHTML = card1_id;  
-//   document.getElementById("namecard1").innerHTML = namecard1;  
-// }
-// function card2(){
-//   // document.getElementById("card1").style.display = "block";
-//   document.getElementById("card2").style.display = "block";
-//   var namecard2 = document.getElementById('input_namecard').value;
-//   document.getElementById("card2-value1").innerHTML = card2_value1; 
-//   document.getElementById("card2-value2").innerHTML = card2_value2; 
-//   document.getElementById("card2-value3").innerHTML = card2_value3; 
-//   document.getElementById("card2-value4").innerHTML = card2_value4; 
-//   document.getElementById("card2-value5").innerHTML = card2_value5;
-//   document.getElementById("idcard2").innerHTML = card2_id;  
-//   document.getElementById("namecard2").innerHTML = namecard2;  
-// }
-
-
-//Card power monitor
+let AppID = 0;
+var appData = [];
+var jsonApp = "";
+function SaveCard(){
   
+  var namecard = document.getElementById("input_namecard").value;
+
+  id_card = id_slave;
+  
+  appData[AppID] = AppID+","+poss+","+app+","+id_card+","+netID+","+namecard+","+value1+","+value2+","+value3+","+value4+","+value5;
+
+  jsonApp = "{\"Application\":[{\"app\":\""+appData[0]+"\"}\n";
+  if(AppID>0){ 
+    for(var k = 1; k < AppID+1;k++){
+      jsonApp += ",{\"app\":\""+appData[k]+"\"}\n";
+    }
+  }
+  jsonApp += "]}";
+  
+  console.log(jsonApp);  
+  buildcard(jsonApp); 
+  websocket.send(jsonApp);
+  AppID++;
+}
+var jsonCard = "{\"Application\":[{\"app\":\"1,0,0,1,0,Vu Tien Phat,0,0,0,0,0\"},{\"app\":\"1,0,7,0,0,name2,10,7,6,0,0\"}]}";
+function buildCard() {
+  var jsonAppInput;
+  document.getElementById("jsonApp").value = jsonAppInput;
+  console.log(jsonAppInput);
+  buildcard(jsonAppInput);
+}
