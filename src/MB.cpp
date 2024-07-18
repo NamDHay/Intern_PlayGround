@@ -53,8 +53,10 @@ void MODBUS_RTU::loadSetting()
 {
     String dataRead = "";
     JsonDocument doc;
-    dataRead = filesystem.readfile("/mbsetting.json");
+    dataRead = filesystem.readfile("/mbrtusetting.json");
     deserializeJson(doc, dataRead);
+
+    String modbustype = doc["modbustype"].as<String>();
 
     String slaveID = doc["slaveID"].as<String>();
     String baud = doc["baud"].as<String>();
@@ -76,8 +78,7 @@ void MODBUS_RTU::loadSetting()
         modbusRTU.MasterWriteReg.startAddress = writeStart.toInt();
         modbusRTU.MasterWriteReg.endAddress = writeEnd.toInt();
     }
-
-    if (modbusRTU.master == 0)
+    else
     {
         modbusRTU.SlaveReadReg.startAddress = readStart.toInt();
         modbusRTU.SlaveReadReg.endAddress = readEnd.toInt();
@@ -92,18 +93,30 @@ void MODBUS_RTU::writeSetting()
     String setting = "";
     JsonDocument writeDoc;
 
+    writeDoc["modbustype"] = ((modbusTCP.client == 1) && (modbusRTU.master == 1)) ? "2" : (modbusTCP.client == 1) ? "1"
+                                                                                                                  : "0";
     writeDoc["slaveID"] = modbusRTU.config.slaveID;
     writeDoc["baud"] = modbusRTU.config.baud;
-    writeDoc["readStart"] = modbusRTU.MasterReadReg.startAddress;
-    writeDoc["readEnd"] = modbusRTU.MasterReadReg.endAddress;
-    writeDoc["writeStart"] = modbusRTU.MasterWriteReg.startAddress;
-    writeDoc["writeEnd"] = modbusRTU.MasterWriteReg.endAddress;
     writeDoc["serial"] = (modbusRTU.config.port == &Serial1) ? "0" : "1";
     writeDoc["mbmaster"] = modbusRTU.master;
+    if (modbusRTU.master == 1)
+    {
+        writeDoc["readStart"] = modbusRTU.MasterReadReg.startAddress;
+        writeDoc["readEnd"] = modbusRTU.MasterReadReg.endAddress;
+        writeDoc["writeStart"] = modbusRTU.MasterWriteReg.startAddress;
+        writeDoc["writeEnd"] = modbusRTU.MasterWriteReg.endAddress;
+    }
+    else
+    {
+        writeDoc["readStart"] = modbusRTU.SlaveReadReg.startAddress;
+        writeDoc["readEnd"] = modbusRTU.SlaveReadReg.endAddress;
+        writeDoc["writeStart"] = modbusRTU.SlaveWriteReg.startAddress;
+        writeDoc["writeEnd"] = modbusRTU.SlaveWriteReg.endAddress;
+    }
 
     serializeJson(writeDoc, setting);
     Serial.println("JSON: " + setting);
-    filesystem.writefile("/mbsetting.json", setting, 0);
+    filesystem.writefile("/mbrtusetting.json", setting, 0);
 }
 bool MODBUS_RTU::read_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t length)
 {
@@ -222,38 +235,39 @@ bool MODBUS_RTU::write_Multiple_Data(byte ID, uint16_t *value, long startAddress
     }
     return false;
 }
-void MODBUS_RTU::update_WebTable()
+void update_WebTable(long startAddress, long endAddress, String ID, uint8_t *type)
 {
     JsonDocument Doc;
     String fbDataString = "";
-    long Address;
+    size_t length = (endAddress - startAddress + 1);
+    Serial.println("Data Length: " + String(length));
+
     if (online.isConnected == true)
     {
         Doc["Command"] = "TableID";
-        Address = modbusRTU.MasterReadReg.startAddress;
-        for (uint8_t i = 0; i < (modbusRTU.MasterReadReg.endAddress - modbusRTU.MasterReadReg.startAddress + 1); i++)
+        for (uint8_t i = 0; i < length; i++)
         {
-            Doc["Data"][i]["slaveID"] = modbusRTU.config.slaveID;
-            if (Address > modbusRTU.MasterReadReg.endAddress)
+            Doc["Data"][i]["slaveID"] = ID;
+            if (startAddress > endAddress)
             {
                 Serial.println("Out of range");
                 break;
             }
-            Doc["Data"][i]["address"] = Address;
-            Doc["Data"][i]["type"] = modbusRTU.typeData[i];
-            switch (modbusRTU.typeData[i])
+            Doc["Data"][i]["address"] = startAddress;
+            Doc["Data"][i]["type"] = type[i];
+            switch (type[i])
             {
             case COIL_TYPE:
-                Address++;
+                startAddress++;
                 break;
             case WORD_TYPE:
-                Address += 1;
+                startAddress += 1;
                 break;
             case DWORDS_TYPE:
-                Address += 2;
+                startAddress += 2;
                 break;
             case FLOAT_TYPE:
-                Address += 2;
+                startAddress += 2;
                 break;
             default:
                 break;
@@ -264,7 +278,7 @@ void MODBUS_RTU::update_WebTable()
         online.notifyClients(fbDataString);
     }
 }
-void MODBUS_RTU::update_WebData_Interval() // Must be void function to avoid control reaches end of non-void function [-Wreturn-type]
+void update_WebData_Interval(long startAddress, long endAddress) // Must be void function to avoid control reaches end of non-void function [-Wreturn-type]
 {
     union f2w_t
     {
@@ -278,14 +292,14 @@ void MODBUS_RTU::update_WebData_Interval() // Must be void function to avoid con
     } dw2w;
     JsonDocument Doc; // this guy make error messages if not return void
     String fbDataString = "";
-    long Address;
+    size_t length = (endAddress - startAddress + 1);
     if (online.isConnected == true)
     {
         Doc["Command"] = "tableData";
-        Address = modbusRTU.MasterReadReg.startAddress;
-        for (uint8_t i = 0; i < (modbusRTU.MasterReadReg.endAddress - modbusRTU.MasterReadReg.startAddress + 1); i++)
+        Serial.println("Data Length: " + String(length));
+        for (uint8_t i = 0; i < length; i++)
         {
-            if (Address > modbusRTU.MasterReadReg.endAddress)
+            if (startAddress > endAddress)
             {
                 Serial.println("Out of range");
                 break;
@@ -293,24 +307,24 @@ void MODBUS_RTU::update_WebData_Interval() // Must be void function to avoid con
             switch (modbusRTU.typeData[i])
             {
             case COIL_TYPE:
-                Doc["Data"][i] = CHECKCOIL(Master_ReadData[Address], 0);
-                Address++;
+                Doc["Data"][i] = CHECKCOIL(Master_ReadData[startAddress], 0);
+                startAddress++;
                 break;
             case WORD_TYPE:
-                Doc["Data"][i] = Master_ReadData[Address];
-                Address += 1;
+                Doc["Data"][i] = Master_ReadData[startAddress];
+                startAddress += 1;
                 break;
             case DWORDS_TYPE:
-                dw2w.w[0] = Master_ReadData[Address];
-                dw2w.w[1] = Master_ReadData[Address + 1];
+                dw2w.w[0] = Master_ReadData[startAddress];
+                dw2w.w[1] = Master_ReadData[startAddress + 1];
                 Doc["Data"][i] = dw2w.dw;
-                Address += 2;
+                startAddress += 2;
                 break;
             case FLOAT_TYPE:
-                f2w.w[0] = Master_ReadData[Address];
-                f2w.w[1] = Master_ReadData[Address + 1];
+                f2w.w[0] = Master_ReadData[startAddress];
+                f2w.w[1] = Master_ReadData[startAddress + 1];
                 Doc["Data"][i] = f2w.f;
-                Address += 2;
+                startAddress += 2;
                 break;
             default:
                 break;
@@ -335,12 +349,6 @@ void MODBUS_RTU::update_WebData_Interval() // Must be void function to avoid con
 #define BUZZ_ON digitalWrite(BUZZ, HIGH)
 #define BUZZ_OFF digitalWrite(BUZZ, LOW)
 ModbusIP mbTCP;
-
-String _ip = "192.168.137.3";
-String _gw = "192.168.137.1";
-String _sn = "255.255.255.0";
-String dns1 = "8.8.8.8";
-String remote = "192.168.137.2"; // Address of Modbus Slave device
 
 int16_t Client_ReadData[200];
 int16_t Client_WriteData[200];
@@ -449,11 +457,11 @@ bool MODBUS_TCP::read_Multiple_Data(IPAddress ID, uint16_t *value, long startAdd
                        rdata,
                        TCP_MAX_RW);
         mbTCP.task();
-        for (uint8_t i = rstart; i < rstart + TCP_MAX_RW; i++)
-        {
-            Serial.print("Data " + String(i) + ": ");
-            Serial.println(rdata[i]);
-        }
+        // for (uint8_t i = rstart; i < rstart + TCP_MAX_RW; i++)
+        // {
+        //     Serial.print("Data " + String(i) + ": ");
+        //     Serial.println(rdata[i]);
+        // }
         rstart = rstart + TCP_MAX_RW;
         dataLength -= TCP_MAX_RW;
         rdata += TCP_MAX_RW;
@@ -470,11 +478,11 @@ bool MODBUS_TCP::read_Multiple_Data(IPAddress ID, uint16_t *value, long startAdd
                        rdata,
                        dataLength);
         mbTCP.task();
-        for (uint8_t i = rstart; i < rstart + dataLength; i++)
-        {
-            Serial.print("Data " + String(i) + ": ");
-            Serial.println(rdata[i]);
-        }
+        // for (uint8_t i = rstart; i < rstart + dataLength; i++)
+        // {
+        //     Serial.print("Data " + String(i) + ": ");
+        //     Serial.println(rdata[i]);
+        // }
         dataLength = 0;
         rstart = 0;
         rdata = NULL;
@@ -529,49 +537,115 @@ bool MODBUS_TCP::write_Multiple_Data(IPAddress ID, uint16_t *value, long startAd
 }
 void MODBUS_TCP::loadSetting()
 {
+    String dataRead = "";
+    JsonDocument doc;
+    dataRead = filesystem.readfile("/mbtcpsetting.json");
+    deserializeJson(doc, dataRead);
+
+    String modbustype = doc["modbustype"].as<String>();
+
+    String tcpip = doc["tcpip"].as<String>();
+    String ethip = doc["ethip"].as<String>();
+    String gw = doc["gw"].as<String>();
+    String sn = doc["sn"].as<String>();
+    String dns = doc["dns"].as<String>();
+    String mbclient = doc["mbclient"].as<String>();
+    String readStart = doc["readStart"].as<String>();
+    String readEnd = doc["readEnd"].as<String>();
+    String writeStart = doc["writeStart"].as<String>();
+    String writeEnd = doc["writeEnd"].as<String>();
+
+    modbusTCP.client = (mbclient == "0") ? 0 : 1;
+    modbusTCP.remote = tcpip;
+    modbusTCP.ethernet.ipAdress = ethip;
+    modbusTCP.ethernet.gateway = gw;
+    modbusTCP.ethernet.subnet = sn;
+    modbusTCP.ethernet.primaryDNS = dns;
+
+    if (modbusTCP.client == 1)
+    {
+        modbusTCP.ClientReadReg.startAddress = readStart.toInt();
+        modbusTCP.ClientReadReg.endAddress = readEnd.toInt();
+        modbusTCP.ClientWriteReg.startAddress = writeStart.toInt();
+        modbusTCP.ClientWriteReg.endAddress = writeEnd.toInt();
+    }
+    else
+    {
+        modbusTCP.ServerReadReg.startAddress = readStart.toInt();
+        modbusTCP.ServerReadReg.endAddress = readEnd.toInt();
+        modbusTCP.ServerWriteReg.startAddress = writeStart.toInt();
+        modbusTCP.ServerWriteReg.endAddress = writeEnd.toInt();
+    }
+
+    modbusTCP.writeSetting();
 }
 void MODBUS_TCP::writeSetting()
 {
-}
-void MODBUS_TCP::update_WebTable()
-{
-}
-void MODBUS_TCP::update_WebData_Interval()
-{
+    String setting = "";
+    JsonDocument writeDoc;
+
+    writeDoc["modbustype"] = ((modbusTCP.client == 1) && (modbusRTU.master == 1)) ? "2" : (modbusTCP.client == 1) ? "1"
+                                                                                                                  : "0";
+
+    writeDoc["mbclient"] = modbusTCP.client;
+    writeDoc["tcpip"] = modbusTCP.remote;
+    writeDoc["ethip"] = modbusTCP.ethernet.ipAdress;
+    writeDoc["gw"] = modbusTCP.ethernet.gateway;
+    writeDoc["sn"] = modbusTCP.ethernet.subnet;
+    writeDoc["dns"] = modbusTCP.ethernet.primaryDNS;
+    if (modbusTCP.client == 1)
+    {
+        writeDoc["readStart"] = modbusTCP.ClientReadReg.startAddress;
+        writeDoc["readEnd"] = modbusTCP.ClientReadReg.endAddress;
+        writeDoc["writeStart"] = modbusTCP.ClientWriteReg.startAddress;
+        writeDoc["writeEnd"] = modbusTCP.ClientWriteReg.endAddress;
+    }
+    else
+    {
+        writeDoc["readStart"] = modbusTCP.ServerReadReg.startAddress;
+        writeDoc["readEnd"] = modbusTCP.ServerReadReg.endAddress;
+        writeDoc["writeStart"] = modbusTCP.ServerWriteReg.startAddress;
+        writeDoc["writeEnd"] = modbusTCP.ServerWriteReg.endAddress;
+    }
+
+    serializeJson(writeDoc, setting);
+    Serial.println("JSON: " + setting);
+    filesystem.writefile("/mbtcpsetting.json", setting, 0);
 }
 /*********************************************END TCP PART****************************************************************/
 
 /*********************************************START MODBUS TASK***********************************************************/
 void TaskModbus(void *pvParameter)
 {
-    // modbusRTU.loadSetting();
-    // modbusTCP.loadSetting();
+    modbusRTU.loadSetting();
+    modbusTCP.loadSetting();
+
     /*Start Test Part*/
-    modbusTCP.client = 1;
-    modbusRTU.master = 1;
+    // modbusTCP.client = 1;
+    // modbusRTU.master = 0;
 
-    modbusRTU.MasterReadReg.startAddress = 0;
-    modbusRTU.MasterReadReg.endAddress = 99;
-    modbusRTU.MasterWriteReg.startAddress = 100;
-    modbusRTU.MasterWriteReg.endAddress = 199;
-    modbusRTU.SlaveReadReg.startAddress = 0;
-    modbusRTU.SlaveReadReg.endAddress = 99;
-    modbusRTU.SlaveWriteReg.startAddress = 100;
-    modbusRTU.SlaveWriteReg.endAddress = 199;
+    // modbusRTU.MasterReadReg.startAddress = 0;
+    // modbusRTU.MasterReadReg.endAddress = 99;
+    // modbusRTU.MasterWriteReg.startAddress = 100;
+    // modbusRTU.MasterWriteReg.endAddress = 199;
+    // modbusRTU.SlaveReadReg.startAddress = 0;
+    // modbusRTU.SlaveReadReg.endAddress = 99;
+    // modbusRTU.SlaveWriteReg.startAddress = 100;
+    // modbusRTU.SlaveWriteReg.endAddress = 199;
 
-    modbusTCP.ethernet.ipAdress = "192.168.137.3";
-    modbusTCP.ethernet.gateway = "192.168.137.1";
-    modbusTCP.ethernet.subnet = "255.255.255.0";
-    modbusTCP.ethernet.primaryDNS = "8.8.8.8";
-    modbusTCP.remote = "192.168.137.2";
+    // modbusTCP.ethernet.ipAdress = "192.168.137.3";
+    // modbusTCP.ethernet.gateway = "192.168.137.1";
+    // modbusTCP.ethernet.subnet = "255.255.255.0";
+    // modbusTCP.ethernet.primaryDNS = "8.8.8.8";
+    // modbusTCP.remote = "192.168.137.2";
 
-    modbusRTU.config.port = &Serial2;
-    modbusRTU.config.baud = 9600;
+    // modbusRTU.config.port = &Serial2;
+    // modbusRTU.config.baud = 9600;
 
-    modbusTCP.ClientReadReg.startAddress = 0;
-    modbusTCP.ClientReadReg.endAddress = 99;
-    modbusTCP.ClientWriteReg.startAddress = 100;
-    modbusTCP.ClientWriteReg.endAddress = 199;
+    // modbusTCP.ClientReadReg.startAddress = 0;
+    // modbusTCP.ClientReadReg.endAddress = 99;
+    // modbusTCP.ClientWriteReg.startAddress = 100;
+    // modbusTCP.ClientWriteReg.endAddress = 199;
     /*End Test Part*/
 
     bool setTable = false;
@@ -583,25 +657,16 @@ void TaskModbus(void *pvParameter)
     modbusTCP.EthernetInit();
 
     static long startUpdateIntervalTime = millis();
-    if (modbusRTU.master == 1)
-    {
-        Serial.println("Start init RTU");
-        modbusRTU.MasterInit(modbusRTU.config.port, modbusRTU.config.baud);
-        Serial.println("Finish init RTU");
-    }
-    else
+    modbusRTU.MasterInit(modbusRTU.config.port, modbusRTU.config.baud);
+    modbusTCP.ClientInit();
+    if (modbusRTU.master == 0)
     {
         modbusRTU.SlaveInit(modbusRTU.config.port, modbusRTU.config.baud);
         mbRTU.slave(modbusRTU.config.slaveID);
         mbRTU.addHreg(modbusRTU.SlaveWriteReg.startAddress, 0, modbusRTU.SlaveWriteReg.endAddress - modbusRTU.SlaveWriteReg.startAddress);
         mbRTU.addHreg(modbusRTU.SlaveReadReg.startAddress, 0, modbusRTU.SlaveReadReg.endAddress - modbusRTU.SlaveReadReg.startAddress);
     }
-    Serial.println("Init TCP");
-    if (modbusTCP.client == 1)
-    {
-        modbusTCP.ClientInit();
-    }
-    else
+    if (modbusTCP.client == 0)
     {
         modbusTCP.ServerInit();
     }
@@ -616,24 +681,12 @@ void TaskModbus(void *pvParameter)
                                                     modbusRTU.MasterReadReg.startAddress,
                                                     (modbusRTU.MasterReadReg.endAddress - modbusRTU.MasterReadReg.startAddress + 1)) != true)
                     ;
-                // while (modbusRTU.write_Multiple_Data(modbusRTU.config.slaveID,
-                //                                   (uint16_t *)&Master_ReadData,
-                //                                   modbusRTU.MasterWriteReg.startAddress,
-                //                                   (modbusRTU.MasterWriteReg.endAddress - modbusRTU.MasterWriteReg.startAddress + 1)) != true)
-                //     ;
+                while (modbusRTU.write_Multiple_Data(modbusRTU.config.slaveID,
+                                                     (uint16_t *)&Master_ReadData,
+                                                     modbusRTU.MasterWriteReg.startAddress,
+                                                     (modbusRTU.MasterWriteReg.endAddress - modbusRTU.MasterWriteReg.startAddress + 1)) != true)
+                    ;
             }
-            if (millis() - startUpdateIntervalTime >= UPDATE_INTERVAL_MS)
-            {
-                startUpdateIntervalTime = millis();
-                modbusRTU.update_WebData_Interval();
-            }
-            if (xQueueReceive(modbusRTU.qUpdateTable, (void *)&setTable, 1 / portTICK_PERIOD_MS) == pdTRUE || (modbusRTU.loadTable == true && online.isConnected == true))
-            {
-                modbusRTU.update_WebTable();
-                setTable = false;
-                modbusRTU.loadTable = false;
-            }
-
         } // Master part
 
         if (modbusTCP.client == 1) // Client part
@@ -658,6 +711,22 @@ void TaskModbus(void *pvParameter)
             mbTCP.task();
             vTaskDelay(1000 / portTICK_PERIOD_MS);
         } // Client part
+
+        if (millis() - startUpdateIntervalTime >= UPDATE_INTERVAL_MS)
+        {
+            startUpdateIntervalTime = millis();
+            update_WebData_Interval((modbusTCP.client == 1) ? (modbusTCP.ClientReadReg.startAddress) : (modbusRTU.MasterReadReg.startAddress),
+                                    (modbusTCP.client == 1) ? (modbusTCP.ClientReadReg.endAddress) : (modbusRTU.MasterReadReg.endAddress));
+        }
+        if (xQueueReceive(modbusRTU.qUpdateTable, (void *)&setTable, 1 / portTICK_PERIOD_MS) == pdTRUE || (modbusRTU.loadTable == true && online.isConnected == true))
+        {
+            update_WebTable((modbusTCP.client == 1) ? (modbusTCP.ClientReadReg.startAddress) : (modbusRTU.MasterReadReg.startAddress),
+                            (modbusTCP.client == 1) ? (modbusTCP.ClientReadReg.endAddress) : (modbusRTU.MasterReadReg.endAddress),
+                            (modbusTCP.client == 1) ? (modbusTCP.remote) : String(modbusRTU.config.slaveID),
+                            (modbusTCP.client == 1) ? (modbusTCP.typeData) : (modbusRTU.typeData));
+            setTable = false;
+            modbusRTU.loadTable = false;
+        }
     }
 }
 /*********************************************END MODBUS TASK*************************************************************/

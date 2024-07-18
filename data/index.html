@@ -14194,7 +14194,7 @@
     </style>
     <title>WIFI SETTING</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" href="http://192.168.4.1/">
+    <link rel="icon" href="http://192.168.1.128/">
 </head>
 
 <body>
@@ -14554,32 +14554,14 @@
             </Center>
             <h3>Config</h3>
             <span>
-                <div>Slave ID: <input type="text" id="input_slaveid" size="20" placeholder="1"></div><br>
-            </span>
-            <span>
-                <div>Baud Rate: <input type="text" id="input_baud" size="20" placeholder="115200"></div><br>
-            </span>
-
-            <span>
-                <div>Serial port: <select id="port" value="1">
-                        <option value="1" selected="">Serial2</option>
-                        <option value="0">Serial1</option>
+                <div>MODBUS Type: <select id="typemodbus">
+                        <option value="">--Choose an option--</option>"
+                        <option value="0">RTU</option>
+                        <option value="1">TCP</option>
+                        <option value="2">RTU & TCP</option>
                     </select></div><br>
             </span>
-            <span>
-                <div>Modbus Mode: <select id="mode" value="1">
-                        <option value="1" selected="">Master</option>
-                        <option value="0">Slave</option>
-                    </select></div><br>
-            </span>
-            <span>
-                <div>Type Data: <select id="typedata" value="0">
-                        <option value="0" selected="">Coil</option>
-                        <option value="1">Word</option>
-                        <option value="2">DWord</option>
-                        <option value="3">Float</option>
-                    </select></div><br>
-            </span>
+            <div id="modedisplay"></div>
             <h3>Write Address</h3>
             <span>
                 <div>Start Address: <input type="text" id="input_write_start" size="20"

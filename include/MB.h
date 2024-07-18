@@ -40,8 +40,6 @@ public:
     bool write_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t length);
     void loadSetting();
     void writeSetting();
-    void update_WebTable();
-    void update_WebData_Interval();
 };
 
 class MODBUS_TCP
@@ -54,7 +52,6 @@ public:
         String gateway;
         String subnet;
         String primaryDNS;
-        String secondaryDNS;
     };
     ethernet_t ethernet;
     String remote;
@@ -82,8 +79,6 @@ public:
     bool write_Multiple_Data(IPAddress ID, uint16_t *value, long startAddress, size_t length);
     void loadSetting();
     void writeSetting();
-    void update_WebTable();
-    void update_WebData_Interval();
 };
 void TaskModbus(void *pvParameter);
 

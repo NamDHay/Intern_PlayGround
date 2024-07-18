@@ -3,6 +3,7 @@
 #include <HTML.h>
 #include <File_System.h>
 #include <IO_Config.h>
+#include <time.h>
 
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
@@ -33,7 +34,7 @@ void OnlineManage::Init()
     {
         Serial.println("STA Failed to configure");
     }
-    if (online.CheckConnect(100))
+    if (online.CheckConnect(500))
     {
         Serial.print("Connected!\n");
         online.Get_STA_IP();
@@ -182,27 +183,99 @@ void mbDataTypeHandler()
     Serial.println("Size of type: " + String(size));
     for (int i = 0; i < size; i++)
     {
-        modbusRTU.typeData[i] = rdoc["type"][i];
-        Serial.println("Type " + String(i) + ": " + String(modbusRTU.typeData[i]));
+        if (modbusRTU.master == 1)
+        {
+            modbusRTU.typeData[i] = rdoc["type"][i];
+            Serial.println("Type " + String(i) + ": " + String(modbusRTU.typeData[i]));
+        }
+        if (modbusTCP.client == 1)
+        {
+            modbusTCP.typeData[i] = rdoc["type"][i];
+            Serial.println("Type " + String(i) + ": " + String(modbusTCP.typeData[i]));
+        }
     }
     bool IsSetTable = true;
     xQueueSend(modbusRTU.qUpdateTable, (void *)&IsSetTable, 1 / portTICK_PERIOD_MS);
 }
 void setModbusHandler()
 {
-    String slaveID = rdoc["slaveID"].as<String>();
-    String baud = rdoc["baud"].as<String>();
+    String modbustype = rdoc["modbustype"].as<String>();
+
+    String slaveID;
+    String baud;
+    String serial;
+    String mbmaster;
+
+    String tcpip;
+    String ethip;
+    String gw;
+    String sn;
+    String dns;
+    String mbclient;
+
+    if (modbustype == "0")
+    {
+        modbusTCP.client = 0;
+
+        slaveID = rdoc["slaveID"].as<String>();
+        baud = rdoc["baud"].as<String>();
+        serial = rdoc["serial"].as<String>();
+        mbmaster = rdoc["mbmaster"].as<String>();
+
+        modbusRTU.config.slaveID = slaveID.toInt();
+        modbusRTU.master = (mbmaster == "0") ? 0 : 1;
+        modbusRTU.config.baud = baud.toInt();
+        modbusRTU.config.port = (serial == "0") ? &Serial1 : &Serial2;
+    }
+    else if (modbustype == "1")
+    {
+        modbusRTU.master = 0;
+
+        tcpip = rdoc["tcpip"].as<String>();
+        ethip = rdoc["ethip"].as<String>();
+        gw = rdoc["gw"].as<String>();
+        sn = rdoc["sn"].as<String>();
+        dns = rdoc["dns"].as<String>();
+        mbclient = rdoc["mbclient"].as<String>();
+
+        modbusTCP.client = (mbclient == "0") ? 0 : 1;
+        modbusTCP.remote = tcpip;
+        modbusTCP.ethernet.ipAdress = ethip;
+        modbusTCP.ethernet.gateway = gw;
+        modbusTCP.ethernet.subnet = sn;
+        modbusTCP.ethernet.primaryDNS = dns;
+    }
+    else
+    {
+        slaveID = rdoc["slaveID"].as<String>();
+        baud = rdoc["baud"].as<String>();
+        serial = rdoc["serial"].as<String>();
+        mbmaster = rdoc["mbmaster"].as<String>();
+
+        modbusRTU.config.slaveID = slaveID.toInt();
+        modbusRTU.master = (mbmaster == "0") ? 0 : 1;
+        modbusRTU.config.baud = baud.toInt();
+        modbusRTU.config.port = (serial == "0") ? &Serial1 : &Serial2;
+
+        tcpip = rdoc["tcpip"].as<String>();
+        ethip = rdoc["ethip"].as<String>();
+        gw = rdoc["gw"].as<String>();
+        sn = rdoc["sn"].as<String>();
+        dns = rdoc["dns"].as<String>();
+        mbclient = rdoc["mbclient"].as<String>();
+
+        modbusTCP.client = (mbclient == "0") ? 0 : 1;
+        modbusTCP.remote = tcpip;
+        modbusTCP.ethernet.ipAdress = ethip;
+        modbusTCP.ethernet.gateway = gw;
+        modbusTCP.ethernet.subnet = sn;
+        modbusTCP.ethernet.primaryDNS = dns;
+    }
+
     String readStart = rdoc["readStart"].as<String>();
     String readEnd = rdoc["readEnd"].as<String>();
     String writeStart = rdoc["writeStart"].as<String>();
     String writeEnd = rdoc["writeEnd"].as<String>();
-    String serial = rdoc["serial"].as<String>();
-    String mbmaster = rdoc["mbmaster"].as<String>();
-
-    modbusRTU.config.slaveID = slaveID.toInt();
-    modbusRTU.master = (mbmaster == "0") ? 0 : 1;
-    modbusRTU.config.baud = baud.toInt();
-    modbusRTU.config.port = (serial == "0") ? &Serial1 : &Serial2;
     if (modbusRTU.master == 1)
     {
         modbusRTU.MasterReadReg.startAddress = readStart.toInt();
@@ -210,19 +283,35 @@ void setModbusHandler()
         modbusRTU.MasterWriteReg.startAddress = writeStart.toInt();
         modbusRTU.MasterWriteReg.endAddress = writeEnd.toInt();
     }
-
-    if (modbusRTU.master == 0)
+    else
     {
         modbusRTU.SlaveReadReg.startAddress = readStart.toInt();
         modbusRTU.SlaveReadReg.endAddress = readEnd.toInt();
         modbusRTU.SlaveWriteReg.startAddress = writeStart.toInt();
         modbusRTU.SlaveWriteReg.endAddress = writeEnd.toInt();
     }
+
+    if (modbusTCP.client == 1)
+    {
+        modbusTCP.ClientReadReg.startAddress = readStart.toInt();
+        modbusTCP.ClientReadReg.endAddress = readEnd.toInt();
+        modbusTCP.ClientWriteReg.startAddress = writeStart.toInt();
+        modbusTCP.ClientWriteReg.endAddress = writeEnd.toInt();
+    }
+    else
+    {
+        modbusTCP.ServerReadReg.startAddress = readStart.toInt();
+        modbusTCP.ServerReadReg.endAddress = readEnd.toInt();
+        modbusTCP.ServerWriteReg.startAddress = writeStart.toInt();
+        modbusTCP.ServerWriteReg.endAddress = writeEnd.toInt();
+    }
+
     wDoc["Command"] = "settingModbus";
     wDoc["Data"] = "SetingDone";
     serializeJson(wDoc, fbDataString);
     online.notifyClients(fbDataString);
     modbusRTU.writeSetting();
+    modbusTCP.writeSetting();
 }
 void setWifiHandler()
 {
@@ -269,6 +358,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
             DataStr += (char)data[i];
         }
         deserializeJson(rdoc, DataStr);
+        Serial.println(DataStr);
         String command = rdoc["Command"].as<String>();
         if (command == "toggleLed")
         {
