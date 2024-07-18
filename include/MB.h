@@ -3,7 +3,6 @@
 
 #include <SPI.h>
 #include <ETH.h>
-#include "Wire.h"
 #include <ModbusIP_ESP8266.h>
 #include <ModbusRTU.h>
 
@@ -11,7 +10,7 @@ class MODBUS_RTU
 {
 public:
     bool loadTable;
-    bool master;
+    uint8_t master;
     QueueHandle_t qUpdateTable;
     struct Config_t
     {
@@ -79,8 +78,8 @@ public:
     void EthernetInit();
     void ClientInit();
     void ServerInit();
-    bool read_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t length);
-    bool write_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t length);
+    bool read_Multiple_Data(IPAddress ID, uint16_t *value, long startAddress, size_t length);
+    bool write_Multiple_Data(IPAddress ID, uint16_t *value, long startAddress, size_t length);
     void loadSetting();
     void writeSetting();
     void update_WebTable();
