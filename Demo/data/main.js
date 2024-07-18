@@ -487,27 +487,27 @@ function addvaluecard(jsonValue){
     id_slave = keys.Data.slaveID;
     if(selectvalue1 == keys.Data[i].address){
       value1 = keys.Data[i].value;
-      // document.getElementById("card1-value1").vlaue = keys.Data[i].value;
+      // document.getElementById("card1-value1").value = keys.Data[i].value;
       document.getElementById("value1").innerHTML = keys.Data[i].value; 
     }
     if(selectvalue2 == keys.Data[i].address){
       value2 = keys.Data[i].value;
-      // document.getElementById("card1-value2").vlaue = keys.Data[i].value;
+      // document.getElementById("card1-value2").value = keys.Data[i].value;
       document.getElementById("value2").innerHTML = keys.Data[i].value;
     } 
     if(selectvalue3 == keys.Data[i].address){
       value3 = keys.Data[i].value;
-      // document.getElementById("card1-value3").vlaue = keys.Data[i].value;
+      // document.getElementById("card1-value3").value = keys.Data[i].value;
       document.getElementById("value3").innerHTML = keys.Data[i].value; 
     }
     if(selectvalue4 == keys.Data[i].address){
       value4 = keys.Data[i].value;
-      // document.getElementById("card1-value4").vlaue = keys.Data[i].value;
+      // document.getElementById("card1-value4").value = keys.Data[i].value;
       document.getElementById("value4").innerHTML = keys.Data[i].value;
     } 
     if(selectvalue5 == keys.Data[i].address){
       value5 = keys.Data[i].value;
-      // document.getElementById("card1-value5").vlaue = keys.Data[i].value;
+      // document.getElementById("card1-value5").value = keys.Data[i].value;
       document.getElementById("value5").innerHTML = keys.Data[i].value;
     }
   }
