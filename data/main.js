@@ -262,7 +262,7 @@ function send_modbus() {
             alert("chua nhap Dia chi ghi ket thuc");
         }
         else {
-            output = "{'Command':'settingModbus','tcpip':'" + tcpip + "','ethip':'" + ethip + "','readStart':'" + rsaddres_input + "','readEnd':'" + readdres_input + "','writeStart':'" + wsaddres_input + "','writeEnd':'" + weaddres_input + "','gw':'" + gw + "','sn':'"+ sn +"','dns':'"+ dns +"','mbclient':'" + tcpmode + "','modbustype':'" + modbustype_input + "'}";
+            output = "{'Command':'settingModbus','tcpip':'" + tcpip + "','ethip':'" + ethip + "','readStart':'" + rsaddres_input + "','readEnd':'" + readdres_input + "','writeStart':'" + wsaddres_input + "','writeEnd':'" + weaddres_input + "','gw':'" + gw + "','sn':'" + sn + "','dns':'" + dns + "','mbclient':'" + tcpmode + "','modbustype':'" + modbustype_input + "'}";
         }
     }
     console.log(output);
@@ -384,7 +384,7 @@ function loadtable(jsonValue) {
 }
 function loaddata(jsonValue) {
     var keys = JSON.parse(jsonValue);
-    for (var i = 0; i < keys.Data.length; i++) {
+    for (var i = 0; i < TableDataLen; i++) {
         var value = keys.Data[i];
         if (loading == 1) { document.getElementById("value" + i).innerHTML = value; }
     }
@@ -437,13 +437,13 @@ select.addEventListener('change', function handleChange(event) {
     <span><div>TCP Mode: <select id=\"tcpmode\"><option value=\"1\">Client</option><option value=\"0\">Server</option></select></div><br></span>";
     if (document.getElementById('typemodbus').value == "0") {
         document.getElementById("modedisplay").innerHTML = configRTU;
-    } 
+    }
     else if (document.getElementById('typemodbus').value == "1") {
         document.getElementById("modedisplay").innerHTML = configTCP;
-    } 
+    }
     else if (document.getElementById('typemodbus').value == "2") {
         document.getElementById("modedisplay").innerHTML = configTCP + configRTU;
-    } 
+    }
     else {
         document.getElementById("modedisplay").innerHTML = "";
     }
