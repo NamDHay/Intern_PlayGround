@@ -355,7 +355,7 @@ void WB_loop() {
     FlagFile = false;
   }
   // Modbus send data
-  if (millis() - startUpdateIntervalTime >= 5000)
+  if (millis() - startUpdateIntervalTime >= 500)
   {
     startUpdateIntervalTime = millis();
     update_WebData_Interval();

@@ -236,7 +236,19 @@
     .text-right{text-align:right}
     .pointer{cursor:pointer;}
     .alert-secondary {color: #383d41;background-color: #e2e3e5;border-color: #d6d8db;}
-      
+    .loader {
+      border: 16px solid #f3f3f3; /* Light grey */
+      border-top: 16px solid #3498db; /* Blue */
+      border-radius: 50%;
+      width: 120px;
+      height: 120px;
+      animation: spin 2s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
   <title>WIFI SETTING</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -526,10 +538,13 @@
   <!-- Tab Show Data -->
   <div id="cardshowdata" class="contentcuatao" style="display: none;">
     <div class="cardcuatao">
-      <span><input type="text" id="jsonApp"/>
+
+      <textarea rows="4" cols="50" type="text" id="jsonApp"></textarea>
         <button id="bntLoadcard" class="button">load card</button>
-</span>
+
     </div>
+    
+    <!-- <div id="waitData" class="loader"></div> -->
     <div id="addcard"></div>
     
   </div>
