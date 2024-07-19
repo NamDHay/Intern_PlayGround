@@ -95,7 +95,6 @@ function initButton() {
     document.getElementById('button2').addEventListener('click', io_ChangeState2);
     document.getElementById('button3').addEventListener('click', io_ChangeState3);
     document.getElementById('button4').addEventListener('click', io_ChangeState4);
-    document.getElementById('saveTable').addEventListener('click', saveModbusTable);
     document.getElementById('addslave').addEventListener('click', openAddCard);
     document.getElementById('buttonaddslave').addEventListener('click', addSlave);
 }

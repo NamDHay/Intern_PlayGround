@@ -150,27 +150,22 @@ function addSlave() {
     else {
         var slave_object = "{\"Command\":\"SlaveArray\",\"SlaveArray\":[{\"slaveType\":\"" + (slave_type) + "\",\"ID\":\"" + id_address + "\",\"writeStart\":\"" + wsaddres_input + "\",\"writeEnd\":\"" + weaddres_input + "\",\"readStart\":\"" + rsaddres_input + "\",\"readEnd\":\"" + readdres_input + "\"}]}";
 
-        // if (slaveOnScreen == 1) {
-        //     slave_array = slave_array.replace("]}", slave_object);
-        // }
-        // else {
-        //     if (numSlave == 0) { slave_array = slave_array.replace("]}", slave_object); }
-        //     else { slave_array = slave_array.replace("]}", "," + slave_object); }
-        // }
         console.log(slave_object);
         numSlave++;
     }
     addSlaveCard();
     initData(slave_object);
     websocket.send(slave_object);
-
 }
+
+
 function addSlaveCard() {
     var slave_card_html = "";
     var card_html = "";
-
+    var select_salve_html = "<div>Slave ID: <select id=\"selectSlaveID\">\
+                            <option value=\"\">--Choose an option--</option>\
+                            </select></div>";
     for (var i = 0; i < numSlave; i++) {
-
         if (i % 4 == 0) {
             slave_card_html += "<div class=\"row justify-content-around\">";
         }
@@ -191,13 +186,13 @@ function addSlaveCard() {
         }
     }
     document.getElementById("slavecard").innerHTML = slave_card_html;
+    document.getElementById("selectSlave").innerHTML = select_salve_html;
 
 }
 
 function initData(jsonValue) {
     var slave_obj = JSON.parse(jsonValue);
-    // for (var i = 0; i < numSlave; i++) {
-    // }
+
     var ID = slave_obj.SlaveArray.ID;
     var ws = slave_obj.SlaveArray.writeStart;
     var we = slave_obj.SlaveArray.writeEnd;
@@ -211,10 +206,11 @@ function initData(jsonValue) {
     document.getElementById('ws' + (numSlave - 1)).innerHTML = ws;
     document.getElementById('we' + (numSlave - 1)).innerHTML = we;
 }
-var slaveOnScreen = 0;
 function loadBoardSlave(jsonValue) {
     var keys = JSON.parse(jsonValue);
     numSlave = keys.SlaveArray.length;
+    var optValue = "";
+    var optText = "";
     addSlaveCard();
     for (var i = 0; i < numSlave; i++) {
         var ID = keys.SlaveArray[i].ID;
@@ -229,8 +225,12 @@ function loadBoardSlave(jsonValue) {
         document.getElementById('re' + i).innerHTML = re;
         document.getElementById('ws' + i).innerHTML = ws;
         document.getElementById('we' + i).innerHTML = we;
+
+        optValue = i;
+        optText = ID;
+
+        $('#selectSlaveID').append(`<option value="${optValue}">${optText}</option>`);
     }
-    slaveOnScreen = 1;
 }
 
 var loading = 0;
@@ -239,7 +239,7 @@ function loadtable(jsonValue) {
     if (firstload == 1) {
         firstload = 0
         var TableHTML = "";
-        TableHTML = "<table class=\"table \"><thead class=\"thead-dark\"><th>STT</th><th>Slave ID</th><th>Address</th><th>Type Data</th><th>Data</th></thead><tbody>";
+        TableHTML = "<table class=\"table \"><thead class=\"thead-dark\"><th>STT</th><th>Address</th><th>Type Data</th><th>Data</th></thead><tbody>";
         var keys = JSON.parse(jsonValue);
         var stt = 0;
         TableDataLen = keys.Data.length;
@@ -248,17 +248,28 @@ function loadtable(jsonValue) {
             stt++;
             var address = keys.Data[i].address;
             if (keys.Data[i].address == null) { TableDataLen = i; break; }
-            var id = keys.Data[i].slaveID;
             var type = "<select id=\"SelectType" + i + "\"><option value=0 %0%>WORD</option><option value=1 %1%>COIL</option><option value=2 %2%>DWORD</option><option value=3 %3%>FLOAT</option></select>";
 
             if (keys.Data[i].type == "0") { type = type.replace("%0%", "selected"); type = type.replace("%1%", ""); type = type.replace("%2%", ""); type = type.replace("%3%", ""); }
             if (keys.Data[i].type == "1") { type = type.replace("%1%", "selected"); type = type.replace("%0%", ""); type = type.replace("%2%", ""); type = type.replace("%3%", ""); }
             if (keys.Data[i].type == "2") { type = type.replace("%2%", "selected"); type = type.replace("%1%", ""); type = type.replace("%0%", ""); type = type.replace("%3%", ""); }
             if (keys.Data[i].type == "3") { type = type.replace("%3%", "selected"); type = type.replace("%1%", ""); type = type.replace("%2%", ""); type = type.replace("%0%", ""); }
-            TableHTML += "<tr><td>" + stt + "</td><td>" + id + "</td><td>" + address + "</td><td>" + type + "</td><td><div id=\"value" + i + "\">NULL</div></td></tr>";
+            TableHTML += "<tr><td>" + stt + "</td><td>" + address + "</td><td>" + type + "</td><td><div id=\"value" + i + "\">NULL</div></td></tr>";
         }
         TableHTML += "</tbody></table></br>";
         document.getElementById("TableData").innerHTML = TableHTML;
         loading = 1;
     }
+}
+
+function sendSelectSlave() {
+    var json_send = "";
+    var select = document.getElementById("selectSlaveID").value;
+    if (select == "")
+        alert("Chua chon Slave");
+    else
+        console.log(select);
+    json_send = "{\"Command\":\"loadSlaveTable\",\"SlaveID\":\"" + select + "\"}";
+    console.log(json_send);
+    websocket.send(json_send);
 }

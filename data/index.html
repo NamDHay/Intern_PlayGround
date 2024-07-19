@@ -14482,8 +14482,10 @@
         <div class="cardcuatao">
             <CENTER>
                 <h2>TABLE DATA</h2>
+                <div id="selectSlave"></div><br>
+                <button class="button" onclick="sendSelectSlave()">Select</button><br><br>
                 <div id="TableData"></div>
-                <button id="saveTable" class="button">SAVE</button>
+                <button class="button" onclick="saveModbusTable()">SAVE</button>
             </CENTER>
         </div>
     </div>
@@ -14945,6 +14947,7 @@
     </div>
     <script src="./main.js"></script>
     <script src="./modbus.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.0.min.js"></script>
 </body>
 
 </html>

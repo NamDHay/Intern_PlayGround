@@ -197,13 +197,6 @@ void mbDataTypeHandler()
     bool IsSetTable = true;
     xQueueSend(modbusRTU.qUpdateTable, (void *)&IsSetTable, 1 / portTICK_PERIOD_MS);
 }
-
-/*String Json*/
-// {"Command":"SlaveArray",
-// "SlaveArray":[{"slaveType":"0","ID":"1","writeStart":"50","writeEnd":"99","readStart":"0","readEnd":"49"},
-//               {"slaveType":"0","ID":"1","writeStart":"50","writeEnd":"99","readStart":"0","readEnd":"49"},
-//               {"slaveType":"0","ID":"1","writeStart":"50","writeEnd":"99","readStart":"0","readEnd":"49"}]}
-
 void mbSlavehandler()
 {
     modbusRTU.numSlave++;
@@ -410,6 +403,13 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         {
             mbSendSlavehandler();
         }
+        else if (command == "loadSlaveTable")
+        {
+            modbusRTU.slaveTable = rdoc["SlaveID"];
+            Serial.println("table ID " + String(modbusRTU.slaveTable));
+            bool IsSetTable = true;
+            xQueueSend(modbusRTU.qUpdateTable, (void *)&IsSetTable, 1 / portTICK_PERIOD_MS);
+        }
     }
 }
 void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,
@@ -424,7 +424,6 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
     case WS_EVT_DISCONNECT:
         Serial.printf("WebSocket client #%u disconnected\n", client->id());
         online.isConnected = false;
-        modbusRTU.loadTable = true;
         break;
     case WS_EVT_DATA:
         handleWebSocketMessage(arg, data, len);

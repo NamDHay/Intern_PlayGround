@@ -12,6 +12,7 @@ public:
     bool loadTable;
     uint8_t master;
     uint8_t numSlave;
+    byte slaveTable;
     QueueHandle_t qUpdateTable;
     struct Config_t
     {
