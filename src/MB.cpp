@@ -655,26 +655,25 @@ void TaskModbus(void *pvParameter)
         {
             if (!mbRTU.slave())
             {
-                Serial.println("RTU Slave No " + String(currentNode) + " on " + String(modbusRTU.numSlave));
-                Serial.println("RTU Slave ID " + String(modbusRTU.slave[currentNode].ID));
-                Serial.println("RTU Slave Read from " + String(modbusRTU.slave[currentNode].ReadAddress.startAddress) + " to " + String(modbusRTU.slave[currentNode].ReadAddress.endAddress));
-                Serial.println("RTU Slave Write from " + String(modbusRTU.slave[currentNode].WriteAddress.startAddress) + " to " + String(modbusRTU.slave[currentNode].WriteAddress.endAddress));
-                while (modbusRTU.read_Multiple_Data(modbusRTU.slave[currentNode].ID,
+                // Serial.println("RTU Slave No " + String(currentNode) + " on " + String(modbusRTU.numSlave));
+                // Serial.println("RTU Slave ID " + String(modbusRTU.slave[currentNode].ID));
+                // Serial.println("RTU Slave Read from " + String(modbusRTU.slave[currentNode].ReadAddress.startAddress) + " to " + String(modbusRTU.slave[currentNode].ReadAddress.endAddress));
+                // Serial.println("RTU Slave Write from " + String(modbusRTU.slave[currentNode].WriteAddress.startAddress) + " to " + String(modbusRTU.slave[currentNode].WriteAddress.endAddress));
+                while (modbusRTU.read_Multiple_Data(modbusRTU.slave[modbusRTU.slaveTable].ID,
                                                     (uint16_t *)&Master_ReadData,
-                                                    modbusRTU.slave[currentNode].ReadAddress.startAddress,
-                                                    (modbusRTU.slave[currentNode].ReadAddress.endAddress - modbusRTU.slave[currentNode].ReadAddress.startAddress + 1)) != true)
+                                                    modbusRTU.slave[modbusRTU.slaveTable].ReadAddress.startAddress,
+                                                    (modbusRTU.slave[modbusRTU.slaveTable].ReadAddress.endAddress - modbusRTU.slave[modbusRTU.slaveTable].ReadAddress.startAddress + 1)) != true)
                     ;
-                while (modbusRTU.write_Multiple_Data(modbusRTU.slave[currentNode].ID,
-                                                     (uint16_t *)&Master_ReadData,
-                                                     modbusRTU.slave[currentNode].WriteAddress.startAddress,
-                                                     (modbusRTU.slave[currentNode].WriteAddress.endAddress - modbusRTU.slave[currentNode].WriteAddress.startAddress + 1)) != true)
-                    ;
-                currentNode++;
-                currentNode = (currentNode == modbusRTU.numSlave) ? 0 : currentNode;
+                // while (modbusRTU.write_Multiple_Data(modbusRTU.slave[currentNode].ID,
+                //                                      (uint16_t *)&Master_ReadData,
+                //                                      modbusRTU.slave[currentNode].WriteAddress.startAddress,
+                //                                      (modbusRTU.slave[currentNode].WriteAddress.endAddress - modbusRTU.slave[currentNode].WriteAddress.startAddress + 1)) != true)
+                //     ;
+                // currentNode++;
+                // currentNode = (currentNode == modbusRTU.numSlave) ? 0 : currentNode;
             }
             else
             {
-                Serial.println("Im still transacting");
                 mbRTU.task();
             }
         } // Master part
