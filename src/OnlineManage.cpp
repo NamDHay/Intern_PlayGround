@@ -203,34 +203,38 @@ void mbDataTypeHandler()
 // "SlaveArray":[{"slaveType":"0","ID":"1","writeStart":"50","writeEnd":"99","readStart":"0","readEnd":"49"},
 //               {"slaveType":"0","ID":"1","writeStart":"50","writeEnd":"99","readStart":"0","readEnd":"49"},
 //               {"slaveType":"0","ID":"1","writeStart":"50","writeEnd":"99","readStart":"0","readEnd":"49"}]}
-uint16_t rtuSlaveCount = 0;
+
 void mbSlavehandler()
 {
-    rtuSlaveCount++;
-    for(byte i = 0; i < rtuSlaveCount; i++) {
-        modbusRTU.slave->ID = rdoc["SlaveArray"][i]["ID"];
-        modbusRTU.slave->ReadAddress.startAddress = rdoc["SlaveArray"][i]["readStart"];
-        modbusRTU.slave->ReadAddress.endAddress = rdoc["SlaveArray"][i]["readEnd"];
-        modbusRTU.slave->WriteAddress.startAddress = rdoc["SlaveArray"][i]["writeStart"];
-        modbusRTU.slave->WriteAddress.endAddress = rdoc["SlaveArray"][i]["writeEnd"];
-        
-        Serial.println("ID: " + String(modbusRTU.slave->ID));
-        Serial.println("ReadStart: " + String(modbusRTU.slave->ReadAddress.startAddress));
-        Serial.println("ReadEnd: " + String(modbusRTU.slave->ReadAddress.endAddress));
-        Serial.println("WriteStart: " + String(modbusRTU.slave->WriteAddress.startAddress));
-        Serial.println("WriteEnd: " + String(modbusRTU.slave->WriteAddress.endAddress));
-    }
+    modbusRTU.numSlave++;
+
+    modbusRTU.slave[(modbusRTU.numSlave - 1)].ID = rdoc["SlaveArray"][(modbusRTU.numSlave - 1)]["ID"];
+    modbusRTU.slave[(modbusRTU.numSlave - 1)].ReadAddress.startAddress = rdoc["SlaveArray"][(modbusRTU.numSlave - 1)]["readStart"];
+    modbusRTU.slave[(modbusRTU.numSlave - 1)].ReadAddress.endAddress = rdoc["SlaveArray"][(modbusRTU.numSlave - 1)]["readEnd"];
+    modbusRTU.slave[(modbusRTU.numSlave - 1)].WriteAddress.startAddress = rdoc["SlaveArray"][(modbusRTU.numSlave - 1)]["writeStart"];
+    modbusRTU.slave[(modbusRTU.numSlave - 1)].WriteAddress.endAddress = rdoc["SlaveArray"][(modbusRTU.numSlave - 1)]["writeEnd"];
+
+    Serial.println("Node: " + String((modbusRTU.numSlave - 1)));
+    Serial.println("ID: " + String(modbusRTU.slave[(modbusRTU.numSlave - 1)].ID));
+    Serial.println("ReadStart: " + String(modbusRTU.slave[(modbusRTU.numSlave - 1)].ReadAddress.startAddress));
+    Serial.println("ReadEnd: " + String(modbusRTU.slave[(modbusRTU.numSlave - 1)].ReadAddress.endAddress));
+    Serial.println("WriteStart: " + String(modbusRTU.slave[(modbusRTU.numSlave - 1)].WriteAddress.startAddress));
+    Serial.println("WriteEnd: " + String(modbusRTU.slave[(modbusRTU.numSlave - 1)].WriteAddress.endAddress));
+    
+    wDoc["Command"] = "SlaveArray";
+    wDoc["Data"] = "AddDone";
+    serializeJson(wDoc, fbDataString);
+    online.notifyClients(fbDataString);
+    modbusRTU.writeSlave();
 }
 void setModbusHandler()
 {
     String modbustype = rdoc["modbustype"].as<String>();
 
-    String slaveID;
     String baud;
     String serial;
     String mbmaster;
 
-    String tcpip;
     String ethip;
     String gw;
     String sn;
@@ -239,31 +243,29 @@ void setModbusHandler()
 
     if (modbustype == "0")
     {
+        modbusRTU.master = 1;
         modbusTCP.client = 0;
 
-        slaveID = rdoc["slaveID"].as<String>();
         baud = rdoc["baud"].as<String>();
         serial = rdoc["serial"].as<String>();
         mbmaster = rdoc["mbmaster"].as<String>();
 
-        modbusRTU.config.slaveID = slaveID.toInt();
-        modbusRTU.master = (mbmaster == "0") ? 0 : 1;
+        // modbusRTU.master = (mbmaster == "0") ? 0 : 1;
         modbusRTU.config.baud = baud.toInt();
         modbusRTU.config.port = (serial == "0") ? &Serial1 : &Serial2;
     }
     else if (modbustype == "1")
     {
+        modbusTCP.client = 1;
         modbusRTU.master = 0;
 
-        tcpip = rdoc["tcpip"].as<String>();
         ethip = rdoc["ethip"].as<String>();
         gw = rdoc["gw"].as<String>();
         sn = rdoc["sn"].as<String>();
         dns = rdoc["dns"].as<String>();
         mbclient = rdoc["mbclient"].as<String>();
 
-        modbusTCP.client = (mbclient == "0") ? 0 : 1;
-        modbusTCP.remote = tcpip;
+        // modbusTCP.client = (mbclient == "0") ? 0 : 1;
         modbusTCP.ethernet.ipAdress = ethip;
         modbusTCP.ethernet.gateway = gw;
         modbusTCP.ethernet.subnet = sn;
@@ -271,63 +273,28 @@ void setModbusHandler()
     }
     else
     {
-        slaveID = rdoc["slaveID"].as<String>();
+        modbusTCP.client = 1;
+        modbusRTU.master = 1;
+
         baud = rdoc["baud"].as<String>();
         serial = rdoc["serial"].as<String>();
         mbmaster = rdoc["mbmaster"].as<String>();
 
-        modbusRTU.config.slaveID = slaveID.toInt();
-        modbusRTU.master = (mbmaster == "0") ? 0 : 1;
+        // modbusRTU.master = (mbmaster == "0") ? 0 : 1;
         modbusRTU.config.baud = baud.toInt();
         modbusRTU.config.port = (serial == "0") ? &Serial1 : &Serial2;
 
-        tcpip = rdoc["tcpip"].as<String>();
         ethip = rdoc["ethip"].as<String>();
         gw = rdoc["gw"].as<String>();
         sn = rdoc["sn"].as<String>();
         dns = rdoc["dns"].as<String>();
         mbclient = rdoc["mbclient"].as<String>();
 
-        modbusTCP.client = (mbclient == "0") ? 0 : 1;
-        modbusTCP.remote = tcpip;
+        // modbusTCP.client = (mbclient == "0") ? 0 : 1;
         modbusTCP.ethernet.ipAdress = ethip;
         modbusTCP.ethernet.gateway = gw;
         modbusTCP.ethernet.subnet = sn;
         modbusTCP.ethernet.primaryDNS = dns;
-    }
-
-    String readStart = rdoc["readStart"].as<String>();
-    String readEnd = rdoc["readEnd"].as<String>();
-    String writeStart = rdoc["writeStart"].as<String>();
-    String writeEnd = rdoc["writeEnd"].as<String>();
-    if (modbusRTU.master == 1)
-    {
-        modbusRTU.MasterReadReg.startAddress = readStart.toInt();
-        modbusRTU.MasterReadReg.endAddress = readEnd.toInt();
-        modbusRTU.MasterWriteReg.startAddress = writeStart.toInt();
-        modbusRTU.MasterWriteReg.endAddress = writeEnd.toInt();
-    }
-    else
-    {
-        modbusRTU.SlaveReadReg.startAddress = readStart.toInt();
-        modbusRTU.SlaveReadReg.endAddress = readEnd.toInt();
-        modbusRTU.SlaveWriteReg.startAddress = writeStart.toInt();
-        modbusRTU.SlaveWriteReg.endAddress = writeEnd.toInt();
-    }
-
-    if (modbusTCP.client == 1)
-    {
-        modbusTCP.ClientReadReg.startAddress = readStart.toInt();
-        modbusTCP.ClientReadReg.endAddress = readEnd.toInt();
-        modbusTCP.ClientWriteReg.startAddress = writeStart.toInt();
-        modbusTCP.ClientWriteReg.endAddress = writeEnd.toInt();
-    }
-    else
-    {
-        modbusTCP.ServerReadReg.startAddress = readStart.toInt();
-        modbusTCP.ServerReadReg.endAddress = readEnd.toInt();
-        modbusTCP.ServerWriteReg.startAddress = writeStart.toInt();
-        modbusTCP.ServerWriteReg.endAddress = writeEnd.toInt();
     }
 
     wDoc["Command"] = "settingModbus";

@@ -13,43 +13,23 @@ function send_modbus() {
         alert("chua chon mode modbus");
     }
     else if (modbustype_input == "0") {
-        var slaveid_input = document.getElementById('input_slaveid').value;
         var baud_input = document.getElementById('input_baud').value;
         var port_input = document.getElementById('port').value;
         var rtumode = document.getElementById('rtumode').value;
-        if (slaveid_input == "") {
-            alert("chua nhap slaveID");
-        }
-        else if (baud_input == "") {
+        if (baud_input == "") {
             alert("chua nhap baudrate");
         }
-        else if (rsaddres_input == "") {
-            alert("chua nhap Dia chi doc dau tien");
-        }
-        else if (readdres_input == "") {
-            alert("chua nhap Dia chi doc ket thuc");
-        }
-        else if (wsaddres_input == "") {
-            alert("chua nhap Dia chi ghi dau tien");
-        }
-        else if (weaddres_input == "") {
-            alert("chua nhap Dia chi ghi ket thuc");
-        }
         else {
-            output = "{'Command':'settingModbus','slaveID':'" + slaveid_input + "','baud':'" + baud_input + "','readStart':'" + rsaddres_input + "','readEnd':'" + readdres_input + "','writeStart':'" + wsaddres_input + "','writeEnd':'" + weaddres_input + "','serial':'" + port_input + "','mbmaster':'" + rtumode + "','modbustype':'" + modbustype_input + "'}";
+            output = "{'Command':'settingModbus','baud':'" + baud_input + "','serial':'" + port_input + "','mbmaster':'" + rtumode + "','modbustype':'" + modbustype_input + "'}";
         }
     }
     else {
-        var tcpip = document.getElementById('input_tcpip').value;
         var ethip = document.getElementById('input_ethip').value;
         var gw = document.getElementById('input_gw').value;
         var sn = document.getElementById('input_sn').value;
         var dns = document.getElementById('input_dns').value
         var tcpmode = document.getElementById('tcpmode').value;
-        if (tcpip == "") {
-            alert("Chua nhap TCP IP");
-        }
-        else if (ethip == "") {
+        if (ethip == "") {
             alert("Chua nhap Ethernet IP");
         }
         else if (gw == "") {
@@ -61,20 +41,8 @@ function send_modbus() {
         else if (dns == "") {
             alert("Chua nhap DNS");
         }
-        else if (rsaddres_input == "") {
-            alert("chua nhap Dia chi doc dau tien");
-        }
-        else if (readdres_input == "") {
-            alert("chua nhap Dia chi doc ket thuc");
-        }
-        else if (wsaddres_input == "") {
-            alert("chua nhap Dia chi ghi dau tien");
-        }
-        else if (weaddres_input == "") {
-            alert("chua nhap Dia chi ghi ket thuc");
-        }
         else {
-            output = "{'Command':'settingModbus','tcpip':'" + tcpip + "','ethip':'" + ethip + "','readStart':'" + rsaddres_input + "','readEnd':'" + readdres_input + "','writeStart':'" + wsaddres_input + "','writeEnd':'" + weaddres_input + "','gw':'" + gw + "','sn':'" + sn + "','dns':'" + dns + "','mbclient':'" + tcpmode + "','modbustype':'" + modbustype_input + "'}";
+            output = "{'Command':'settingModbus','ethip':'" + ethip + "','gw':'" + gw + "','sn':'" + sn + "','dns':'" + dns + "','mbclient':'" + tcpmode + "','modbustype':'" + modbustype_input + "'}";
         }
     }
     console.log(output);
@@ -201,7 +169,7 @@ function addSlaveCard() {
         }
         card_html = "<div class=\"col-2 cardcuatao\">\
         <h5 class=\"state\">\
-        <CENTER> No :<span id=\"headerNo" + i + "\">%NO%</span></CENTER>\
+        <CENTER> No: <span id=\"headerNo" + i + "\">%NO%</span></CENTER>\
         </h5>\
         <p class=\"state\">ID: <span id=\"slave" + i + "\">%ID%</span></p>\
         <p class=\"state\">READ</p>\

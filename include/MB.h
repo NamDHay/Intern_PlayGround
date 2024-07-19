@@ -11,10 +11,10 @@ class MODBUS_RTU
 public:
     bool loadTable;
     uint8_t master;
+    uint8_t numSlave;
     QueueHandle_t qUpdateTable;
     struct Config_t
     {
-        byte slaveID;
         unsigned long baud;
         HardwareSerial *port;
     } config;
@@ -30,18 +30,16 @@ public:
         Address_t ReadAddress;
     };
     Slave_t slave[20];
-    Address_t MasterWriteReg;
-    Address_t MasterReadReg;
-    Address_t SlaveWriteReg;
-    Address_t SlaveReadReg;
-
     uint8_t typeData[200];
+
     void MasterInit(HardwareSerial *port, unsigned long baud);
     void SlaveInit(HardwareSerial *port, unsigned long baud);
     bool read_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t length);
     bool write_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t length);
     void loadSetting();
     void writeSetting();
+    void loadSlave();
+    void writeSlave();
 };
 
 class MODBUS_TCP
@@ -84,6 +82,8 @@ public:
     bool write_Multiple_Data(IPAddress ID, uint16_t *value, long startAddress, size_t length);
     void loadSetting();
     void writeSetting();
+    void loadSlave();
+    void writeSlave();
 };
 void TaskModbus(void *pvParameter);
 

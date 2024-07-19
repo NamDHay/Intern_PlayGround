@@ -57,6 +57,9 @@ function onMessage(event) {
     else if (message.Command == "tableData") {
         loaddata(event.data);
     }
+    else if (message.Command == "SlaveArray") {
+        alert("Add Done");
+    }
 }
 function onLoad(event) {
     initWebSocket();
