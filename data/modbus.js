@@ -156,6 +156,7 @@ function addSlave() {
         numSlave++;
     }
     addSlaveCard();
+    initData();
     websocket.send(slave_array);
 }
 function addSlaveCard() {
@@ -184,7 +185,7 @@ function addSlaveCard() {
         }
     }
     document.getElementById("slavecard").innerHTML = slave_card_html;
-    initData();
+
 }
 
 function initData() {
@@ -195,6 +196,26 @@ function initData() {
         var we = slave_obj.SlaveArray[i].writeEnd;
         var rs = slave_obj.SlaveArray[i].readStart;
         var re = slave_obj.SlaveArray[i].readEnd;
+
+        document.getElementById('headerNo' + i).innerHTML = i;
+        document.getElementById('slave' + i).innerHTML = ID;
+        document.getElementById('rs' + i).innerHTML = rs;
+        document.getElementById('re' + i).innerHTML = re;
+        document.getElementById('ws' + i).innerHTML = ws;
+        document.getElementById('we' + i).innerHTML = we;
+    }
+}
+
+function loadBoardSlave(jsonValue) {
+    var keys = JSON.parse(jsonValue);
+    numSlave = keys.SlaveArray.length;
+    addSlaveCard();
+    for (var i = 0; i < numSlave; i++) {
+        var ID = keys.SlaveArray[i].ID;
+        var ws = keys.SlaveArray[i].writeStart;
+        var we = keys.SlaveArray[i].writeEnd;
+        var rs = keys.SlaveArray[i].readStart;
+        var re = keys.SlaveArray[i].readEnd;
 
         document.getElementById('headerNo' + i).innerHTML = i;
         document.getElementById('slave' + i).innerHTML = ID;

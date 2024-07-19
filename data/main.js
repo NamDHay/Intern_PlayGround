@@ -20,8 +20,9 @@ function initWebSocket() {
     websocket.onmessage = onMessage;
 }
 function onOpen(event) {
-    IsConnect = true;
     console.log('Connection opened');
+    IsConnect = true;
+    websocket.send("{'Command':'getTotalSlave'}");
 }
 function onClose(event) {
     IsConnect = false;
@@ -59,6 +60,9 @@ function onMessage(event) {
     }
     else if (message.Command == "SlaveArray") {
         alert("Add Done");
+    }
+    else if (message.Command == "getTotalSlave") {
+        loadBoardSlave(event.data);
     }
 }
 function onLoad(event) {

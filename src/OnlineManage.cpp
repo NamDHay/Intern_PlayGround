@@ -220,12 +220,29 @@ void mbSlavehandler()
     Serial.println("ReadEnd: " + String(modbusRTU.slave[(modbusRTU.numSlave - 1)].ReadAddress.endAddress));
     Serial.println("WriteStart: " + String(modbusRTU.slave[(modbusRTU.numSlave - 1)].WriteAddress.startAddress));
     Serial.println("WriteEnd: " + String(modbusRTU.slave[(modbusRTU.numSlave - 1)].WriteAddress.endAddress));
-    
+
     wDoc["Command"] = "SlaveArray";
     wDoc["Data"] = "AddDone";
     serializeJson(wDoc, fbDataString);
     online.notifyClients(fbDataString);
     modbusRTU.writeSlave();
+}
+void mbSendSlavehandler()
+{
+    wDoc["Command"] = "getTotalSlave";
+
+    for (byte i = 0; i < modbusRTU.numSlave; i++)
+    {
+        wDoc["SlaveArray"][i]["slaveType"] = 0;
+        wDoc["SlaveArray"][i]["ID"] = modbusRTU.slave[i].ID;
+        wDoc["SlaveArray"][i]["readStart"] = modbusRTU.slave[i].ReadAddress.startAddress;
+        wDoc["SlaveArray"][i]["readEnd"] = modbusRTU.slave[i].ReadAddress.endAddress;
+        wDoc["SlaveArray"][i]["writeStart"] = modbusRTU.slave[i].WriteAddress.startAddress;
+        wDoc["SlaveArray"][i]["writeEnd"] = modbusRTU.slave[i].WriteAddress.endAddress;
+    }
+
+    serializeJson(wDoc, fbDataString);
+    online.notifyClients(fbDataString);
 }
 void setModbusHandler()
 {
@@ -388,6 +405,10 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         else if (command == "SlaveArray")
         {
             mbSlavehandler();
+        }
+        else if (command == "getTotalSlave")
+        {
+            mbSendSlavehandler();
         }
     }
 }
