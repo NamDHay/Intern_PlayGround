@@ -208,11 +208,11 @@ void mbSlavehandler()
 {
     modbusRTU.numSlave++;
 
-    modbusRTU.slave[(modbusRTU.numSlave - 1)].ID = rdoc["SlaveArray"][(modbusRTU.numSlave - 1)]["ID"];
-    modbusRTU.slave[(modbusRTU.numSlave - 1)].ReadAddress.startAddress = rdoc["SlaveArray"][(modbusRTU.numSlave - 1)]["readStart"];
-    modbusRTU.slave[(modbusRTU.numSlave - 1)].ReadAddress.endAddress = rdoc["SlaveArray"][(modbusRTU.numSlave - 1)]["readEnd"];
-    modbusRTU.slave[(modbusRTU.numSlave - 1)].WriteAddress.startAddress = rdoc["SlaveArray"][(modbusRTU.numSlave - 1)]["writeStart"];
-    modbusRTU.slave[(modbusRTU.numSlave - 1)].WriteAddress.endAddress = rdoc["SlaveArray"][(modbusRTU.numSlave - 1)]["writeEnd"];
+    modbusRTU.slave[(modbusRTU.numSlave - 1)].ID = rdoc["SlaveArray"][0]["ID"];
+    modbusRTU.slave[(modbusRTU.numSlave - 1)].ReadAddress.startAddress = rdoc["SlaveArray"][0]["readStart"];
+    modbusRTU.slave[(modbusRTU.numSlave - 1)].ReadAddress.endAddress = rdoc["SlaveArray"][0]["readEnd"];
+    modbusRTU.slave[(modbusRTU.numSlave - 1)].WriteAddress.startAddress = rdoc["SlaveArray"][0]["writeStart"];
+    modbusRTU.slave[(modbusRTU.numSlave - 1)].WriteAddress.endAddress = rdoc["SlaveArray"][0]["writeEnd"];
 
     Serial.println("Node: " + String((modbusRTU.numSlave - 1)));
     Serial.println("ID: " + String(modbusRTU.slave[(modbusRTU.numSlave - 1)].ID));

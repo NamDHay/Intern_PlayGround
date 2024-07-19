@@ -4,7 +4,6 @@ function settingmodbus() {
     document.getElementById("cardhome").style.display = "none"
     document.getElementById("cardshowfile").style.display = "none"
 }
-
 function send_modbus() {
     var output = "";
     var modbustype_input = document.getElementById('typemodbus').value;
@@ -112,7 +111,7 @@ slaveslect.addEventListener('change', function handleChange(event) {
     }
 });
 var numSlave = 0;
-let slave_array = "{\"Command\":\"SlaveArray\",\"SlaveArray\":[]}";
+// let slave_array = "{\"Command\":\"SlaveArray\",\"SlaveArray\":[]}";
 function addSlave() {
 
     var slave_type = document.getElementById('slavetype').value;
@@ -149,15 +148,22 @@ function addSlave() {
         alert("chua nhap Dia chi ghi ket thuc");
     }
     else {
-        var slave_object = "{\"slaveType\":\"" + (slave_type) + "\",\"ID\":\"" + id_address + "\",\"writeStart\":\"" + wsaddres_input + "\",\"writeEnd\":\"" + weaddres_input + "\",\"readStart\":\"" + rsaddres_input + "\",\"readEnd\":\"" + readdres_input + "\"}]}";
-        if (numSlave == 0) { slave_array = slave_array.replace("]}", slave_object); }
-        else { slave_array = slave_array.replace("]}", "," + slave_object); }
-        console.log(slave_array);
+        var slave_object = "{\"Command\":\"SlaveArray\",\"SlaveArray\":[{\"slaveType\":\"" + (slave_type) + "\",\"ID\":\"" + id_address + "\",\"writeStart\":\"" + wsaddres_input + "\",\"writeEnd\":\"" + weaddres_input + "\",\"readStart\":\"" + rsaddres_input + "\",\"readEnd\":\"" + readdres_input + "\"}]}";
+
+        // if (slaveOnScreen == 1) {
+        //     slave_array = slave_array.replace("]}", slave_object);
+        // }
+        // else {
+        //     if (numSlave == 0) { slave_array = slave_array.replace("]}", slave_object); }
+        //     else { slave_array = slave_array.replace("]}", "," + slave_object); }
+        // }
+        console.log(slave_object);
         numSlave++;
     }
     addSlaveCard();
-    initData();
-    websocket.send(slave_array);
+    initData(slave_object);
+    websocket.send(slave_object);
+
 }
 function addSlaveCard() {
     var slave_card_html = "";
@@ -188,24 +194,24 @@ function addSlaveCard() {
 
 }
 
-function initData() {
-    var slave_obj = JSON.parse(slave_array);
-    for (var i = 0; i < numSlave; i++) {
-        var ID = slave_obj.SlaveArray[i].ID;
-        var ws = slave_obj.SlaveArray[i].writeStart;
-        var we = slave_obj.SlaveArray[i].writeEnd;
-        var rs = slave_obj.SlaveArray[i].readStart;
-        var re = slave_obj.SlaveArray[i].readEnd;
+function initData(jsonValue) {
+    var slave_obj = JSON.parse(jsonValue);
+    // for (var i = 0; i < numSlave; i++) {
+    // }
+    var ID = slave_obj.SlaveArray.ID;
+    var ws = slave_obj.SlaveArray.writeStart;
+    var we = slave_obj.SlaveArray.writeEnd;
+    var rs = slave_obj.SlaveArray.readStart;
+    var re = slave_obj.SlaveArray.readEnd;
 
-        document.getElementById('headerNo' + i).innerHTML = i;
-        document.getElementById('slave' + i).innerHTML = ID;
-        document.getElementById('rs' + i).innerHTML = rs;
-        document.getElementById('re' + i).innerHTML = re;
-        document.getElementById('ws' + i).innerHTML = ws;
-        document.getElementById('we' + i).innerHTML = we;
-    }
+    document.getElementById('headerNo' + (numSlave - 1)).innerHTML = (numSlave - 1);
+    document.getElementById('slave' + (numSlave - 1)).innerHTML = ID;
+    document.getElementById('rs' + (numSlave - 1)).innerHTML = rs;
+    document.getElementById('re' + (numSlave - 1)).innerHTML = re;
+    document.getElementById('ws' + (numSlave - 1)).innerHTML = ws;
+    document.getElementById('we' + (numSlave - 1)).innerHTML = we;
 }
-
+var slaveOnScreen = 0;
 function loadBoardSlave(jsonValue) {
     var keys = JSON.parse(jsonValue);
     numSlave = keys.SlaveArray.length;
@@ -223,5 +229,36 @@ function loadBoardSlave(jsonValue) {
         document.getElementById('re' + i).innerHTML = re;
         document.getElementById('ws' + i).innerHTML = ws;
         document.getElementById('we' + i).innerHTML = we;
+    }
+    slaveOnScreen = 1;
+}
+
+var loading = 0;
+var firstload = 0;
+function loadtable(jsonValue) {
+    if (firstload == 1) {
+        firstload = 0
+        var TableHTML = "";
+        TableHTML = "<table class=\"table \"><thead class=\"thead-dark\"><th>STT</th><th>Slave ID</th><th>Address</th><th>Type Data</th><th>Data</th></thead><tbody>";
+        var keys = JSON.parse(jsonValue);
+        var stt = 0;
+        TableDataLen = keys.Data.length;
+        console.log("datalen" + TableDataLen);
+        for (var i = 0; i < TableDataLen; i++) {
+            stt++;
+            var address = keys.Data[i].address;
+            if (keys.Data[i].address == null) { TableDataLen = i; break; }
+            var id = keys.Data[i].slaveID;
+            var type = "<select id=\"SelectType" + i + "\"><option value=0 %0%>WORD</option><option value=1 %1%>COIL</option><option value=2 %2%>DWORD</option><option value=3 %3%>FLOAT</option></select>";
+
+            if (keys.Data[i].type == "0") { type = type.replace("%0%", "selected"); type = type.replace("%1%", ""); type = type.replace("%2%", ""); type = type.replace("%3%", ""); }
+            if (keys.Data[i].type == "1") { type = type.replace("%1%", "selected"); type = type.replace("%0%", ""); type = type.replace("%2%", ""); type = type.replace("%3%", ""); }
+            if (keys.Data[i].type == "2") { type = type.replace("%2%", "selected"); type = type.replace("%1%", ""); type = type.replace("%0%", ""); type = type.replace("%3%", ""); }
+            if (keys.Data[i].type == "3") { type = type.replace("%3%", "selected"); type = type.replace("%1%", ""); type = type.replace("%2%", ""); type = type.replace("%0%", ""); }
+            TableHTML += "<tr><td>" + stt + "</td><td>" + id + "</td><td>" + address + "</td><td>" + type + "</td><td><div id=\"value" + i + "\">NULL</div></td></tr>";
+        }
+        TableHTML += "</tbody></table></br>";
+        document.getElementById("TableData").innerHTML = TableHTML;
+        loading = 1;
     }
 }

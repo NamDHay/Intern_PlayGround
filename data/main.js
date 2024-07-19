@@ -60,6 +60,7 @@ function onMessage(event) {
     }
     else if (message.Command == "SlaveArray") {
         alert("Add Done");
+        websocket.send("{'Command':'getTotalSlave'}");
     }
     else if (message.Command == "getTotalSlave") {
         loadBoardSlave(event.data);
@@ -252,35 +253,7 @@ function loadChart() {
     var datafile = "{\"ShowFile\":[{\"slaveID\":\"1\",\"name\":\"test.txt\",\"type\":\"0\",\"space\":\"100\"},{\"slaveID\":\"10\",\"name\":\"test1.json\",\"type\":\"1\",\"space\":\"20\"},{\"slaveID\":\"5\",\"name\":\"test2.html\",\"type\":\"1\",\"space\":\"10\"}]}";
     tablefile(datafile);
 }
-var loading = 0;
-var firstload = 0;
-function loadtable(jsonValue) {
-    if (firstload == 1) {
-        firstload = 0
-        var TableHTML = "";
-        TableHTML = "<table class=\"table \"><thead class=\"thead-dark\"><th>STT</th><th>Slave ID</th><th>Address</th><th>Type Data</th><th>Data</th></thead><tbody>";
-        var keys = JSON.parse(jsonValue);
-        var stt = 0;
-        TableDataLen = keys.Data.length;
-        console.log("datalen" + TableDataLen);
-        for (var i = 0; i < TableDataLen; i++) {
-            stt++;
-            var address = keys.Data[i].address;
-            if (keys.Data[i].address == null) { TableDataLen = i; break; }
-            var id = keys.Data[i].slaveID;
-            var type = "<select id=\"SelectType" + i + "\"><option value=0 %0%>WORD</option><option value=1 %1%>COIL</option><option value=2 %2%>DWORD</option><option value=3 %3%>FLOAT</option></select>";
 
-            if (keys.Data[i].type == "0") { type = type.replace("%0%", "selected"); type = type.replace("%1%", ""); type = type.replace("%2%", ""); type = type.replace("%3%", ""); }
-            if (keys.Data[i].type == "1") { type = type.replace("%1%", "selected"); type = type.replace("%0%", ""); type = type.replace("%2%", ""); type = type.replace("%3%", ""); }
-            if (keys.Data[i].type == "2") { type = type.replace("%2%", "selected"); type = type.replace("%1%", ""); type = type.replace("%0%", ""); type = type.replace("%3%", ""); }
-            if (keys.Data[i].type == "3") { type = type.replace("%3%", "selected"); type = type.replace("%1%", ""); type = type.replace("%2%", ""); type = type.replace("%0%", ""); }
-            TableHTML += "<tr><td>" + stt + "</td><td>" + id + "</td><td>" + address + "</td><td>" + type + "</td><td><div id=\"value" + i + "\">NULL</div></td></tr>";
-        }
-        TableHTML += "</tbody></table></br>";
-        document.getElementById("TableData").innerHTML = TableHTML;
-        loading = 1;
-    }
-}
 function loaddata(jsonValue) {
     var keys = JSON.parse(jsonValue);
     for (var i = 0; i < TableDataLen; i++) {

@@ -30,3 +30,7 @@ String FFS::readfile(String filename) {
     }
     return content;
 }
+
+bool FFS::deletefile(String filename) {
+    return SPIFFS.remove(filename);
+}

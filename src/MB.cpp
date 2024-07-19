@@ -594,10 +594,12 @@ void MODBUS_TCP::writeSlave()
 void TaskModbus(void *pvParameter)
 {
     byte currentNode = 0;
+    // filesystem.deletefile("/rtuslave.json");
     modbusRTU.loadSetting();
     modbusTCP.loadSetting();
     modbusRTU.loadSlave();
     modbusTCP.loadSlave();
+
 
     /*Start Test Part*/
     // modbusTCP.client = 0;
