@@ -12,10 +12,112 @@
 #define RTU_MAX_RW 30
 #define TCP_MAX_RW 99
 
-/*********************************************START RTU PART**************************************************************/
 #define CHECKCOIL(CoilGroup, CoilBit) ((((CoilGroup) & (1UL << CoilBit)) == (1UL << CoilBit)) ? 1 : 0)
 #define SETCOIL(CoilGroup, CoilBit) ((CoilGroup) |= (1UL << CoilBit))
 #define CLEARCOIL(CoilGroup, CoilBit) (CoilGroup &= ~(1UL << CoilBit))
+
+void update_WebTable(long startAddress, long endAddress, String ID, uint8_t *type)
+{
+    JsonDocument Doc;
+    String fbDataString = "";
+    size_t length = (endAddress - startAddress + 1);
+    Serial.println("Data Length: " + String(length));
+
+    if (online.isConnected == true)
+    {
+        Doc["Command"] = "TableID";
+        for (uint8_t i = 0; i < length; i++)
+        {
+            Doc["Data"][i]["slaveID"] = ID;
+            if (startAddress > endAddress)
+            {
+                Serial.println("Out of range");
+                break;
+            }
+            Doc["Data"][i]["address"] = startAddress;
+            Doc["Data"][i]["type"] = type[i];
+            switch (type[i])
+            {
+            case COIL_TYPE:
+                startAddress++;
+                break;
+            case WORD_TYPE:
+                startAddress += 1;
+                break;
+            case DWORDS_TYPE:
+                startAddress += 2;
+                break;
+            case FLOAT_TYPE:
+                startAddress += 2;
+                break;
+            default:
+                break;
+            }
+        }
+        serializeJson(Doc, fbDataString);
+        serializeJsonPretty(Doc, Serial);
+        online.notifyClients(fbDataString);
+    }
+}
+void update_WebData_Interval(long startAddress, long endAddress, int16_t *data) // Must be void function to avoid control reaches end of non-void function [-Wreturn-type]
+{
+    union f2w_t
+    {
+        float f;
+        int16_t w[2];
+    } f2w;
+    union dw2w_t
+    {
+        int32_t dw;
+        int16_t w[2];
+    } dw2w;
+    JsonDocument Doc; // this guy make error messages if not return void
+    String fbDataString = "";
+    size_t length = (endAddress - startAddress + 1);
+    if (online.isConnected == true)
+    {
+        Doc["Command"] = "tableData";
+        Serial.println("Data Length: " + String(length));
+        for (uint8_t i = 0; i < length; i++)
+        {
+            if (startAddress > endAddress)
+            {
+                Serial.println("Out of range");
+                break;
+            }
+            switch (modbusRTU.typeData[i])
+            {
+            case COIL_TYPE:
+                Doc["Data"][i] = CHECKCOIL(data[startAddress], 0);
+                startAddress++;
+                break;
+            case WORD_TYPE:
+                Doc["Data"][i] = data[startAddress];
+                startAddress += 1;
+                break;
+            case DWORDS_TYPE:
+                dw2w.w[0] = data[startAddress];
+                dw2w.w[1] = data[startAddress + 1];
+                Doc["Data"][i] = dw2w.dw;
+                startAddress += 2;
+                break;
+            case FLOAT_TYPE:
+                f2w.w[0] = data[startAddress];
+                f2w.w[1] = data[startAddress + 1];
+                Doc["Data"][i] = f2w.f;
+                startAddress += 2;
+                break;
+            default:
+                break;
+            }
+        }
+        serializeJson(Doc, fbDataString);
+        serializeJsonPretty(Doc, Serial);
+        online.notifyClients(fbDataString);
+    }
+}
+
+/*********************************************START RTU PART**************************************************************/
 
 ModbusRTU mbRTU;
 #define MODBUS_BAUD_ 9600
@@ -234,106 +336,6 @@ bool MODBUS_RTU::write_Multiple_Data(byte ID, uint16_t *value, long startAddress
         return true;
     }
     return false;
-}
-void update_WebTable(long startAddress, long endAddress, String ID, uint8_t *type)
-{
-    JsonDocument Doc;
-    String fbDataString = "";
-    size_t length = (endAddress - startAddress + 1);
-    Serial.println("Data Length: " + String(length));
-
-    if (online.isConnected == true)
-    {
-        Doc["Command"] = "TableID";
-        for (uint8_t i = 0; i < length; i++)
-        {
-            Doc["Data"][i]["slaveID"] = ID;
-            if (startAddress > endAddress)
-            {
-                Serial.println("Out of range");
-                break;
-            }
-            Doc["Data"][i]["address"] = startAddress;
-            Doc["Data"][i]["type"] = type[i];
-            switch (type[i])
-            {
-            case COIL_TYPE:
-                startAddress++;
-                break;
-            case WORD_TYPE:
-                startAddress += 1;
-                break;
-            case DWORDS_TYPE:
-                startAddress += 2;
-                break;
-            case FLOAT_TYPE:
-                startAddress += 2;
-                break;
-            default:
-                break;
-            }
-        }
-        serializeJson(Doc, fbDataString);
-        serializeJsonPretty(Doc, Serial);
-        online.notifyClients(fbDataString);
-    }
-}
-void update_WebData_Interval(long startAddress, long endAddress) // Must be void function to avoid control reaches end of non-void function [-Wreturn-type]
-{
-    union f2w_t
-    {
-        float f;
-        int16_t w[2];
-    } f2w;
-    union dw2w_t
-    {
-        int32_t dw;
-        int16_t w[2];
-    } dw2w;
-    JsonDocument Doc; // this guy make error messages if not return void
-    String fbDataString = "";
-    size_t length = (endAddress - startAddress + 1);
-    if (online.isConnected == true)
-    {
-        Doc["Command"] = "tableData";
-        Serial.println("Data Length: " + String(length));
-        for (uint8_t i = 0; i < length; i++)
-        {
-            if (startAddress > endAddress)
-            {
-                Serial.println("Out of range");
-                break;
-            }
-            switch (modbusRTU.typeData[i])
-            {
-            case COIL_TYPE:
-                Doc["Data"][i] = CHECKCOIL(Master_ReadData[startAddress], 0);
-                startAddress++;
-                break;
-            case WORD_TYPE:
-                Doc["Data"][i] = Master_ReadData[startAddress];
-                startAddress += 1;
-                break;
-            case DWORDS_TYPE:
-                dw2w.w[0] = Master_ReadData[startAddress];
-                dw2w.w[1] = Master_ReadData[startAddress + 1];
-                Doc["Data"][i] = dw2w.dw;
-                startAddress += 2;
-                break;
-            case FLOAT_TYPE:
-                f2w.w[0] = Master_ReadData[startAddress];
-                f2w.w[1] = Master_ReadData[startAddress + 1];
-                Doc["Data"][i] = f2w.f;
-                startAddress += 2;
-                break;
-            default:
-                break;
-            }
-        }
-        serializeJson(Doc, fbDataString);
-        serializeJsonPretty(Doc, Serial);
-        online.notifyClients(fbDataString);
-    }
 }
 /**************************************************END RTU PART***********************************************************/
 
@@ -694,12 +696,12 @@ void TaskModbus(void *pvParameter)
             if (mbTCP.isConnected(str2IP(modbusTCP.remote)))
             {
                 while (modbusTCP.read_Multiple_Data(str2IP(modbusTCP.remote),
-                                                    (uint16_t *)&Master_ReadData,
+                                                    (uint16_t *)&Client_ReadData,
                                                     modbusTCP.ClientReadReg.startAddress,
                                                     (modbusTCP.ClientReadReg.endAddress - modbusTCP.ClientReadReg.startAddress + 1)) != true)
                     ;
                 while (modbusTCP.write_Multiple_Data(str2IP(modbusTCP.remote),
-                                                     (uint16_t *)&Master_ReadData,
+                                                     (uint16_t *)&Client_ReadData,
                                                      modbusTCP.ClientWriteReg.startAddress,
                                                      (modbusTCP.ClientWriteReg.endAddress - modbusTCP.ClientWriteReg.startAddress + 1)) != true)
                     ;
@@ -716,7 +718,8 @@ void TaskModbus(void *pvParameter)
         {
             startUpdateIntervalTime = millis();
             update_WebData_Interval((modbusTCP.client == 1) ? (modbusTCP.ClientReadReg.startAddress) : (modbusRTU.MasterReadReg.startAddress),
-                                    (modbusTCP.client == 1) ? (modbusTCP.ClientReadReg.endAddress) : (modbusRTU.MasterReadReg.endAddress));
+                                    (modbusTCP.client == 1) ? (modbusTCP.ClientReadReg.endAddress) : (modbusRTU.MasterReadReg.endAddress),
+                                    (modbusTCP.client == 1) ? (Client_ReadData) : (Master_ReadData));
         }
         if (xQueueReceive(modbusRTU.qUpdateTable, (void *)&setTable, 1 / portTICK_PERIOD_MS) == pdTRUE || (modbusRTU.loadTable == true && online.isConnected == true))
         {

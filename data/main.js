@@ -76,17 +76,6 @@ function io_ChangeState4() {
     io_array[7] = !io_array[7];
 }
 
-function saveModbusTable() {
-    var msg = [];
-    var msgOut = "{\"Command\":\"mbDataType\",\"lengh\":\"" + TableDataLen + "\",\"type\":[";
-    for (var i = 0; i < TableDataLen; i++) { if (document.getElementById("SelectType" + i).value != null) msg[i] = document.getElementById("SelectType" + i).value; }
-    msgOut += msg[0];
-    for (var i = 1; i < TableDataLen; i++) { msgOut += "," + msg[i]; }
-    msgOut += "]}";
-    loading = 0;
-    websocket.send(msgOut);
-    console.log(msgOut);
-}
 function initButton() {
     document.getElementById('buttonsave').addEventListener('click', save);
     document.getElementById('buttonsend').addEventListener('click', send_modbus);
@@ -99,6 +88,8 @@ function initButton() {
     document.getElementById('button3').addEventListener('click', io_ChangeState3);
     document.getElementById('button4').addEventListener('click', io_ChangeState4);
     document.getElementById('saveTable').addEventListener('click', saveModbusTable);
+    document.getElementById('addslave').addEventListener('click', openAddCard);
+    document.getElementById('buttonaddslave').addEventListener('click', addSlave);
 }
 
 function intervalHandle() {
@@ -128,12 +119,6 @@ function intervalHandle() {
     }
 }
 
-function settingmodbus() {
-    document.getElementById("cardmodbus").style.display = "block";
-    document.getElementById("cardio").style.display = "none";
-    document.getElementById("cardhome").style.display = "none"
-    document.getElementById("cardshowfile").style.display = "none"
-}
 function settingio() {
     document.getElementById("cardmodbus").style.display = "none";
     document.getElementById("cardhome").style.display = "none"
@@ -158,7 +143,6 @@ function save() {
     var waddress_input = document.getElementById('waddress').value;
     var wgetway_input = document.getElementById('wgetway').value;
     var wsubnet_input = document.getElementById('wsubnet').value;
-    // var Chanel_input = document.getElementById('Chanel').value;
     var staticip_input = document.getElementById('staticip').value;
     var wifimode_input = document.getElementById('wifimode').value;
     if (ssid_input == "") {
@@ -188,86 +172,7 @@ function save() {
         if (IsConnect) { websocket.send(output); } else { alert("Websocket disconnected"); }
     }
 }
-function send_modbus() {
-    var output = "";
-    var modbustype_input = document.getElementById('typemodbus').value;
 
-    var wsaddres_input = document.getElementById('input_write_start').value;
-    var weaddres_input = document.getElementById('input_write_end').value;
-    var rsaddres_input = document.getElementById('input_read_start').value;
-    var readdres_input = document.getElementById('input_read_end').value;
-
-    if (modbustype_input == "") {
-        alert("chua chon mode modbus");
-    }
-    else if (modbustype_input == "0") {
-        var slaveid_input = document.getElementById('input_slaveid').value;
-        var baud_input = document.getElementById('input_baud').value;
-        var port_input = document.getElementById('port').value;
-        var rtumode = document.getElementById('rtumode').value;
-        if (slaveid_input == "") {
-            alert("chua nhap slaveID");
-        }
-        else if (baud_input == "") {
-            alert("chua nhap baudrate");
-        }
-        else if (rsaddres_input == "") {
-            alert("chua nhap Dia chi doc dau tien");
-        }
-        else if (readdres_input == "") {
-            alert("chua nhap Dia chi doc ket thuc");
-        }
-        else if (wsaddres_input == "") {
-            alert("chua nhap Dia chi ghi dau tien");
-        }
-        else if (weaddres_input == "") {
-            alert("chua nhap Dia chi ghi ket thuc");
-        }
-        else {
-            output = "{'Command':'settingModbus','slaveID':'" + slaveid_input + "','baud':'" + baud_input + "','readStart':'" + rsaddres_input + "','readEnd':'" + readdres_input + "','writeStart':'" + wsaddres_input + "','writeEnd':'" + weaddres_input + "','serial':'" + port_input + "','mbmaster':'" + rtumode + "','modbustype':'" + modbustype_input + "'}";
-        }
-    }
-    else {
-        var tcpip = document.getElementById('input_tcpip').value;
-        var ethip = document.getElementById('input_ethip').value;
-        var gw = document.getElementById('input_gw').value;
-        var sn = document.getElementById('input_sn').value;
-        var dns = document.getElementById('input_dns').value
-        var tcpmode = document.getElementById('tcpmode').value;
-        if (tcpip == "") {
-            alert("Chua nhap TCP IP");
-        }
-        else if (ethip == "") {
-            alert("Chua nhap Ethernet IP");
-        }
-        else if (gw == "") {
-            alert("Chua nhap Gateway");
-        }
-        else if (sn == "") {
-            alert("Chua nhap Subnet");
-        }
-        else if (dns == "") {
-            alert("Chua nhap DNS");
-        }
-        else if (rsaddres_input == "") {
-            alert("chua nhap Dia chi doc dau tien");
-        }
-        else if (readdres_input == "") {
-            alert("chua nhap Dia chi doc ket thuc");
-        }
-        else if (wsaddres_input == "") {
-            alert("chua nhap Dia chi ghi dau tien");
-        }
-        else if (weaddres_input == "") {
-            alert("chua nhap Dia chi ghi ket thuc");
-        }
-        else {
-            output = "{'Command':'settingModbus','tcpip':'" + tcpip + "','ethip':'" + ethip + "','readStart':'" + rsaddres_input + "','readEnd':'" + readdres_input + "','writeStart':'" + wsaddres_input + "','writeEnd':'" + weaddres_input + "','gw':'" + gw + "','sn':'" + sn + "','dns':'" + dns + "','mbclient':'" + tcpmode + "','modbustype':'" + modbustype_input + "'}";
-        }
-    }
-    console.log(output);
-    websocket.send(output);
-}
 function openSettingModalNV() {
     var modal = new bootstrap.Modal(document.getElementById('settingModalNV'));
     modal.show();
@@ -278,7 +183,10 @@ function openSettingModalSP() {
     var modal = new bootstrap.Modal(document.getElementById('settingModalSP'));
     modal.show();
 }
-
+function openAddCard() {
+    var modal = new bootstrap.Modal(document.getElementById('cardadd'));
+    modal.show();
+}
 // Hàm mở modal cho khối lượng
 function openSettingModalKL() {
     var modal = new bootstrap.Modal(document.getElementById('settingModalKL'));
@@ -316,20 +224,6 @@ document.getElementById('settingBtnLog').addEventListener('click', openSettingMo
 document.getElementById('settingBtnList').addEventListener('click', openSettingModalList);
 document.getElementById('settingBtnSetting').addEventListener('click', openSettingModalSetting);
 
-function SelectTab(evt, cityName) {
-    var i, tabcontent, tablinks;
-    tabcontent = document.getElementsByClassName("tabcontent");
-    for (i = 0; i < tabcontent.length; i++) {
-        tabcontent[i].style.display = "none";
-    }
-    tablinks = document.getElementsByClassName("tablinks");
-    for (i = 0; i < tablinks.length; i++) {
-        tablinks[i].className = tablinks[i].className.replace(" active", "");
-    }
-    document.getElementById(cityName).style.display = "block";
-    evt.currentTarget.className += " active";
-}
-
 if (!!window.EventSource) {
     var source = new EventSource('/events');
 
@@ -348,8 +242,6 @@ if (!!window.EventSource) {
     }, false);
 }
 function loadChart() {
-    // var datalogHuy1 = " {\"Data\":[{\"address\":\"1\",\"value\":\"1\",\"type\":\"0\",\"slaveID\":\"1\"},{\"address\":\"2\",\"value\":\"2\",\"type\":\"3\",\"slaveID\":\"10\"},{\"address\":\"3\",\"value\":\"3\",\"type\":\"2\",\"slaveID\":\"3\"},{\"address\":\"4\",\"value\":\"4\",\"type\":\"1\",\"slaveID\":\"5\"},{\"address\":\"5\",\"value\":\"5\",\"type\":\"3\",\"slaveID\":\"133\"},{\"address\":\"6\",\"value\":\"6\",\"type\":\"1\",\"slaveID\":\"44\"},{\"address\":\"7\",\"value\":\"7\",\"type\":\"0\",\"slaveID\":\"20\"}]}";
-    // loadtable(datalogHuy1);
     var datafile = "{\"ShowFile\":[{\"slaveID\":\"1\",\"name\":\"test.txt\",\"type\":\"0\",\"space\":\"100\"},{\"slaveID\":\"10\",\"name\":\"test1.json\",\"type\":\"1\",\"space\":\"20\"},{\"slaveID\":\"5\",\"name\":\"test2.html\",\"type\":\"1\",\"space\":\"10\"}]}";
     tablefile(datafile);
 }
@@ -419,32 +311,3 @@ function tablefile(jsonValue) {
     document.getElementById("use").innerHTML = use + "KB/" + (use / 1024).toFixed(2) + "MB";
     document.getElementById("free").innerHTML = free + "KB/" + (free / 1024).toFixed(2) + "MB";
 }
-
-const select = document.getElementById('typemodbus');
-
-select.addEventListener('change', function handleChange(event) {
-    console.log(event.target.value); // 👉️ get selected VALUE
-
-    var configRTU = "<span><div>Slave ID: <input type=\"text\" id=\"input_slaveid\" size=\"20\" placeholder=\"1\"></div><br></span>\
-    <span><div>Baud Rate: <input type=\"text\" id=\"input_baud\" size=\"20\" placeholder=\"115200\"></div><br></span>\
-    <span><div>Serial port: <select id=\"port\" value=\"1\"><option value=\"1\" selected=\"\">Serial2</option><option value=\"0\">Serial1</option></select></div><br></span>\
-    <span><div>Modbus Mode: <select id=\"rtumode\" value=\"1\"><option value=\"1\" selected=\"\">Master</option><option value=\"0\">Slave</option></select></div><br></span>";
-    var configTCP = "<span><div>TCP IP : <input type=\"text\" id=\"input_tcpip\" size=\"20\" placeholder=\"192.168.1.100\"></div><br></span>\
-    <span><div>Ethernet IP : <input type=\"text\" id=\"input_ethip\" size=\"20\" placeholder=\"192.168.1.100\"></div><br></span>\
-    <span><div>Ethernet Gateway : <input type=\"text\" id=\"input_gw\" size=\"20\" placeholder=\"192.168.1.1\"></div><br></span>\
-    <span><div>Ethernet Subnet : <input type=\"text\" id=\"input_sn\" size=\"20\" placeholder=\"255.255.255.0\"></div><br></span>\
-    <span><div>Ethernet DNS : <input type=\"text\" id=\"input_dns\" size=\"20\" placeholder=\"8.8.8.8\"></div><br></span>\
-    <span><div>TCP Mode: <select id=\"tcpmode\"><option value=\"1\">Client</option><option value=\"0\">Server</option></select></div><br></span>";
-    if (document.getElementById('typemodbus').value == "0") {
-        document.getElementById("modedisplay").innerHTML = configRTU;
-    }
-    else if (document.getElementById('typemodbus').value == "1") {
-        document.getElementById("modedisplay").innerHTML = configTCP;
-    }
-    else if (document.getElementById('typemodbus').value == "2") {
-        document.getElementById("modedisplay").innerHTML = configTCP + configRTU;
-    }
-    else {
-        document.getElementById("modedisplay").innerHTML = "";
-    }
-});

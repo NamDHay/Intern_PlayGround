@@ -18,20 +18,15 @@ public:
         unsigned long baud;
         HardwareSerial *port;
     } config;
-    struct Write_t
+    struct Address_t
     {
         long startAddress;
         long endAddress;
     };
-    struct Read_t
-    {
-        long startAddress;
-        long endAddress;
-    };
-    Write_t MasterWriteReg;
-    Read_t MasterReadReg;
-    Write_t SlaveWriteReg;
-    Read_t SlaveReadReg;
+    Address_t MasterWriteReg;
+    Address_t MasterReadReg;
+    Address_t SlaveWriteReg;
+    Address_t SlaveReadReg;
 
     uint8_t typeData[200];
     void MasterInit(HardwareSerial *port, unsigned long baud);
@@ -55,20 +50,21 @@ public:
     };
     ethernet_t ethernet;
     String remote;
-    struct Write_t
+    struct Address_t
     {
         long startAddress;
         long endAddress;
     };
-    struct Read_t
+    struct Slave_t
     {
-        long startAddress;
-        long endAddress;
+        String IP;
+        Address_t WriteAddress;
+        Address_t ReadAddress;
     };
-    Write_t ServerWriteReg;
-    Read_t ServerReadReg;
-    Write_t ClientWriteReg;
-    Read_t ClientReadReg;
+    Address_t ServerWriteReg;
+    Address_t ServerReadReg;
+    Address_t ClientWriteReg;
+    Address_t ClientReadReg;
 
     uint8_t typeData[200];
 
