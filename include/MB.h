@@ -23,6 +23,13 @@ public:
         long startAddress;
         long endAddress;
     };
+    struct Slave_t
+    {
+        byte ID;
+        Address_t WriteAddress;
+        Address_t ReadAddress;
+    };
+    Slave_t slave[20];
     Address_t MasterWriteReg;
     Address_t MasterReadReg;
     Address_t SlaveWriteReg;
@@ -61,6 +68,8 @@ public:
         Address_t WriteAddress;
         Address_t ReadAddress;
     };
+    Slave_t slave[20];
+
     Address_t ServerWriteReg;
     Address_t ServerReadReg;
     Address_t ClientWriteReg;

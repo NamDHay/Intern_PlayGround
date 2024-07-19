@@ -144,7 +144,7 @@ slaveslect.addEventListener('change', function handleChange(event) {
     }
 });
 var numSlave = 0;
-let slave_array = "{\"SlaveArray\":[]}";
+let slave_array = "{\"Command\":\"SlaveArray\",\"SlaveArray\":[]}";
 function addSlave() {
 
     var slave_type = document.getElementById('slavetype').value;
@@ -188,6 +188,7 @@ function addSlave() {
         numSlave++;
     }
     addSlaveCard();
+    websocket.send(slave_array);
 }
 function addSlaveCard() {
     var slave_card_html = "";

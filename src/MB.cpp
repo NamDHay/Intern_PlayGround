@@ -619,35 +619,35 @@ void MODBUS_TCP::writeSetting()
 /*********************************************START MODBUS TASK***********************************************************/
 void TaskModbus(void *pvParameter)
 {
-    modbusRTU.loadSetting();
-    modbusTCP.loadSetting();
+    // modbusRTU.loadSetting();
+    // modbusTCP.loadSetting();
 
     /*Start Test Part*/
-    // modbusTCP.client = 1;
-    // modbusRTU.master = 0;
+    modbusTCP.client = 0;
+    modbusRTU.master = 1;
 
-    // modbusRTU.MasterReadReg.startAddress = 0;
-    // modbusRTU.MasterReadReg.endAddress = 99;
-    // modbusRTU.MasterWriteReg.startAddress = 100;
-    // modbusRTU.MasterWriteReg.endAddress = 199;
-    // modbusRTU.SlaveReadReg.startAddress = 0;
-    // modbusRTU.SlaveReadReg.endAddress = 99;
-    // modbusRTU.SlaveWriteReg.startAddress = 100;
-    // modbusRTU.SlaveWriteReg.endAddress = 199;
+    modbusRTU.MasterReadReg.startAddress = 0;
+    modbusRTU.MasterReadReg.endAddress = 99;
+    modbusRTU.MasterWriteReg.startAddress = 100;
+    modbusRTU.MasterWriteReg.endAddress = 199;
+    modbusRTU.SlaveReadReg.startAddress = 0;
+    modbusRTU.SlaveReadReg.endAddress = 99;
+    modbusRTU.SlaveWriteReg.startAddress = 100;
+    modbusRTU.SlaveWriteReg.endAddress = 199;
 
-    // modbusTCP.ethernet.ipAdress = "192.168.137.3";
-    // modbusTCP.ethernet.gateway = "192.168.137.1";
-    // modbusTCP.ethernet.subnet = "255.255.255.0";
-    // modbusTCP.ethernet.primaryDNS = "8.8.8.8";
-    // modbusTCP.remote = "192.168.137.2";
+    modbusTCP.ethernet.ipAdress = "192.168.137.3";
+    modbusTCP.ethernet.gateway = "192.168.137.1";
+    modbusTCP.ethernet.subnet = "255.255.255.0";
+    modbusTCP.ethernet.primaryDNS = "8.8.8.8";
+    modbusTCP.remote = "192.168.137.2";
 
-    // modbusRTU.config.port = &Serial2;
-    // modbusRTU.config.baud = 9600;
+    modbusRTU.config.port = &Serial2;
+    modbusRTU.config.baud = 9600;
 
-    // modbusTCP.ClientReadReg.startAddress = 0;
-    // modbusTCP.ClientReadReg.endAddress = 99;
-    // modbusTCP.ClientWriteReg.startAddress = 100;
-    // modbusTCP.ClientWriteReg.endAddress = 199;
+    modbusTCP.ClientReadReg.startAddress = 0;
+    modbusTCP.ClientReadReg.endAddress = 99;
+    modbusTCP.ClientWriteReg.startAddress = 100;
+    modbusTCP.ClientWriteReg.endAddress = 199;
     /*End Test Part*/
 
     bool setTable = false;

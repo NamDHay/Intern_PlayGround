@@ -197,6 +197,30 @@ void mbDataTypeHandler()
     bool IsSetTable = true;
     xQueueSend(modbusRTU.qUpdateTable, (void *)&IsSetTable, 1 / portTICK_PERIOD_MS);
 }
+
+/*String Json*/
+// {"Command":"SlaveArray",
+// "SlaveArray":[{"slaveType":"0","ID":"1","writeStart":"50","writeEnd":"99","readStart":"0","readEnd":"49"},
+//               {"slaveType":"0","ID":"1","writeStart":"50","writeEnd":"99","readStart":"0","readEnd":"49"},
+//               {"slaveType":"0","ID":"1","writeStart":"50","writeEnd":"99","readStart":"0","readEnd":"49"}]}
+uint16_t rtuSlaveCount = 0;
+void mbSlavehandler()
+{
+    rtuSlaveCount++;
+    for(byte i = 0; i < rtuSlaveCount; i++) {
+        modbusRTU.slave->ID = rdoc["SlaveArray"][i]["ID"];
+        modbusRTU.slave->ReadAddress.startAddress = rdoc["SlaveArray"][i]["readStart"];
+        modbusRTU.slave->ReadAddress.endAddress = rdoc["SlaveArray"][i]["readEnd"];
+        modbusRTU.slave->WriteAddress.startAddress = rdoc["SlaveArray"][i]["writeStart"];
+        modbusRTU.slave->WriteAddress.endAddress = rdoc["SlaveArray"][i]["writeEnd"];
+        
+        Serial.println("ID: " + String(modbusRTU.slave->ID));
+        Serial.println("ReadStart: " + String(modbusRTU.slave->ReadAddress.startAddress));
+        Serial.println("ReadEnd: " + String(modbusRTU.slave->ReadAddress.endAddress));
+        Serial.println("WriteStart: " + String(modbusRTU.slave->WriteAddress.startAddress));
+        Serial.println("WriteEnd: " + String(modbusRTU.slave->WriteAddress.endAddress));
+    }
+}
 void setModbusHandler()
 {
     String modbustype = rdoc["modbustype"].as<String>();
@@ -393,6 +417,10 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         else if (command == "mbDataType")
         {
             mbDataTypeHandler();
+        }
+        else if (command == "SlaveArray")
+        {
+            mbSlavehandler();
         }
     }
 }
