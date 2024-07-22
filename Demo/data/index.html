@@ -63,6 +63,12 @@
       color:#8c8c8c;
       font-weight: bold;
     }
+    .statecard{
+      font-size: 1.5rem;
+      color:#8c8c8c;
+      font-weight: bold;
+      margin-left: auto;
+    }
     #card-container {
       display: flex;
       flex-wrap: wrap;
@@ -168,11 +174,7 @@
       font-size: 1.5rem;
       width: fit-content;
     }
-    .buttonA{
-      background-color: var(--bs-yellow);
-      border-radius: 5px;
-      font-size: 1.3rem;
-    }
+ 
     .IOstate { font-size: 1.5rem; color:#8c8c8c; font-weight: bold;   } 
     .icon path {
       fill: white; /* Thay đổi màu ở đây */
@@ -202,14 +204,14 @@
       border-radius: 10px;
       text-align: center;
       padding-top: 1px;
-      padding-bottom: 1px;
+      padding-bottom: 10px;
       padding-left: 30px;
       padding-right: 30px;
       /* box-shadow: 2px 2px 12px 1px rgba(140, 140, 140, .5); */
     }
     .buttoncuatao_output {
       padding: 1px 5px;
-      font-size: 24px;
+      font-size: 20px;
       text-align: center;
       outline: none;
       color: #fff;
@@ -365,13 +367,19 @@
       <path d="M4.406 3.342A5.53 5.53 0 0 1 8 2c2.69 0 4.923 2 5.166 4.579C14.758 6.804 16 8.137 16 9.773 16 11.569 14.502 13 12.687 13H3.781C1.708 13 0 11.366 0 9.318c0-1.763 1.266-3.223 2.942-3.593.143-.863.698-1.723 1.464-2.383m.653.757c-.757.653-1.153 1.44-1.153 2.056v.448l-.445.049C2.064 6.805 1 7.952 1 9.318 1 10.785 2.23 12 3.781 12h8.906C13.98 12 15 10.988 15 9.773c0-1.216-1.02-2.228-2.313-2.228h-.5v-.5C12.188 4.825 10.328 3 8 3a4.53 4.53 0 0 0-2.941 1.1z"></path>
     </symbol>
     <symbol id="icon-add" viewBox="0 0 16 16">
-      <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
-      <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
+      <path d="m.5 3 .04.87a2 2 0 0 0-.342 1.311l.637 7A2 2 0 0 0 2.826 14H9v-1H2.826a1 1 0 0 1-.995-.91l-.637-7A1 1 0 0 1 2.19 4h11.62a1 1 0 0 1 .996 1.09L14.54 8h1.005l.256-2.819A2 2 0 0 0 13.81 3H9.828a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 6.172 1H2.5a2 2 0 0 0-2 2m5.672-1a1 1 0 0 1 .707.293L7.586 3H2.19q-.362.002-.683.12L1.5 2.98a1 1 0 0 1 1-.98z"/>
+  <path d="M13.5 9a.5.5 0 0 1 .5.5V11h1.5a.5.5 0 1 1 0 1H14v1.5a.5.5 0 1 1-1 0V12h-1.5a.5.5 0 0 1 0-1H13V9.5a.5.5 0 0 1 .5-.5"/>
     </symbol>
-
+    <symbol id="icon-person" viewBox="0 0 16 16">
+      <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+      <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+    </symbol>
+    <symbol id="icon-person" viewBox="0 0 16 16">
+      <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5"/>
+    </symbol>
   </svg>
   <div class="topnav">
-    <Center><h1>WIFI SETTING</h1></Center>
+    <Center><h1>IoT TEAM</h1></Center>
   </div>
 
   <!-- Thanh Setting -->
@@ -394,41 +402,44 @@
           <a class="navbar-brand" id="tabshowdata" style="font-size: 2.0rem; font-weight: bold; text-align: center; color: yellow; ">Show Data</a>
         </li> 
       </ul>
-        <ul class="navbar-nav" style="height: 40px;">
-          <li class="nav-item dropdown" style="position: absolute; right: 0px;">
-              <a class="nav-link dropdown-toggle" href="http://192.168.1.23/" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <svg class="bi" width="24" height="24"><use xlink:href="#gear_fill_icon"></use></svg>
-              </a>
-              <a class="navbar-nav" id="buttonadd" style="position: absolute; right: 70px;top: 9px;" role="button" data-bs-toggle="modal" aria-expanded="false">
-                <svg class="bi" width="30" height="30"><use xlink:href="#icon-add"></use></svg>
-              </a>
-              <ul class="dropdown-menu" style="background-color: #143642; margin-left: -350px;">
-                <li class="nav-item d-flex flex-row">
-                  <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#settingModalNV" id="settingBtnNV">
-                    <svg class="bi" width="24" height="24"><use xlink:href="#icon-new"></use></svg>
-                  </button>
-                  <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#settingModalSP" id="settingBtnSP">
-                    <svg class="bi" width="24" height="24"><use xlink:href="#info_icon"></use></svg>
-                  </button>
-                  <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#settingModalKL" id="settingBtnKL">
-                    <svg class="bi" width="24" height="24"><use xlink:href="#download_icon"></use></svg>
-                  </button>
-                  <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#settingModalEX" id="settingBtnEX">
-                    <svg class="bi" width="24" height="24"><use xlink:href="#icon-edit"></use></svg>
-                  </button>
-                  <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#settingModalLog" id="settingBtnLog">
-                    <svg class="bi" width="24" height="24"><use xlink:href="#table"></use></svg>
-                  </button>
-                  <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#settingModalList" id="settingBtnList">
-                    <svg class="bi" width="24" height="24"><use xlink:href="#chat-quote-fill"></use></svg>
-                  </button>
-                  <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#settingModalSetting" id="settingBtnSetting">
-                    <svg class="bi" width="24" height="24"><use xlink:href="#gear-fill"></use></svg>
-                  </button>
-                </li>
-              </ul>
-          </li>
-        </ul>
+      <ul class="navbar-nav" style="height: 40px;">
+        <li class="nav-item dropdown" style="position: absolute; right: 0px;">
+            <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <svg class="bi" width="24" height="24"><use xlink:href="#gear_fill_icon"></use></svg>
+            </a>
+            <a class="navbar-nav" id="buttonadd" style="position: absolute; right: 70px;top: 9px;" role="button" data-bs-toggle="modal" aria-expanded="false">
+              <svg class="bi" width="30" height="30"><use xlink:href="#icon-add"></use></svg>
+            </a>
+            <a class="navbar-nav" id="buttonlog" style="position: absolute; right: 120px;top: 9px;" role="button" data-bs-toggle="modal" aria-expanded="false">
+              <svg class="bi" width="30" height="30"><use xlink:href="#icon-person"></use></svg>
+            </a>
+            <ul class="dropdown-menu" style="background-color: #143642; margin-left: -350px;">
+              <li class="nav-item d-flex flex-row">
+                <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#settingModalNV" id="settingBtnNV">
+                  <svg class="bi" width="24" height="24"><use xlink:href="#icon-new"></use></svg>
+                </button>
+                <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#settingModalSP" id="settingBtnSP">
+                  <svg class="bi" width="24" height="24"><use xlink:href="#info_icon"></use></svg>
+                </button>
+                <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#settingModalKL" id="settingBtnKL">
+                  <svg class="bi" width="24" height="24"><use xlink:href="#download_icon"></use></svg>
+                </button>
+                <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#settingModalEX" id="settingBtnEX">
+                  <svg class="bi" width="24" height="24"><use xlink:href="#icon-edit"></use></svg>
+                </button>
+                <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#settingModalLog" id="settingBtnLog">
+                  <svg class="bi" width="24" height="24"><use xlink:href="#table"></use></svg>
+                </button>
+                <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#settingModalList" id="settingBtnList">
+                  <svg class="bi" width="24" height="24"><use xlink:href="#chat-quote-fill"></use></svg>
+                </button>
+                <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#settingModalSetting" id="settingBtnSetting">
+                  <svg class="bi" width="24" height="24"><use xlink:href="#gear-fill"></use></svg>
+                </button>
+              </li>
+            </ul>
+        </li>
+      </ul>
     </div>
   </nav>
 
@@ -542,11 +553,38 @@
       <textarea rows="4" cols="50" type="text" id="jsonApp"></textarea>
         <button id="bntLoadcard" class="button">load card</button>
 
-    </div>
+    </div><br>
     
     <!-- <div id="waitData" class="loader"></div> -->
     <div id="addcard"></div>
     
+  </div>
+  
+  <!-- Tab Log User -->
+  <div class="modal fade" id="passwordModal" tabindex="-1" aria-labelledby="passwordModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          
+          <form> 
+            <p><h3 id="roleAccount">User</h3></p>
+            <h5 class="modal-title" id="passwordModalLabel">Password</h5>
+          </form>
+
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <input type="password" id="passwordInput" class="form-control" placeholder="Please enter a password">
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="buttoncuatao_output" onclick="checkPassword()">Submit</button>
+          <button type="button" class="buttoncuatao_output" data-bs-dismiss="modal" onclick="LogOut()">Log out</button>
+
+          <button type="button" class="buttoncuatao_output" id="openbuttonchange" data-bs-toggle="modal" data-bs-target="#passwordModalChange" data-bs-dismiss="modal" style="display: none">Change</button>
+        </div>
+      </div>
+    </div>
   </div>
   <!-- Tab Card -->
   <div class="modal fade" id="cardadd" tabindex="-1" aria-labelledby="settingModalSPLabel" aria-hidden="true" style="display: none;">
@@ -556,23 +594,20 @@
             <h5 class="modal-title" id="settingModalLabel " style="font-size: 1.5rem; font-weight: bold;">Thêm thẻ mới</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div style="padding: 20px;" class="state">
+        <div style="padding: 10px;" class="state">
           <div>Name: <input type="text" class="state" id="input_namecard" size="15" placeholder="Name Card"></div><br>
+  
+          <div class="row gx-2"><div class="col">Plan: </div><div class="col"><span id="value1" class="state"> Value </span></div><div class="col"><div><select id="selectvalue1" class="state"></select></div></div></div><br>
 
-          <!-- <div class="row gx-6"><div class="col">Number_Values: </div><div class="col"><select id="values" value="0" class="state"><option value="0" selected="">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div></div><br> -->
+          <div class="row gx-2"><div class="col">Result: </div><div class="col"><span id="value2" class="state"> Value </span></div><div class="col"><select id="selectvalue2" class="state"></select></div></div><br>
           
-          <!-- <div id="gencard"></div> -->
-          <div class="row gx-5"><div class="col">Type Card: </div><div class="col"><select id="typecard" value="0" class="state"><option value="0" selected="">Test1</option><option value="1">Test2</option><option value="2">Test3</option><option value="3">Test4</option></select></div></div><br>
+          <div class="row gx-2"><div class="col">Plan set: </div><div class="col"><span id="value3" class="state"> Value </span></div><div class="col"><select id="selectvalue3" class="state"></select></div></div><br>
+          
+          <div class="row gx-2"><div class="col">Result set: </div><div class="col"><span id="value4" class="state"> Value </span></div><div class="col"><select id="selectvalue4" class="state"></select></div></div><br>
+          
+          <div class="row gx-2"><div class="col">Cycle Time: </div><div class="col"><span id="value5" class="state"> Value </span></div><div class="col"><select id="selectvalue5" class="state"></select></div></div><br>
 
-          <div class="row gx-5"><div class="col">Value1: </div><div class="col"><span id="value1" class="state"> Value </span></div><div class="col"><select id="selectvalue1" value="0" class="state"><option value="0" selected="">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div></div><br>
-          
-          <div class="row gx-5"><div class="col">Value2: </div><div class="col"><span id="value2" class="state"> Value </span></div><div class="col"><select id="selectvalue2" value="0" class="state"><option value="0" selected="">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div></div><br>
-          
-          <div class="row gx-5"><div class="col">Value3: </div><div class="col"><span id="value3" class="state"> Value </span></div><div class="col"><select id="selectvalue3" value="0" class="state"><option value="0" selected="">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div></div><br>
-          
-          <div class="row gx-5"><div class="col">Value4: </div><div class="col"><span id="value4" class="state"> Value </span></div><div class="col"><select id="selectvalue4" value="0" class="state"><option value="0" selected="">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div></div><br>
-          
-          <div class="row gx-5"><div class="col">Value5: </div><div class="col"><span id="value5" class="state"> Value </span></div><div class="col"><select id="selectvalue5" value="0" class="state"><option value="0" selected="">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div></div><br>
+          <div class="row gx-2"><div class="col">Total Plan: </div><div class="col"><span id="value6" class="state"> Value </span></div><div class="col"><select id="selectvalue6" class="state"></select></div></div><br>
           
           <Center><span><button id="buttonsavecard" class="button">SAVE</button></span></Center>
         </div>                      
@@ -706,6 +741,182 @@
       </div> 
     </div>
   </div>
+
+  <!-- settingcard -->
+  <div class="modal" id="settingsModal.html" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>
+            <div class="modal-title"></div>
+          </h3>
+          <h5 class="modal-title" id="exampleModalLabel"></h5>
+          <button type="button" class="btn-close" onclick="CloseModalCardSet('cancel')"  aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <span class="modal-text" id="cardID"></span>
+          <!-- Form inside the modal with input fields for each value -->
+          <form>
+
+      <div class="row" id="name_product" style="display: none;">
+        <!-- <div class="input-group" style="width:100%">
+          <input type="text" class="form-control w50" id="dataProduct" translateph placeholder="Product json">
+        </div> -->
+      
+        <div style="margin-top: 10px;"> 
+          <label for="doiten" class="form-label">Change name</label>
+          <div style="display: flex; align-items: center;"> 
+            <input type="text" class="form-control" id="doiten" maxlength="20">
+            <button type="button" class="btn btn-warning" style="margin-left: 10px;" onclick="changeName()">Change</button> 
+          </div> 
+        </div>
+
+        <div style="margin-top: 10px;"> 
+          <label for="doiten" class="form-label">Add Product</label>
+        <div class="row">
+          <div class="col-sm-10" id="option_product" style="display: block;">
+              <div class="d-flex">
+                  <input id="newProductName" type="text" class="form-control" maxlength="20" placeholder="New name" style="margin-right: 10px;">
+                  <button onclick="addProduct()" type="button" class="btn btn-warning" style="margin-right: 10px;">Add</button> 
+              </div>
+          </div>
+          <div class="col-sm-2">
+              <button onclick="toggleDeleteProductList()" type="button" class="btn btn-warning">Option</button>
+          </div>
+      </div>
+      
+      
+
+          <div id="deleteProductList" style="display: none; margin-top: 20px;">
+            <table id="productTable" class="custom-table">
+              <thead>
+                <tr>
+                  <th style="width: 50%;">List of products</th>
+                  <th>Click to edit</th>
+                  <th>Click to delete</th>
+                </tr>
+              </thead>
+              <tbody id="productTableBody">
+              </tbody>
+            </table>
+            
+
+            <div id="editForm" data-index="0" style="display: none;">
+              <input type="text"  id="editProductName" maxlength="20" placeholder="Product Name" style="width: 34%; padding: 0.3rem 0.75rem; border-radius: 0.25rem; border: 1px solid #ced4da;">
+              <input type="text"  id="editProductSet" placeholder="Plan/Result set" style="width: 20%; padding: 0.3rem 0.75rem; border-radius: 0.25rem; border: 1px solid #ced4da;">
+              <input type="text"  id="editCycleTime" placeholder="Cycle Time" style="width: 20%; padding: 0.3rem 0.75rem; border-radius: 0.25rem; border: 1px solid #ced4da;">
+              <button type="button" onclick="saveProduct()" type="button" class="btn btn-warning">Save</button>
+              <button type="button" onclick="closeEditForm()" type="button" class="btn btn-secondary">Close</button>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+      
+      <div id="blockInput" style="display: block; padding-top: 20px;">
+        <div class="row">
+          <div class="col -3">
+              <label for="planInput" class="form-label">Plan</label>
+              <input type="text" class="form-control" id="planInput">
+          </div>
+          <div class="col -3">
+              <label for="resultInput" class="form-label">Result</label>
+              <input type="text" class="form-control" id="resultInput" >
+          </div>
+      </div>
+
+      <div class="row">
+        <div class="col -3">
+            <label for="planSetInput" class="form-label">Plan/Result set</label>
+            <input type="text" class="form-control" id="planSetInput">
+        </div>
+        <div class="col -3">
+            <!-- <label for="resultSetInput" class="form-label">Result set</label>
+            <input type="text" class="form-control" id="resultSetInput"> -->
+            <label  class="form-label">Product</label>
+            <div class="col">
+              <select id="ProductDataSaveSelect" onchange="displaySelectedProduct()" style="width: 100%; text-align: center; padding: 0.3rem 0.75rem; border-radius: 0.25rem; border: 1px solid #ced4da;"></select>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+      <div class="col -3">
+          <label for="TimeIncInput" class="form-label">Cycle Time</label>
+          <input type="text" class="form-control" id="TimeIncInput">
+      </div>
+      <div class="col -3">
+          <label for="PCSInput" class="form-label">Total Plan</label>
+          <input type="text" class="form-control" id="PCSInput">
+      </div>
+  </div>
+      </div>
+          </form>
+        </div>
+          <button type="button" class="btn btn-secondary" onclick="CloseModalCardSet('cancel')">Close</button>
+    </div>
+  </div>
+</div>
+<!-- Modal Change -->
+<div class="modal fade" id="passwordModalChange" tabindex="-1" aria-labelledby="passwordModalChangeLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        
+        <form> 
+          <p><h3 class="modal-title" id="passwordModalChangeLabel">Password</h3></p>
+        </form>
+
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" >
+        <h3>Please enter a new password</h3>
+        <div class="col" style="padding: 0 0 10px;">
+          <input type="password" id="pass_Save" class="form-control" placeholder="Please enter a new password">
+        </div>
+        <div class="col" style="padding: 0 0 10px;">
+          <input type="password" id="pass_Save_confirm" class="form-control" placeholder="Confirm your new password">
+        </div>
+        <div class="col" style="text-align: center;">
+          <button type="button" class="btn btn-warning" id="tennutluu"  onclick="validateAndSave()"  >Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Modal Thông báo Mật khẩu Sai -->
+<div class="modal fade" id="wrongPasswordModal" tabindex="-1"   aria-labelledby="wrongPasswordModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-body text-center">
+        <p>Incorrect password. Please try again!</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Thông báo Mật khẩu Đúng -->
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-body text-center">
+        <p>Login Successful!</p>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Modal Thông báo Mật khẩu Đúng -->
+<div class="modal fade" id="successModalChange" tabindex="-1" aria-labelledby="successModalChangeLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-body text-center">
+        <p>Password changed successfully!</p>
+      </div>
+    </div>
+  </div>
+</div>
 
   <script src="./main.js"></script>
 </body>

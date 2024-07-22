@@ -18,6 +18,13 @@ var app = 0;
 var nodeID = 1;
 var netID = 0;
 let jsonApp = "";
+var namecard = "";
+var selectvalue1;
+var selectvalue2;
+var selectvalue3;
+var selectvalue4; 
+var selectvalue5;
+var selectvalue6;
 const intervalId = setInterval(intervalHandle, 1000);
 window.addEventListener('beforeunload', () => clearInterval(intervalId));
 window.addEventListener('load', onLoad);
@@ -61,11 +68,12 @@ function onMessage(event) {
     alert("Completed setting!!!");
   }
   else if (message.Command == "Data") {
-    if(daload == 0){loadtable(event.data);daload = 1;}
+    if(daload == 0){loadtable(event.data);changeRegsoptions();daload = 1;}
     loadDataTable(event.data);
     addvaluecard(event.data);
     if(daloadvcard)updatevalue();
     jsontable = event.data;
+    
   }
   else if(message.Command == "ShowFile"){
     tablefile(event.data); 
@@ -75,8 +83,6 @@ function onMessage(event) {
 function onLoad(event) {
   initWebSocket();
   initButton();
-  // loadChart();
-
 }
 function io_ChangeState1() {
   io_array[4] = !io_array[4];
@@ -107,8 +113,103 @@ function initButton() {
   document.getElementById('buttonadd').addEventListener('click', AddCard);
   document.getElementById('bntLoadcard').addEventListener('click', buildCardJson);
   document.getElementById('buttonsavecard').addEventListener('click', SaveCard); 
+  document.getElementById('buttonlog').addEventListener('click', showlogin);
+
 }
 
+function closeModalUnlock(){
+  var modalElement = document.getElementById('passwordModal');
+  var modal = bootstrap.Modal.getInstance(modalElement); 
+  modal.hide(); 
+}
+function UnlockStaff(){
+  unlockValue = 1;
+  document.getElementById("roleAccount").innerHTML = "Staff";
+}
+function UnlockAdmin() {
+  unlockValue = 2;
+  document.getElementById("roleAccount").innerHTML = "Admin";
+}
+function LogOut() {
+  document.getElementById("roleAccount").innerHTML = "User";
+}
+function checkPassword(){
+  var password = document.getElementById('passwordInput').value;
+  //Admin
+  if(password == 'admin123'){
+    LogOut();
+    closeModalUnlock();
+    UnlockAdmin();
+    document.getElementById("passwordInput").value = "";
+    unlockSuccess();
+  }
+  //Staff
+  else if(password == 'staff123'){
+    LogOut();
+    closeModalUnlock();
+    UnlockStaff();
+    document.getElementById("passwordInput").value = "";
+    unlockSuccess();
+  }
+  else if(password == ''){
+    LogOut();
+    alert("Please enter password.");
+    unlockFail();
+    document.getElementById("passwordInput").value = "";
+  }
+  else{
+    LogOut();
+    unlockFail();
+    document.getElementById("passwordInput").value = "";
+  }
+}
+document.getElementById("passwordInput").addEventListener("keyup", function(event) {
+  if (event.key == "Enter") {
+      event.preventDefault();
+      checkPassword();
+  }
+});
+// function closeModalChange(){
+//   var modalElement = document.getElementById('passwordModalChange');
+//   var modal = bootstrap.Modal.getInstance(modalElement); 
+//   modal.hide(); 
+// }
+function unlockFail(){
+  var modal = new bootstrap.Modal(document.getElementById('wrongPasswordModal'));
+  modal.show();
+  setTimeout(function(){modal.hide(); }, 1000);
+}
+
+function unlockSuccess(){
+  var modal = new bootstrap.Modal(document.getElementById('successModal'));
+  modal.show();
+  setTimeout(function(){modal.hide(); }, 1000);
+}
+function ChangeSuccess(){
+  var modal = new bootstrap.Modal(document.getElementById('successModalChange'));
+  modal.show();
+  setTimeout(function(){modal.hide(); }, 1000);
+}
+function showlogin(){
+  var modal = new bootstrap.Modal(document.getElementById('passwordModal'));
+  document.getElementById("passwordInput").value = "";
+  modal.show();
+}
+var modalCardSet = new Object;
+modalCardSet.active = null
+modalCardSet.closefn = null;
+function CardSetup_dlg(titledlg, textdlg, closefunc ){
+  modalCardSet.active = document.getElementById('settingsModal.html');
+  var title = modalCardSet.active.getElementsByClassName("modal-title")[0];
+  var body = modalCardSet.active.getElementsByClassName("modal-text")[0];
+  title.innerHTML = titledlg;body.innerHTML = textdlg;cardID = textdlg;if (typeof closefunc === 'undefined') closefunc = CardSetClose;ShowModalCardSet(closefunc);      //loaddatasetting(textdlg);
+}
+function ShowModalCardSet(closefunc) { modalCardSet.active.style.display = "block"; modalCardSet.closefn = closefunc; }
+function CloseModalCardSet(response) { modalCardSet.active.style.display = 'none'; modalCardSet.closefn(response); var deleteProductList = document.getElementById("deleteProductList"); deleteProductList.style.display = "none"; }
+
+function CardSetClose(value) {
+  console.log(value); if (value == "Ok") { if (modalCardSet.active.getElementsByClassName("modal-title") == "Edit Application") { console.log("Edit App"); } else { saveSettings(cardID); } }
+}
 function buttontoggle(){
   IsConnect = !IsConnect;
 }
@@ -330,12 +431,7 @@ if (!!window.EventSource) {
     console.log("message", e.data);
   }, false);
 }
-function loadChart() {
-  var datalogHuy1 = " {\"Data\":[{\"address\":\"1\",\"value\":\"1\",\"type\":\"0\",\"slaveID\":\"1\"},{\"address\":\"2\",\"value\":\"2\",\"type\":\"3\",\"slaveID\":\"10\"},{\"address\":\"3\",\"value\":\"3\",\"type\":\"2\",\"slaveID\":\"3\"},{\"address\":\"4\",\"value\":\"4\",\"type\":\"1\",\"slaveID\":\"5\"},{\"address\":\"5\",\"value\":\"5\",\"type\":\"3\",\"slaveID\":\"133\"},{\"address\":\"6\",\"value\":\"6\",\"type\":\"1\",\"slaveID\":\"44\"},{\"address\":\"7\",\"value\":\"7\",\"type\":\"0\",\"slaveID\":\"20\"}]}";
-  // loadtable(datalogHuy1);
-  var datafile = "{\"ShowFile\":[{\"slaveID\":\"1\",\"name\":\"test.txt\",\"type\":\"0\",\"space\":\"100\"},{\"slaveID\":\"10\",\"name\":\"test1.json\",\"type\":\"1\",\"space\":\"20\"},{\"slaveID\":\"5\",\"name\":\"test2.html\",\"type\":\"1\",\"space\":\"10\"}]}";
-  // tablefile(datafile);
-}
+
 function saveModbusTable() {
   var msg = [];
   var msgOut = "{\"Command\":\"mbDataType\",\"lengh\":\"" + TableDataLen + "\",\"type\":[";
@@ -410,26 +506,24 @@ function tablefile(jsonValue){
   document.getElementById("free").innerHTML = (free/1024).toFixed(2) + "KB";
 }
 
-var a = 0;
-var b = 0;
-var c = 0;
-var d = 0;
+
 var value1 = 0;
 var value2 = 0;
 var value3 = 0;
 var value4 = 0;
 var value5 = 0;
+var value6 = 0;
 var id_card = 1; 
 var html="";
 var TableDataLen;
 function buildcard(jsoninput){
   html = "";
-  // jsoninput = "{\"Application\":[{\"app\":\"1,0,0,1,0,name,1,2,3,4,5\"},{\"app\":\"1,0,1,0,0,name2,10,7,6,0,0\"}]}";
+
   jsonAppInput = jsoninput;
   var jsonObj = JSON.parse(jsoninput);
   var appLen = jsonObj.Application.length;
   for(var i = 0 ; i < appLen ; i++){
-    var arrayData = [AppID,a,id_card,c,d,namecard,value1, value2, value3,value4, value5] = jsonObj.Application[i].app.split(",");
+    var arrayData = [AppID,poss,id_card,nodeID,netID,namecard,value1, value2, value3,value4, value5,value6] = jsonObj.Application[i].app.split(",");
     AddCardBody();
   }
   document.getElementById("addcard").innerHTML = html;
@@ -440,7 +534,7 @@ function updatevalue(){
   var jsonObj = JSON.parse(jsonAppInput);
   var appLen = jsonObj.Application.length;
   for (var i = 0; i < appLen; i++) {
-    var arrayData = [AppID,poss,id_card,nodeID,netID,namecard,value1, value2, value3,value4, value5] = jsonObj.Application[i].app.split(",");
+    var arrayData = [AppID,poss,id_card,nodeID,netID,namecard,value1, value2, value3,value4, value5,value6] = jsonObj.Application[i].app.split(",");
     var jsonTasbleObj = JSON.parse(jsontable);
 
     document.getElementById("card"+i+"value1").innerHTML = jsonTasbleObj.Data[value1].value;
@@ -448,57 +542,76 @@ function updatevalue(){
     document.getElementById("card"+i+"value3").innerHTML = jsonTasbleObj.Data[value3].value;
     document.getElementById("card"+i+"value4").innerHTML = jsonTasbleObj.Data[value4].value;
     document.getElementById("card"+i+"value5").innerHTML = jsonTasbleObj.Data[value5].value;
+    document.getElementById("card"+i+"value6").innerHTML = jsonTasbleObj.Data[value6].value;
     document.getElementById("namecard"+i).innerHTML = jsonObj.Application[i].app.split(",")[5];
   }
-  
+}
+function changeRegsoptions(){
+  var value = 0;
+  var htmlcard = "";
+  for(var k = 1; k < 7; k++) {
+    
+    for(var i=0; i<addresstbale.length; i++){
+      value = addresstbale[i];
+
+      htmlcard += "<option value="+value+">"+value+"</option>";
+    }
+    document.getElementById("selectvalue"+k).innerHTML = htmlcard;
+    htmlcard = "";
+  }
+
 }
 function AddCardBody(){
-  html+="<div class='cardcuatao'>\
+  html+="<div class='cardcuatao_input'>\
         <Center>\
           <h2><span id=\"namecard"+id_card+"\"></span> </h2>\
-          <p class=\"statecuatao\">ID: "+id_card+"</p>\
+          <p class=\"statecard\">ID: "+id_card+"</p>\
           <div class=\"container overflow-hidden text-center\">\
             <div class=\"row gy-5\">\
               <div class=\"col-4\">\
-                <div class=\"state\">Value 1:</div>\
+                <div class=\"statecard\">Plan:</div>\
               </div>\
               <div class=\"col-5\">\
-                <div class=\"state\" id=\"card"+id_card+"value1\"></div>\
+                <div class=\"statecard\" id=\"card"+id_card+"value1\"></div>\
               </div>\
               <div class=\"col-4\">\
-                <div class=\"state\">Value 2:</div>\
+                <div class=\"statecard\">Result:</div>\
               </div>\
               <div class=\"col-5\">\
-                <div class=\"state\" id=\"card"+id_card+"value2\"></div>\
+                <div class=\"statecard\" id=\"card"+id_card+"value2\"></div>\
               </div>\
               <div class=\"col-4\">\
-                <div class=\"state\">Value 3:</div>\
+                <div class=\"statecard\">Plan set:</div>\
               </div>\
               <div class=\"col-5\">\
-                <div class=\"state\" id=\"card"+id_card+"value3\"></div>\
+                <div class=\"statecard\" id=\"card"+id_card+"value3\"></div>\
               </div>\
               <div class=\"col-4\">\
-                <div class=\"state\">Value 4:</div>\
+                <div class=\"statecard\">Result set:</div>\
               </div>\
               <div class=\"col-5\">\
-                <div class=\"state\" id=\"card"+id_card+"value4\"></div>\
+                <div class=\"statecard\" id=\"card"+id_card+"value4\"></div>\
               </div>\
               <div class=\"col-4\">\
-                <div class=\"state\">Value 5:</div>\
+                <div class=\"statecard\">Cycle Time:</div>\
               </div>\
               <div class=\"col-5\">\
-                <div class=\"state\" id=\"card"+id_card+"value5\"></div>\
+                <div class=\"statecard\" id=\"card"+id_card+"value5\"></div>\
+              </div>\
+              <div class=\"col-4\">\
+                <div class=\"statecard\">Total Plan:</div>\
+              </div>\
+              <div class=\"col-5\">\
+                <div class=\"statecard\" id=\"card"+id_card+"value6\"></div>\
               </div>\
             </div>\
-        </Center>\
+            </Center>\
+            <div><span><button class=\"buttonA\" onclick=\"CardSetup_dlg('Edit Parameter',"+id_card+")\">Setting</button>\
+            <br><button id=\"buttonrun "+id_card+"\" class=\"buttonA\" onclick='changeState("+id_card+")'>Run</button>\
+            <br><button id=\"buttonreset "+id_card+"\" class=\"buttonA\" onclick='changeReset("+id_card+")'>Reset</button></span></div>\
       </div>\
     </div><br></br>";
 }
-var selectvalue1;
-var selectvalue2;
-var selectvalue3;
-var selectvalue4; 
-var selectvalue5;
 
 function addvaluecard(jsonValue){
   selectvalue2 = document.getElementById('selectvalue2').value;  
@@ -506,6 +619,7 @@ function addvaluecard(jsonValue){
   selectvalue3 = document.getElementById('selectvalue3').value;  
   selectvalue4 = document.getElementById('selectvalue4').value;  
   selectvalue5 = document.getElementById('selectvalue5').value;
+  selectvalue6 = document.getElementById('selectvalue6').value;
   var keys = JSON.parse(jsonValue);
   for(var i = 0; i < keys.Data.length;i++){
     id_slave = keys.Data.slaveID;
@@ -524,13 +638,16 @@ function addvaluecard(jsonValue){
     if(selectvalue5 == keys.Data[i].address){
       document.getElementById("value5").innerHTML = keys.Data[i].value;
     }
+    if(selectvalue6 == keys.Data[i].address){
+      document.getElementById("value6").innerHTML = keys.Data[i].value;
+    }
   }
 }
 var numCard = 0;
 var jsonout
 function SaveCard(){
-  var namecard = document.getElementById("input_namecard").value;
-  appData[app] = AppID+","+poss+","+app+","+nodeID+","+netID +","+namecard+","+selectvalue1+","+selectvalue2+","+selectvalue3+","+selectvalue4+","+selectvalue5;
+  namecard = document.getElementById("input_namecard").value;
+  appData[app] = AppID+","+poss+","+app+","+nodeID+","+netID +","+namecard+","+selectvalue1+","+selectvalue2+","+selectvalue3+","+selectvalue4+","+selectvalue5+","+selectvalue6;
   jsonApp = "{\"Application\":[{\"app\":\""+appData[0]+"\"}";
   if(app >0){
     for(var k = 1; k<(app+1);k++){
