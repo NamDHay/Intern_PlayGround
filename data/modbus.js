@@ -7,14 +7,21 @@ function settingmodbus() {
 function send_modbus() {
     var output = "";
     var modbustype_input = document.getElementById('typemodbus').value;
-
+    var baud_input;
+    var port_input;
+    var rtumode;
+    var ethip;
+    var gw;
+    var sn;
+    var dns;
+    var tcpmode;
     if (modbustype_input == "") {
         alert("chua chon mode modbus");
     }
     else if (modbustype_input == "0") {
-        var baud_input = document.getElementById('input_baud').value;
-        var port_input = document.getElementById('port').value;
-        var rtumode = document.getElementById('rtumode').value;
+        baud_input = document.getElementById('input_baud').value;
+        port_input = document.getElementById('port').value;
+        rtumode = document.getElementById('rtumode').value;
         if (baud_input == "") {
             alert("chua nhap baudrate");
         }
@@ -22,12 +29,12 @@ function send_modbus() {
             output = "{'Command':'settingModbus','baud':'" + baud_input + "','serial':'" + port_input + "','mbmaster':'" + rtumode + "','modbustype':'" + modbustype_input + "'}";
         }
     }
-    else {
-        var ethip = document.getElementById('input_ethip').value;
-        var gw = document.getElementById('input_gw').value;
-        var sn = document.getElementById('input_sn').value;
-        var dns = document.getElementById('input_dns').value
-        var tcpmode = document.getElementById('tcpmode').value;
+    else if (modbustype_input == "1") {
+        ethip = document.getElementById('input_ethip').value;
+        gw = document.getElementById('input_gw').value;
+        sn = document.getElementById('input_sn').value;
+        dns = document.getElementById('input_dns').value
+        tcpmode = document.getElementById('tcpmode').value;
         if (ethip == "") {
             alert("Chua nhap Ethernet IP");
         }
@@ -44,21 +51,60 @@ function send_modbus() {
             output = "{'Command':'settingModbus','ethip':'" + ethip + "','gw':'" + gw + "','sn':'" + sn + "','dns':'" + dns + "','mbclient':'" + tcpmode + "','modbustype':'" + modbustype_input + "'}";
         }
     }
+    else {
+
+        baud_input = document.getElementById('input_baud').value;
+        port_input = document.getElementById('port').value;
+        rtumode = document.getElementById('rtumode').value;
+        ethip = document.getElementById('input_ethip').value;
+        gw = document.getElementById('input_gw').value;
+        sn = document.getElementById('input_sn').value;
+        dns = document.getElementById('input_dns').value
+        tcpmode = document.getElementById('tcpmode').value;
+        if (baud_input == "") {
+            alert("chua nhap baudrate");
+        }
+        else if (ethip == "") {
+            alert("Chua nhap Ethernet IP");
+        }
+        else if (gw == "") {
+            alert("Chua nhap Gateway");
+        }
+        else if (sn == "") {
+            alert("Chua nhap Subnet");
+        }
+        else if (dns == "") {
+            alert("Chua nhap DNS");
+        }
+        else {
+            output = "{'Command':'settingModbus','baud':'" + baud_input + "','serial':'" + port_input + "','mbmaster':'" + rtumode + "','ethip':'" + ethip + "','gw':'" + gw + "','sn':'" + sn + "','dns':'" + dns + "','mbclient':'" + tcpmode + "','modbustype':'" + modbustype_input + "'}";
+        }
+    }
     console.log(output);
     websocket.send(output);
 }
-function saveModbusTable() {
+function saveModbusTableRTU() {
     var msg = [];
     var msgOut = "{\"Command\":\"mbDataType\",\"lengh\":\"" + TableDataLen + "\",\"type\":[";
     for (var i = 0; i < TableDataLen; i++) { if (document.getElementById("SelectType" + i).value != null) msg[i] = document.getElementById("SelectType" + i).value; }
     msgOut += msg[0];
     for (var i = 1; i < TableDataLen; i++) { msgOut += "," + msg[i]; }
     msgOut += "]}";
-    loading = 0;
+    loadingRTU = 0;
     websocket.send(msgOut);
     console.log(msgOut);
 }
-
+function saveModbusTableTCP() {
+    var msg = [];
+    var msgOut = "{\"Command\":\"mbDataType\",\"lengh\":\"" + TableDataLen + "\",\"type\":[";
+    for (var i = 0; i < TableDataLen; i++) { if (document.getElementById("SelectType" + i).value != null) msg[i] = document.getElementById("SelectType" + i).value; }
+    msgOut += msg[0];
+    for (var i = 1; i < TableDataLen; i++) { msgOut += "," + msg[i]; }
+    msgOut += "]}";
+    loadingTCP = 0;
+    websocket.send(msgOut);
+    console.log(msgOut);
+}
 const select = document.getElementById('typemodbus');
 select.addEventListener('change', function handleChange(event) {
     console.log(event.target.value);
@@ -111,7 +157,8 @@ slaveslect.addEventListener('change', function handleChange(event) {
     }
 });
 var numSlave = 0;
-// let slave_array = "{\"Command\":\"SlaveArray\",\"SlaveArray\":[]}";
+var numSlaveTCP = 0;
+var numSlaveRTU = 0;
 function addSlave() {
 
     var slave_type = document.getElementById('slavetype').value;
@@ -148,21 +195,30 @@ function addSlave() {
         alert("chua nhap Dia chi ghi ket thuc");
     }
     else {
-        var slave_object = "{\"Command\":\"SlaveArray\",\"SlaveArray\":[{\"slaveType\":\"" + (slave_type) + "\",\"ID\":\"" + id_address + "\",\"writeStart\":\"" + wsaddres_input + "\",\"writeEnd\":\"" + weaddres_input + "\",\"readStart\":\"" + rsaddres_input + "\",\"readEnd\":\"" + readdres_input + "\"}]}";
-
-        console.log(slave_object);
-        numSlave++;
+        var slave_object = "";
+        if (slave_type == "0") {
+            slave_object = "{\"Command\":\"SlaveArray\",\"SlaveArray\":[{\"slaveType\":\"" + (slave_type) + "\",\"ID\":\"" + id_address + "\",\"writeStart\":\"" + wsaddres_input + "\",\"writeEnd\":\"" + weaddres_input + "\",\"readStart\":\"" + rsaddres_input + "\",\"readEnd\":\"" + readdres_input + "\"}]}";
+            numSlaveRTU++;
+        }
+        else if (slave_type == "1") {
+            slave_object = "{\"Command\":\"SlaveArray\",\"SlaveArray\":[{\"slaveType\":\"" + (slave_type) + "\",\"ID\":\"" + ip_address + "\",\"writeStart\":\"" + wsaddres_input + "\",\"writeEnd\":\"" + weaddres_input + "\",\"readStart\":\"" + rsaddres_input + "\",\"readEnd\":\"" + readdres_input + "\"}]}";
+            numSlaveTCP++;
+        }
+        numSlave = numSlaveRTU + numSlaveTCP;
+        // console.log(slave_object);
     }
     addSlaveCard();
     initData(slave_object);
     websocket.send(slave_object);
 }
 
-
 function addSlaveCard() {
     var slave_card_html = "";
     var card_html = "";
-    var select_salve_html = "<div>Slave ID: <select id=\"selectSlaveID\">\
+    var select_slaveRTU_html = "<div>Slave ID: <select id=\"selectSlaveID\">\
+                            <option value=\"\">--Choose an option--</option>\
+                            </select></div>";
+    var select_slaveTCP_html = "<div>Slave IP: <select id=\"selectSlaveIP\">\
                             <option value=\"\">--Choose an option--</option>\
                             </select></div>";
     for (var i = 0; i < numSlave; i++) {
@@ -186,18 +242,19 @@ function addSlaveCard() {
         }
     }
     document.getElementById("slavecard").innerHTML = slave_card_html;
-    document.getElementById("selectSlave").innerHTML = select_salve_html;
+    document.getElementById("selectSlaveRTU").innerHTML = select_slaveRTU_html;
+    document.getElementById("selectSlaveTCP").innerHTML = select_slaveTCP_html;
 
 }
-
+// {"Command":"SlaveArray","SlaveArray":[{"slaveType":"0","ID":"1","writeStart":"6120","writeEnd":"6129","readStart":"6096","readEnd":"6119"}]}
 function initData(jsonValue) {
+    console.log(jsonValue);
     var slave_obj = JSON.parse(jsonValue);
-
-    var ID = slave_obj.SlaveArray.ID;
-    var ws = slave_obj.SlaveArray.writeStart;
-    var we = slave_obj.SlaveArray.writeEnd;
-    var rs = slave_obj.SlaveArray.readStart;
-    var re = slave_obj.SlaveArray.readEnd;
+    var ID = slave_obj.SlaveArray[0].ID;
+    var ws = slave_obj.SlaveArray[0].writeStart;
+    var we = slave_obj.SlaveArray[0].writeEnd;
+    var rs = slave_obj.SlaveArray[0].readStart;
+    var re = slave_obj.SlaveArray[0].readEnd;
 
     document.getElementById('headerNo' + (numSlave - 1)).innerHTML = (numSlave - 1);
     document.getElementById('slave' + (numSlave - 1)).innerHTML = ID;
@@ -226,18 +283,21 @@ function loadBoardSlave(jsonValue) {
         document.getElementById('ws' + i).innerHTML = ws;
         document.getElementById('we' + i).innerHTML = we;
 
-        optValue = i;
+        optValue = ID;
         optText = ID;
 
         $('#selectSlaveID').append(`<option value="${optValue}">${optText}</option>`);
+        $('#selectSlaveIP').append(`<option value="${optValue}">${optText}</option>`);
     }
 }
 
-var loading = 0;
-var firstload = 0;
-function loadtable(jsonValue) {
-    if (firstload == 1) {
-        firstload = 0
+var loadingRTU = 0;
+var firstloadRTU = 0;
+var loadingTCP = 0;
+var firstloadTCP = 0;
+function loadtableRTU(jsonValue) {
+    if (firstloadRTU == 1) {
+        firstloadRTU = 0
         var TableHTML = "";
         TableHTML = "<table class=\"table \"><thead class=\"thead-dark\"><th>STT</th><th>Address</th><th>Type Data</th><th>Data</th></thead><tbody>";
         var keys = JSON.parse(jsonValue);
@@ -257,19 +317,73 @@ function loadtable(jsonValue) {
             TableHTML += "<tr><td>" + stt + "</td><td>" + address + "</td><td>" + type + "</td><td><div id=\"value" + i + "\">NULL</div></td></tr>";
         }
         TableHTML += "</tbody></table></br>";
-        document.getElementById("TableData").innerHTML = TableHTML;
-        loading = 1;
+        document.getElementById("TableDataRTU").innerHTML = TableHTML;
+        loadingRTU = 1;
+    }
+}
+function loadtableTCP(jsonValue) {
+    if (firstloadTCP == 1) {
+        firstloadTCP = 0
+        var TableHTML = "";
+        TableHTML = "<table class=\"table \"><thead class=\"thead-dark\"><th>STT</th><th>Address</th><th>Type Data</th><th>Data</th></thead><tbody>";
+        var keys = JSON.parse(jsonValue);
+        var stt = 0;
+        TableDataLen = keys.Data.length;
+        console.log("datalen" + TableDataLen);
+        for (var i = 0; i < TableDataLen; i++) {
+            stt++;
+            var address = keys.Data[i].address;
+            if (keys.Data[i].address == null) { TableDataLen = i; break; }
+            var type = "<select id=\"SelectType" + i + "\"><option value=0 %0%>WORD</option><option value=1 %1%>COIL</option><option value=2 %2%>DWORD</option><option value=3 %3%>FLOAT</option></select>";
+
+            if (keys.Data[i].type == "0") { type = type.replace("%0%", "selected"); type = type.replace("%1%", ""); type = type.replace("%2%", ""); type = type.replace("%3%", ""); }
+            if (keys.Data[i].type == "1") { type = type.replace("%1%", "selected"); type = type.replace("%0%", ""); type = type.replace("%2%", ""); type = type.replace("%3%", ""); }
+            if (keys.Data[i].type == "2") { type = type.replace("%2%", "selected"); type = type.replace("%1%", ""); type = type.replace("%0%", ""); type = type.replace("%3%", ""); }
+            if (keys.Data[i].type == "3") { type = type.replace("%3%", "selected"); type = type.replace("%1%", ""); type = type.replace("%2%", ""); type = type.replace("%0%", ""); }
+            TableHTML += "<tr><td>" + stt + "</td><td>" + address + "</td><td>" + type + "</td><td><div id=\"value" + i + "\">NULL</div></td></tr>";
+        }
+        TableHTML += "</tbody></table></br>";
+        document.getElementById("TableDataTCP").innerHTML = TableHTML;
+        loadingTCP = 1;
     }
 }
 
-function sendSelectSlave() {
+function sendSelectSlaveRTU() {
     var json_send = "";
     var select = document.getElementById("selectSlaveID").value;
+    var length = select.length;
     if (select == "")
         alert("Chua chon Slave");
     else
         console.log(select);
-    json_send = "{\"Command\":\"loadSlaveTable\",\"SlaveID\":\"" + select + "\"}";
+    if (length < 5) {
+        json_send = "{\"Command\":\"loadSlaveTable\",\"SlaveID\":\"" + select + "\",\"Type\":\"0\"}";
+    }
+    else {
+        json_send = "{\"Command\":\"loadSlaveTable\",\"SlaveID\":\"" + select + "\",\"Type\":\"1\"}";
+    }
+    console.log(json_send);
+    websocket.send(json_send);
+}
+function sendSelectSlaveTCP() {
+    var json_send = "";
+    var select = document.getElementById("selectSlaveIP").value;
+    var length = select.length;
+    if (select == "")
+        alert("Chua chon Slave");
+    else
+        console.log(select);
+    if (length < 5) {
+        json_send = "{\"Command\":\"loadSlaveTable\",\"SlaveID\":\"" + select + "\",\"Type\":\"0\"}";
+    }
+    else {
+        json_send = "{\"Command\":\"loadSlaveTable\",\"SlaveID\":\"" + select + "\",\"Type\":\"1\"}";
+    }
+    console.log(json_send);
+    websocket.send(json_send);
+}
+function clearSlave() {
+    var json_send = "{\"Command\":\"clearSlave\"}";
     console.log(json_send);
     websocket.send(json_send);
 }

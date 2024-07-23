@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>WIFI SETTING</title>
+    <title>SYSTEM CONTROL</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/png">
     <style>
@@ -14192,9 +14192,9 @@
             border-color: #d6d8db;
         }
     </style>
-    <title>WIFI SETTING</title>
+    <title>SYSTEM CONTROL</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" href="http://192.168.1.128/">
+    <link rel="icon">
 </head>
 
 <body>
@@ -14392,7 +14392,7 @@
     </svg>
     <div class="topnav">
         <Center>
-            <h1>WIFI SETTING</h1>
+            <h1>SYSTEM CONTROL</h1>
         </Center>
     </div>
 
@@ -14416,12 +14416,19 @@
                     <a class="navbar-brand" id="tabshowfile"
                         style="font-size: 2.0rem; font-weight: bold; text-align: center; color: yellow; ">Show File</a>
                 </li>
-
             </ul>
             <ul class="navbar-nav" style="height: 40px;">
+
+                <li class="nav-item" style="position: absolute; right: 60px;">
+                    <div>
+                        <svg class="bi" width="24" height="24" id="connectState"
+                            style="background-color: rgb(100, 100, 100);">
+                            <use xlink:href="#icon-wifi"></use>
+                        </svg>
+                    </div>
+                </li>
                 <li class="nav-item dropdown" style="position: absolute; right: 0px;">
-                    <a class="nav-link dropdown-toggle" href="http://192.168.1.128/" role="button"
-                        data-bs-toggle="dropdown" aria-expanded="false">
+                    <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <svg class="bi" width="24" height="24">
                             <use xlink:href="#gear_fill_icon"></use>
                         </svg>
@@ -14479,15 +14486,27 @@
 
     <!-- Tab Home -->
     <div id="cardhome" class="contentcuatao" style="display: block;">
-        <div class="cardcuatao">
-            <CENTER>
-                <h2>TABLE DATA</h2>
-                <div id="selectSlave"></div><br>
-                <button class="button" onclick="sendSelectSlave()">Select</button><br><br>
-                <div id="TableData"></div>
-                <button class="button" onclick="saveModbusTable()">SAVE</button>
-            </CENTER>
+        <div class="row justify-content-around">
+            <div class="cardcuatao col-6">
+                <CENTER>
+                    <h2>TABLE DATA</h2>
+                    <div id="selectSlaveRTU"></div><br>
+                    <button class="button" onclick="sendSelectSlaveRTU()">Select</button><br><br>
+                    <div id="TableDataRTU"></div><br>
+                    <button class="button" onclick="saveModbusTableRTU()">SAVE</button>
+                </CENTER>
+            </div>
+            <div class="cardcuatao col-6">
+                <CENTER>
+                    <h2>TABLE DATA</h2>
+                    <div id="selectSlaveTCP"></div><br>
+                    <button class="button" onclick="sendSelectSlaveTCP()">Select</button><br><br>
+                    <div id="TableDataTCP"></div><br>
+                    <button class="button" onclick="saveModbusTableTCP()">SAVE</button>
+                </CENTER>
+            </div>
         </div>
+
     </div>
 
     <!-- Tab IO Config -->
@@ -14570,58 +14589,19 @@
             <div id="modedisplay"></div>
             <Center><span><button id="buttonsend" class="button">SEND</button></span></Center>
         </div><br>
-        <Center><span><button id="addslave" class="button">ADD</button></span></Center><br>
+        <div class="row justify-content-around">
+            <button id="addslave" class="button col-2">ADD</button>
+            <button id="buttonclearslave" class="button col-2" onclick="clearSlave()">CLEAR</button>
+        </div><br>
         <div id="slavecard"></div>
-        <!-- <div class="row justify-content-around">
-            <div class="col-2 cardcuatao">
-                <h5 class="state">
-                    <CENTER> No :<span id="headerNo" +i>%NO%</span></CENTER>
-                </h5>
-                <p class="state">ID: <span id="slave" +i>%ID%</span></p>
-                <p class="state">READ</p>
-                <p class="state">From <span id="rs" +i>%S%</span> To <span id="re" +i>%E%</span></p>
-                <p class="state">WRITE</p>
-                <p class="state">From <span id="ws" +i>%S%</span> To <span id="we" +i>%E%</span></p>
-            </div>
-
-            <div class="col-2 cardcuatao">
-                <h5 class="state">
-                    <CENTER> No :<span id="headerNo" +i>%NO%</span></CENTER>
-                </h5>
-                <p class="state">ID: <span id="slave" +i>%ID%</span></p>
-                <p class="state">READ</p>
-                <p class="state">From <span id="rs" +i>%S%</span> To <span id="re" +i>%E%</span></p>
-                <p class="state">WRITE</p>
-                <p class="state">From <span id="ws" +i>%S%</span> To <span id="we" +i>%E%</span></p>
-            </div>
-            <div class="col-2 cardcuatao">
-                <h5 class="state">
-                    <CENTER> No :<span id="headerNo" +i>%NO%</span></CENTER>
-                </h5>
-                <p class="state">ID: <span id="slave" +i>%ID%</span></p>
-                <p class="state">READ</p>
-                <p class="state">From <span id="rs" +i>%S%</span> To <span id="re" +i>%E%</span></p>
-                <p class="state">WRITE</p>
-                <p class="state">From <span id="ws" +i>%S%</span> To <span id="we" +i>%E%</span></p>
-            </div>
-            <div class="col-2 cardcuatao">
-                <h5 class="state">
-                    <CENTER> No :<span id="headerNo" +i>%NO%</span></CENTER>
-                </h5>
-                <p class="state">ID: <span id="slave" +i>%ID%</span></p>
-                <p class="state">READ</p>
-                <p class="state">From <span id="rs" +i>%S%</span> To <span id="re" +i>%E%</span></p>
-                <p class="state">WRITE</p>
-                <p class="state">From <span id="ws" +i>%S%</span> To <span id="we" +i>%E%</span></p>
-            </div>
-        </div><br> -->
     </div><br>
     <div class="modal fade" id="cardadd" tabindex="-1" aria-labelledby="settingModalSPLabel" aria-hidden="true"
         style="display: none;">
         <div class="modal-dialog">
             <div class="modal-content" style="width: fit-content;">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="settingModalLabel " style="font-size: 1.5rem; font-weight: bold;">Slave
+                    <h5 class="modal-title" id="settingModalLabel " style="font-size: 1.5rem; font-weight: bold;">
+                        Slave
                         Config</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -14710,7 +14690,7 @@
                                 </svg>
                             </button>
                         </div>
-                        <form action="http://192.168.1.128/getIP">
+                        <form>
                             <div id="wifi" class="tabcontent" style="display: block;">
                                 <div id="WifiList"></div>
                                 <div class="container py-3">
@@ -14756,8 +14736,10 @@
                                     </div><br>
                                     <div>SUBNET: <input type="text" id="subnet" size="20" placeholder="255.255.255.0">
                                     </div><br>
-                                    <div>P_DNS: <input type="text" id="p_dns" size="20" placeholder="8.8.8.8"></div><br>
-                                    <div>S_DNS: <input type="text" id="s_dns" size="20" placeholder="8.8.4.4"></div><br>
+                                    <div>P_DNS: <input type="text" id="p_dns" size="20" placeholder="8.8.8.8"></div>
+                                    <br>
+                                    <div>S_DNS: <input type="text" id="s_dns" size="20" placeholder="8.8.4.4"></div>
+                                    <br>
                                     <div>P_PORT: <input type="number" id="p_port" size="4" placeholder="502"></div>
                                 </div>
                             </div>
@@ -14770,7 +14752,8 @@
                                         </div>
                                     </header>
                                     <div>MQTT_HOST: <input type="text" id="MQTT_Host" size="20" value=""></div><br>
-                                    <div>MQTT_PORT: <input type="number" id="MQTT_Port" size="20" value=""></div><br>
+                                    <div>MQTT_PORT: <input type="number" id="MQTT_Port" size="20" value=""></div>
+                                    <br>
                                     <div>MQTT_USER: <input type="text" id="MQTT_user" size="20" value=""></div><br>
                                     <div>MQTT_PASS: <input type="text" id="MQTT_pass" size="20" value=""></div>
                                 </div>

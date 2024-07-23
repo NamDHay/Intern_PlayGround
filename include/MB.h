@@ -6,13 +6,35 @@
 #include <ModbusIP_ESP8266.h>
 #include <ModbusRTU.h>
 
+class MODBUS_PARAMETER
+{
+    bool loadTable;
+    uint8_t typeTable;
+    byte slaveTable;
+    uint8_t numSlave;
+    struct Address_t
+    {
+        long startAddress;
+        long endAddress;
+    };
+    struct Slave_t
+    {
+        Address_t WriteAddress;
+        Address_t ReadAddress;
+        String ID;
+        uint8_t typeData[200];
+    };
+    Slave_t slave[255];
+};
+extern MODBUS_PARAMETER mbParam;
 class MODBUS_RTU
 {
 public:
     bool loadTable;
-    uint8_t master;
-    uint8_t numSlave;
+    uint8_t typeTable;
     byte slaveTable;
+    uint8_t numSlave;
+    uint8_t master;
     QueueHandle_t qUpdateTable;
     struct Config_t
     {
@@ -26,12 +48,12 @@ public:
     };
     struct Slave_t
     {
-        byte ID;
+        String ID;
         Address_t WriteAddress;
         Address_t ReadAddress;
+        uint8_t typeData[200];
     };
     Slave_t slave[20];
-    uint8_t typeData[200];
 
     void MasterInit(HardwareSerial *port, unsigned long baud);
     void SlaveInit(HardwareSerial *port, unsigned long baud);
@@ -46,7 +68,12 @@ public:
 class MODBUS_TCP
 {
 public:
+    bool loadTable;
+    uint8_t typeTable;
+    byte slaveTable;
+    uint8_t numSlave;
     uint8_t client;
+    QueueHandle_t qUpdateTable;
     struct ethernet_t
     {
         String ipAdress;
@@ -55,7 +82,6 @@ public:
         String primaryDNS;
     };
     ethernet_t ethernet;
-    String remote;
     struct Address_t
     {
         long startAddress;
@@ -66,15 +92,9 @@ public:
         String IP;
         Address_t WriteAddress;
         Address_t ReadAddress;
+        uint8_t typeData[200];
     };
     Slave_t slave[20];
-
-    Address_t ServerWriteReg;
-    Address_t ServerReadReg;
-    Address_t ClientWriteReg;
-    Address_t ClientReadReg;
-
-    uint8_t typeData[200];
 
     void EthernetInit();
     void ClientInit();

@@ -2,7 +2,6 @@
 #include <MB.h>
 #include <HTML.h>
 #include <File_System.h>
-#include <IO_Config.h>
 #include <time.h>
 
 AsyncWebServer server(80);
@@ -18,11 +17,7 @@ const IPAddress localIP(192, 168, 4, 1);      // the IP address the web server, 
 const IPAddress gatewayIP(192, 168, 4, 1);    // IP address of the network should be the same as the local IP for captive portals
 const IPAddress subnetMask(255, 255, 255, 0); // no need to change: https://avinetworks.com/glossary/subnet-mask/
 
-const String localIPURL = "http://192.168.4.1/setting/"; // a string version of the local IP with http, used for redirecting clients to your webpage
-
-const char *ntpServer = "vn.pool.ntp.org";
-const long gmtOffset_sec = 3600;
-const int daylightOffset_sec = 3600;
+const String localIPURL = "http://192.168.4.1/"; // a string version of the local IP with http, used for redirecting clients to your webpage
 
 void OnlineManage::Init()
 {
@@ -46,7 +41,6 @@ void OnlineManage::Init()
         online.AP_Mode();
         online.Get_AP_IP();
     }
-    online.NTPInit();
     online.WebSocketInit();
     online.PortalInit();
     online.WebHandle();
@@ -153,7 +147,7 @@ void OnlineManage::PortalInit()
     dnsServer.start(53, "*", WiFi.softAPIP());
 
     Serial.print("\n");
-    Serial.print("Startup Time:"); // should be somewhere between 270-350 for Generic ESP32 (D0WDQ6 chip, can have a higher startup time on first boot)
+    Serial.print("Startup Time:");
     Serial.println(millis());
     Serial.print("\n");
 }
@@ -197,11 +191,52 @@ void mbDataTypeHandler()
     bool IsSetTable = true;
     xQueueSend(modbusRTU.qUpdateTable, (void *)&IsSetTable, 1 / portTICK_PERIOD_MS);
 }
+// {"Command":"SlaveArray","SlaveArray":[{"slaveType":"1","ID":"undefined","writeStart":"9120","writeEnd":"9129","readStart":"6096","readEnd":"9119"}]}
 void mbSlavehandler()
 {
+
+    // if (rdoc["SlaveArray"][0]["slaveType"] == "0")
+    // {
+    //     modbusRTU.numSlave++;
+
+    //     modbusRTU.slave[(modbusRTU.numSlave - 1)].ID = rdoc["SlaveArray"][0]["ID"];
+    //     modbusRTU.slave[(modbusRTU.numSlave - 1)].ReadAddress.startAddress = rdoc["SlaveArray"][0]["readStart"];
+    //     modbusRTU.slave[(modbusRTU.numSlave - 1)].ReadAddress.endAddress = rdoc["SlaveArray"][0]["readEnd"];
+    //     modbusRTU.slave[(modbusRTU.numSlave - 1)].WriteAddress.startAddress = rdoc["SlaveArray"][0]["writeStart"];
+    //     modbusRTU.slave[(modbusRTU.numSlave - 1)].WriteAddress.endAddress = rdoc["SlaveArray"][0]["writeEnd"];
+
+    //     Serial.println("Node: " + String((modbusRTU.numSlave - 1)));
+    //     Serial.println("ID: " + String(modbusRTU.slave[(modbusRTU.numSlave - 1)].ID));
+    //     Serial.println("ReadStart: " + String(modbusRTU.slave[(modbusRTU.numSlave - 1)].ReadAddress.startAddress));
+    //     Serial.println("ReadEnd: " + String(modbusRTU.slave[(modbusRTU.numSlave - 1)].ReadAddress.endAddress));
+    //     Serial.println("WriteStart: " + String(modbusRTU.slave[(modbusRTU.numSlave - 1)].WriteAddress.startAddress));
+    //     Serial.println("WriteEnd: " + String(modbusRTU.slave[(modbusRTU.numSlave - 1)].WriteAddress.endAddress));
+
+    //     modbusRTU.writeSlave();
+    // }
+    // else
+    // {
+    //     modbusTCP.numSlave++;
+
+    //     modbusTCP.slave[(modbusTCP.numSlave - 1)].IP = rdoc["SlaveArray"][0]["ID"].as<String>();
+    //     modbusTCP.slave[(modbusTCP.numSlave - 1)].ReadAddress.startAddress = rdoc["SlaveArray"][0]["readStart"];
+    //     modbusTCP.slave[(modbusTCP.numSlave - 1)].ReadAddress.endAddress = rdoc["SlaveArray"][0]["readEnd"];
+    //     modbusTCP.slave[(modbusTCP.numSlave - 1)].WriteAddress.startAddress = rdoc["SlaveArray"][0]["writeStart"];
+    //     modbusTCP.slave[(modbusTCP.numSlave - 1)].WriteAddress.endAddress = rdoc["SlaveArray"][0]["writeEnd"];
+
+    //     Serial.println("Node: " + String((modbusTCP.numSlave - 1)));
+    //     Serial.println("ID: " + String(modbusTCP.slave[(modbusTCP.numSlave - 1)].IP));
+    //     Serial.println("ReadStart: " + String(modbusTCP.slave[(modbusTCP.numSlave - 1)].ReadAddress.startAddress));
+    //     Serial.println("ReadEnd: " + String(modbusTCP.slave[(modbusTCP.numSlave - 1)].ReadAddress.endAddress));
+    //     Serial.println("WriteStart: " + String(modbusTCP.slave[(modbusTCP.numSlave - 1)].WriteAddress.startAddress));
+    //     Serial.println("WriteEnd: " + String(modbusTCP.slave[(modbusTCP.numSlave - 1)].WriteAddress.endAddress));
+
+    //     modbusTCP.writeSlave();
+    // }
+
     modbusRTU.numSlave++;
 
-    modbusRTU.slave[(modbusRTU.numSlave - 1)].ID = rdoc["SlaveArray"][0]["ID"];
+    modbusRTU.slave[(modbusRTU.numSlave - 1)].ID = rdoc["SlaveArray"][0]["ID"].as<String>();
     modbusRTU.slave[(modbusRTU.numSlave - 1)].ReadAddress.startAddress = rdoc["SlaveArray"][0]["readStart"];
     modbusRTU.slave[(modbusRTU.numSlave - 1)].ReadAddress.endAddress = rdoc["SlaveArray"][0]["readEnd"];
     modbusRTU.slave[(modbusRTU.numSlave - 1)].WriteAddress.startAddress = rdoc["SlaveArray"][0]["writeStart"];
@@ -214,27 +249,42 @@ void mbSlavehandler()
     Serial.println("WriteStart: " + String(modbusRTU.slave[(modbusRTU.numSlave - 1)].WriteAddress.startAddress));
     Serial.println("WriteEnd: " + String(modbusRTU.slave[(modbusRTU.numSlave - 1)].WriteAddress.endAddress));
 
+    modbusRTU.writeSlave();
+
     wDoc["Command"] = "SlaveArray";
     wDoc["Data"] = "AddDone";
     serializeJson(wDoc, fbDataString);
     online.notifyClients(fbDataString);
-    modbusRTU.writeSlave();
 }
 void mbSendSlavehandler()
 {
+    uint8_t count = 0;
     wDoc["Command"] = "getTotalSlave";
 
     for (byte i = 0; i < modbusRTU.numSlave; i++)
     {
-        wDoc["SlaveArray"][i]["slaveType"] = 0;
-        wDoc["SlaveArray"][i]["ID"] = modbusRTU.slave[i].ID;
-        wDoc["SlaveArray"][i]["readStart"] = modbusRTU.slave[i].ReadAddress.startAddress;
-        wDoc["SlaveArray"][i]["readEnd"] = modbusRTU.slave[i].ReadAddress.endAddress;
-        wDoc["SlaveArray"][i]["writeStart"] = modbusRTU.slave[i].WriteAddress.startAddress;
-        wDoc["SlaveArray"][i]["writeEnd"] = modbusRTU.slave[i].WriteAddress.endAddress;
+        wDoc["SlaveArray"][count]["slaveType"] = 0;
+        wDoc["SlaveArray"][count]["ID"] = modbusRTU.slave[i].ID;
+        wDoc["SlaveArray"][count]["readStart"] = modbusRTU.slave[i].ReadAddress.startAddress;
+        wDoc["SlaveArray"][count]["readEnd"] = modbusRTU.slave[i].ReadAddress.endAddress;
+        wDoc["SlaveArray"][count]["writeStart"] = modbusRTU.slave[i].WriteAddress.startAddress;
+        wDoc["SlaveArray"][count]["writeEnd"] = modbusRTU.slave[i].WriteAddress.endAddress;
+        count++;
+    }
+
+    for (byte j = 0; j < modbusTCP.numSlave; j++)
+    {
+        wDoc["SlaveArray"][count]["slaveType"] = 1;
+        wDoc["SlaveArray"][count]["ID"] = modbusTCP.slave[j].IP;
+        wDoc["SlaveArray"][count]["readStart"] = modbusTCP.slave[j].ReadAddress.startAddress;
+        wDoc["SlaveArray"][count]["readEnd"] = modbusTCP.slave[j].ReadAddress.endAddress;
+        wDoc["SlaveArray"][count]["writeStart"] = modbusTCP.slave[j].WriteAddress.startAddress;
+        wDoc["SlaveArray"][count]["writeEnd"] = modbusTCP.slave[j].WriteAddress.endAddress;
+        count++;
     }
 
     serializeJson(wDoc, fbDataString);
+    serializeJsonPretty(wDoc, Serial);
     online.notifyClients(fbDataString);
 }
 void setModbusHandler()
@@ -275,7 +325,6 @@ void setModbusHandler()
         dns = rdoc["dns"].as<String>();
         mbclient = rdoc["mbclient"].as<String>();
 
-        // modbusTCP.client = (mbclient == "0") ? 0 : 1;
         modbusTCP.ethernet.ipAdress = ethip;
         modbusTCP.ethernet.gateway = gw;
         modbusTCP.ethernet.subnet = sn;
@@ -290,7 +339,6 @@ void setModbusHandler()
         serial = rdoc["serial"].as<String>();
         mbmaster = rdoc["mbmaster"].as<String>();
 
-        // modbusRTU.master = (mbmaster == "0") ? 0 : 1;
         modbusRTU.config.baud = baud.toInt();
         modbusRTU.config.port = (serial == "0") ? &Serial1 : &Serial2;
 
@@ -300,7 +348,6 @@ void setModbusHandler()
         dns = rdoc["dns"].as<String>();
         mbclient = rdoc["mbclient"].as<String>();
 
-        // modbusTCP.client = (mbclient == "0") ? 0 : 1;
         modbusTCP.ethernet.ipAdress = ethip;
         modbusTCP.ethernet.gateway = gw;
         modbusTCP.ethernet.subnet = sn;
@@ -361,28 +408,8 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         deserializeJson(rdoc, DataStr);
         Serial.println(DataStr);
         String command = rdoc["Command"].as<String>();
-        if (command == "toggleLed")
-        {
-            wDoc["Command"] = "toggleLed";
-            wDoc["Data"] = digitalRead(LED);
-            serializeJson(wDoc, fbDataString);
-            online.notifyClients(fbDataString);
-            digitalWrite(LED, !digitalRead(LED));
-        }
-        else if (command == "getMem")
-        {
-            Serial.print("Usage heap memory: ");
-            Serial.println((ESP.getHeapSize() - ESP.getFreeHeap()));
-            wDoc["Command"] = "getMem";
-            wDoc[""] = (ESP.getHeapSize() - ESP.getFreeHeap());
-            serializeJson(wDoc, fbDataString);
-            online.notifyClients(fbDataString);
-        }
-        else if (command == "getIO")
-        {
-            // getIOHandler();
-        }
-        else if (command == "settingModbus")
+
+        if (command == "settingModbus")
         {
             filesystem.writefile("/mbsetting.json", DataStr, 0);
             setModbusHandler();
@@ -403,9 +430,18 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         {
             mbSendSlavehandler();
         }
+        else if (command == "clearSlave")
+        {
+            filesystem.deletefile("/rtuslave.json");
+            filesystem.deletefile("/tcpslave.json");
+            modbusRTU.loadSlave();
+            modbusTCP.loadSlave();
+            mbSendSlavehandler();
+        }
         else if (command == "loadSlaveTable")
         {
             modbusRTU.slaveTable = rdoc["SlaveID"];
+            modbusRTU.typeTable = rdoc["Type"];
             Serial.println("table ID " + String(modbusRTU.slaveTable));
             bool IsSetTable = true;
             xQueueSend(modbusRTU.qUpdateTable, (void *)&IsSetTable, 1 / portTICK_PERIOD_MS);
@@ -460,12 +496,9 @@ void OnlineManage::WebHandle()
     server.on("/ncsi.txt", [](AsyncWebServerRequest *request)
               { request->redirect(localIPURL); }); // windows call home
 
-    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
-              { request->send(SPIFFS, "/index.html", "text/html"); });
-    // server.serveStatic("/", SPIFFS, "/");
-    server.on("/setting", HTTP_ANY, [](AsyncWebServerRequest *request)
+    server.on("/", HTTP_ANY, [](AsyncWebServerRequest *request)
               {
-        AsyncWebServerResponse *response = request->beginResponse(200, "text/html", mywebsite.Wifi_Config_HTML);
+        AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/index.html", "text/html");
         request->send(response);
         Serial.println("Served Wifi Config Page"); });
     server.on("/get", HTTP_GET, [](AsyncWebServerRequest *request)
@@ -490,47 +523,6 @@ void OnlineManage::WebHandle()
     xQueueSend(online.qPortalSetting, (void*) &setWifi, 1/portTICK_PERIOD_MS); });
 }
 
-void OnlineManage::NTPInit()
-{
-    Serial.print("Go Here");
-    configTime(gmtOffset_sec, daylightOffset_sec, "pool.ntp.org", "asia.pool.ntp.org");
-    return;
-}
-void OnlineManage::printLocalTime()
-{
-    struct tm timeinfo;
-    if (!getLocalTime(&timeinfo))
-    {
-        Serial.println("Failed to obtain time");
-        return;
-    }
-    Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
-    Serial.print("Day of week: ");
-    Serial.println(&timeinfo, "%A");
-    Serial.print("Month: ");
-    Serial.println(&timeinfo, "%B");
-    Serial.print("Day of Month: ");
-    Serial.println(&timeinfo, "%d");
-    Serial.print("Year: ");
-    Serial.println(&timeinfo, "%Y");
-    Serial.print("Hour: ");
-    Serial.println(&timeinfo, "%H");
-    Serial.print("Hour (12 hour format): ");
-    Serial.println(&timeinfo, "%I");
-    Serial.print("Minute: ");
-    Serial.println(&timeinfo, "%M");
-    Serial.print("Second: ");
-    Serial.println(&timeinfo, "%S");
-    Serial.println("Time variables");
-    char timeHour[3];
-    strftime(timeHour, 3, "%H", &timeinfo);
-    Serial.println(timeHour);
-    char timeWeekDay[10];
-    strftime(timeWeekDay, 10, "%A", &timeinfo);
-    Serial.println(timeWeekDay);
-    Serial.println();
-}
-
 void TaskOnlineManager(void *pvParameter)
 {
 
@@ -552,14 +544,6 @@ void TaskOnlineManager(void *pvParameter)
         {
             WiFi.begin(online.wifi_setting.ssid, online.wifi_setting.pass);
             isMessageReceived = false;
-        }
-        if (millis() - startCheckWifiTime >= WIFI_STATUS_INTERVAL)
-        {
-            startCheckWifiTime = millis();
-            if (WiFi.status() != WL_CONNECTED)
-            {
-                // Serial.println("Wifi Disconnected");
-            }
         }
         dnsServer.processNextRequest();
         ws.cleanupClients();

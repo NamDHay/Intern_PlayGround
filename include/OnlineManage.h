@@ -49,9 +49,6 @@ public:
     void WebSocketInit();
     void notifyClients(const String &message);
     void PortalInit();
-
-    void NTPInit();
-    void printLocalTime(void);
 };
 
 extern OnlineManage online;
