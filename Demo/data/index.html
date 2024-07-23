@@ -171,7 +171,7 @@
     .buttonA{
       background-color: var(--bs-yellow);
       border-radius: 5px;
-      font-size: 1.5rem;
+      font-size: 1.2rem;
       width: fit-content;
     }
  
@@ -554,7 +554,10 @@
         <button id="bntLoadcard" class="button">load card</button>
 
     </div><br>
-    
+    <div class="input-group" style="width:100%">
+        <!-- <input type="text" class="form-control w50" id="dataProduct" translateph placeholder="Product json"> -->
+        <textarea  id="dataProduct" cols="30" rows="5" style="width: 100%; height: fit-content; border-radius: 0.25rem;"></textarea>
+      </div><br>
     <!-- <div id="waitData" class="loader"></div> -->
     <div id="addcard"></div>
     
@@ -759,15 +762,12 @@
           <form>
 
       <div class="row" id="name_product" style="display: none;">
-        <!-- <div class="input-group" style="width:100%">
-          <input type="text" class="form-control w50" id="dataProduct" translateph placeholder="Product json">
-        </div> -->
       
         <div style="margin-top: 10px;"> 
           <label for="doiten" class="form-label">Change name</label>
           <div style="display: flex; align-items: center;"> 
             <input type="text" class="form-control" id="doiten" maxlength="20">
-            <button type="button" class="btn btn-warning" style="margin-left: 10px;" onclick="changeName()">Change</button> 
+            <button type="button" class="buttonA" style="margin-left: 10px;" onclick="changeName()">Change</button> 
           </div> 
         </div>
 
@@ -777,44 +777,41 @@
           <div class="col-sm-10" id="option_product" style="display: block;">
               <div class="d-flex">
                   <input id="newProductName" type="text" class="form-control" maxlength="20" placeholder="New name" style="margin-right: 10px;">
-                  <button onclick="addProduct()" type="button" class="btn btn-warning" style="margin-right: 10px;">Add</button> 
+                  <button onclick="addProduct()" type="button" class="buttonA" style="margin-right: 10px;">Add</button> 
               </div>
           </div>
-          <div class="col-sm-2">
-              <button onclick="toggleDeleteProductList()" type="button" class="btn btn-warning">Option</button>
+          <div class="col-sm-1">
+              <button id="btntoggleDeleteProductList" onclick="toggleDeleteProductList()" type="button" class="buttonA" >Show</button>
           </div>
       </div>
-      
-      
-
-          <div id="deleteProductList" style="display: none; margin-top: 20px;">
-            <table id="productTable" class="custom-table">
-              <thead>
-                <tr>
-                  <th style="width: 50%;">List of products</th>
-                  <th>Click to edit</th>
-                  <th>Click to delete</th>
-                </tr>
-              </thead>
-              <tbody id="productTableBody">
-              </tbody>
-            </table>
+      <div id="deleteProductList" style="display: none; margin-top: 20px;">
+        <table id="productTable" class="custom-table">
+          <thead>
+            <tr>
+              <th style="width: 50%;">List of products</th>
+              <th>Click to edit</th>
+              <th>Click to delete</th>
+            </tr>
+          </thead>
+          <tbody id="productTableBody">
+          </tbody>
+        </table>
             
 
-            <div id="editForm" data-index="0" style="display: none;">
-              <input type="text"  id="editProductName" maxlength="20" placeholder="Product Name" style="width: 34%; padding: 0.3rem 0.75rem; border-radius: 0.25rem; border: 1px solid #ced4da;">
-              <input type="text"  id="editProductSet" placeholder="Plan/Result set" style="width: 20%; padding: 0.3rem 0.75rem; border-radius: 0.25rem; border: 1px solid #ced4da;">
-              <input type="text"  id="editCycleTime" placeholder="Cycle Time" style="width: 20%; padding: 0.3rem 0.75rem; border-radius: 0.25rem; border: 1px solid #ced4da;">
-              <button type="button" onclick="saveProduct()" type="button" class="btn btn-warning">Save</button>
-              <button type="button" onclick="closeEditForm()" type="button" class="btn btn-secondary">Close</button>
-            </div>
-
-          </div>
-
+        <div id="editForm" data-index="0" style="display: none;">
+          <input type="text"  id="editProductName" maxlength="20" placeholder="Product Name" style="width: 34%; padding: 0.3rem 0.75rem; border-radius: 0.25rem; border: 1px solid #ced4da;">
+          <input type="text"  id="editProductSet" placeholder="Plan/Result set" style="width: 20%; padding: 0.3rem 0.75rem; border-radius: 0.25rem; border: 1px solid #ced4da;">
+          <input type="text"  id="editCycleTime" placeholder="Cycle Time" style="width: 20%; padding: 0.3rem 0.75rem; border-radius: 0.25rem; border: 1px solid #ced4da;">
+          <button type="button" onclick="saveProduct()" type="button" class="btn btn-warning">Save</button>
+          <button type="button" onclick="closeEditForm()" type="button" class="btn btn-secondary">Close</button>
         </div>
 
       </div>
-      
+
+    </div>
+
+  </div>
+  
       <div id="blockInput" style="display: block; padding-top: 20px;">
         <div class="row">
           <div class="col -3">
@@ -851,7 +848,7 @@
           <label for="PCSInput" class="form-label">Total Plan</label>
           <input type="text" class="form-control" id="PCSInput">
       </div>
-  </div>
+    </div>
       </div>
           </form>
         </div>
@@ -872,7 +869,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body" >
-        <h3>Please enter a new password</h3>
+        <h5>Please enter a new password</h5>
         <div class="col" style="padding: 0 0 10px;">
           <input type="password" id="pass_Save" class="form-control" placeholder="Please enter a new password">
         </div>
@@ -880,7 +877,7 @@
           <input type="password" id="pass_Save_confirm" class="form-control" placeholder="Confirm your new password">
         </div>
         <div class="col" style="text-align: center;">
-          <button type="button" class="btn btn-warning" id="tennutluu"  onclick="validateAndSave()"  >Save</button>
+          <button type="button" class="buttoncuatao_output" id="tennutluu"  onclick="validateAndSave()">Save</button>
         </div>
       </div>
     </div>

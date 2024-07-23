@@ -25,6 +25,22 @@ var selectvalue3;
 var selectvalue4; 
 var selectvalue5;
 var selectvalue6;
+var value1 = 0;
+var value2 = 0;
+var value3 = 0;
+var value4 = 0;
+var value5 = 0;
+var value6 = 0;
+var id_card = 1; 
+var html="";
+var TableDataLen;
+var dataProduct;
+var preferenceslist = [];
+var stateID = [];//trạng thái của Run/Stop (2/1)
+var lock = [];//trạng thái của Run/Stop (0/1)
+var modalCardSet = new Object;
+modalCardSet.active = null
+modalCardSet.closefn = null;
 const intervalId = setInterval(intervalHandle, 1000);
 window.addEventListener('beforeunload', () => clearInterval(intervalId));
 window.addEventListener('load', onLoad);
@@ -68,17 +84,19 @@ function onMessage(event) {
     alert("Completed setting!!!");
   }
   else if (message.Command == "Data") {
-    if(daload == 0){loadtable(event.data);changeRegsoptions();daload = 1;}
+    if(daload == 0){
+      loadtable(event.data);
+      changeRegsoptions();
+      daload = 1;
+    }
     loadDataTable(event.data);
     addvaluecard(event.data);
-    if(daloadvcard)updatevalue();
+    if(daloadvcard) updatevalue();
     jsontable = event.data;
-    
   }
   else if(message.Command == "ShowFile"){
     tablefile(event.data); 
   }
-  
 }
 function onLoad(event) {
   initWebSocket();
@@ -114,7 +132,14 @@ function initButton() {
   document.getElementById('bntLoadcard').addEventListener('click', buildCardJson);
   document.getElementById('buttonsavecard').addEventListener('click', SaveCard); 
   document.getElementById('buttonlog').addEventListener('click', showlogin);
-
+  // Gắn sự kiện click cho các nút mở modal
+  document.getElementById('settingBtnNV').addEventListener('click', openSettingModalNV);
+  document.getElementById('buttonadd').addEventListener('click', openAddCard);
+  document.getElementById('settingBtnKL').addEventListener('click', openSettingModalKL);
+  document.getElementById('settingBtnEX').addEventListener('click', openSettingModalEX);
+  document.getElementById('settingBtnLog').addEventListener('click', openSettingModalLog);
+  document.getElementById('settingBtnList').addEventListener('click', openSettingModalList);
+  document.getElementById('settingBtnSetting').addEventListener('click', openSettingModalSetting);
 }
 
 function closeModalUnlock(){
@@ -125,10 +150,28 @@ function closeModalUnlock(){
 function UnlockStaff(){
   unlockValue = 1;
   document.getElementById("roleAccount").innerHTML = "Staff";
+  var ids = ['dashboard', 'settingA','features', 'board', 'openbuttonchange', 'name_product'];
+  ids.forEach(function(id) {
+    var element = document.getElementById(id);
+    if (element) {
+      if (unlockValue == 1) {
+        element.style.display = 'block';
+      } 
+    }
+  });
 }
 function UnlockAdmin() {
   unlockValue = 2;
   document.getElementById("roleAccount").innerHTML = "Admin";
+  var ids = ['dashboard', 'settingA', 'features', 'board', 'application', 'console', 'advanced', 'wifi', 'rf', 'ethernet', 'modbus', 'zicon', 'openbuttonchange', 'name_product'];
+  ids.forEach(function(id) {
+    var element = document.getElementById(id);
+    if (element) {
+      if (unlockValue == 2) {
+        element.style.display = 'block';
+      }
+    }
+  });
 }
 function LogOut() {
   document.getElementById("roleAccount").innerHTML = "User";
@@ -136,7 +179,7 @@ function LogOut() {
 function checkPassword(){
   var password = document.getElementById('passwordInput').value;
   //Admin
-  if(password == 'admin123'){
+  if(password == '123'){
     LogOut();
     closeModalUnlock();
     UnlockAdmin();
@@ -144,7 +187,7 @@ function checkPassword(){
     unlockSuccess();
   }
   //Staff
-  else if(password == 'staff123'){
+  else if(password == '456'){
     LogOut();
     closeModalUnlock();
     UnlockStaff();
@@ -169,11 +212,11 @@ document.getElementById("passwordInput").addEventListener("keyup", function(even
       checkPassword();
   }
 });
-// function closeModalChange(){
-//   var modalElement = document.getElementById('passwordModalChange');
-//   var modal = bootstrap.Modal.getInstance(modalElement); 
-//   modal.hide(); 
-// }
+function closeModalChange(){
+  var modalElement = document.getElementById('passwordModalChange');
+  var modal = bootstrap.Modal.getInstance(modalElement); 
+  modal.hide(); 
+}
 function unlockFail(){
   var modal = new bootstrap.Modal(document.getElementById('wrongPasswordModal'));
   modal.show();
@@ -195,21 +238,7 @@ function showlogin(){
   document.getElementById("passwordInput").value = "";
   modal.show();
 }
-var modalCardSet = new Object;
-modalCardSet.active = null
-modalCardSet.closefn = null;
-function CardSetup_dlg(titledlg, textdlg, closefunc ){
-  modalCardSet.active = document.getElementById('settingsModal.html');
-  var title = modalCardSet.active.getElementsByClassName("modal-title")[0];
-  var body = modalCardSet.active.getElementsByClassName("modal-text")[0];
-  title.innerHTML = titledlg;body.innerHTML = textdlg;cardID = textdlg;if (typeof closefunc === 'undefined') closefunc = CardSetClose;ShowModalCardSet(closefunc);      //loaddatasetting(textdlg);
-}
-function ShowModalCardSet(closefunc) { modalCardSet.active.style.display = "block"; modalCardSet.closefn = closefunc; }
-function CloseModalCardSet(response) { modalCardSet.active.style.display = 'none'; modalCardSet.closefn(response); var deleteProductList = document.getElementById("deleteProductList"); deleteProductList.style.display = "none"; }
 
-function CardSetClose(value) {
-  console.log(value); if (value == "Ok") { if (modalCardSet.active.getElementsByClassName("modal-title") == "Edit Application") { console.log("Edit App"); } else { saveSettings(cardID); } }
-}
 function buttontoggle(){
   IsConnect = !IsConnect;
 }
@@ -391,15 +420,6 @@ var modal = new bootstrap.Modal(document.getElementById('settingModalSetting'));
 modal.show();
 }
 
-// Gắn sự kiện click cho các nút mở modal
-document.getElementById('settingBtnNV').addEventListener('click', openSettingModalNV);
-document.getElementById('buttonadd').addEventListener('click', openAddCard);
-document.getElementById('settingBtnKL').addEventListener('click', openSettingModalKL);
-document.getElementById('settingBtnEX').addEventListener('click', openSettingModalEX);
-document.getElementById('settingBtnLog').addEventListener('click', openSettingModalLog);
-document.getElementById('settingBtnList').addEventListener('click', openSettingModalList);
-document.getElementById('settingBtnSetting').addEventListener('click', openSettingModalSetting);
-
 function SelectTab(evt, cityName) {
   var i, tabcontent, tablinks;
   tabcontent = document.getElementsByClassName("tabcontent");
@@ -507,26 +527,22 @@ function tablefile(jsonValue){
 }
 
 
-var value1 = 0;
-var value2 = 0;
-var value3 = 0;
-var value4 = 0;
-var value5 = 0;
-var value6 = 0;
-var id_card = 1; 
-var html="";
-var TableDataLen;
-function buildcard(jsoninput){
-  html = "";
 
+function buildcard(jsoninput){  
+  html = "";
   jsonAppInput = jsoninput;
   var jsonObj = JSON.parse(jsoninput);
+
   var appLen = jsonObj.Application.length;
   for(var i = 0 ; i < appLen ; i++){
     var arrayData = [AppID,poss,id_card,nodeID,netID,namecard,value1, value2, value3,value4, value5,value6] = jsonObj.Application[i].app.split(",");
     AddCardBody();
   }
   document.getElementById("addcard").innerHTML = html;
+
+  for(var i = 0;i < appLen ; i++){
+    document.getElementById("namecard"+i).innerHTML = jsonObj.Application[i].app.split(",")[5];
+  }
   daloadvcard = 1;
   updatevalue();
 }
@@ -543,8 +559,9 @@ function updatevalue(){
     document.getElementById("card"+i+"value4").innerHTML = jsonTasbleObj.Data[value4].value;
     document.getElementById("card"+i+"value5").innerHTML = jsonTasbleObj.Data[value5].value;
     document.getElementById("card"+i+"value6").innerHTML = jsonTasbleObj.Data[value6].value;
-    document.getElementById("namecard"+i).innerHTML = jsonObj.Application[i].app.split(",")[5];
+    
   }
+
 }
 function changeRegsoptions(){
   var value = 0;
@@ -604,11 +621,11 @@ function AddCardBody(){
               <div class=\"col-5\">\
                 <div class=\"statecard\" id=\"card"+id_card+"value6\"></div>\
               </div>\
+              <div class=\"col-4\"><button class=\"buttonA\" onclick=\"CardSetup_dlg('Edit Parameter',"+id_card+")\">Setting</button></div>\
+              <div class=\"col-4\"><button id=\"buttonrun "+id_card+"\" class=\"buttonA\" onclick='changeState("+id_card+")'>Run</button></div>\
+              <div class=\"col-4\"><button id=\"buttonreset "+id_card+"\" class=\"buttonA\" onclick='changeReset("+id_card+")'>Reset</button></div>\
             </div>\
             </Center>\
-            <div><span><button class=\"buttonA\" onclick=\"CardSetup_dlg('Edit Parameter',"+id_card+")\">Setting</button>\
-            <br><button id=\"buttonrun "+id_card+"\" class=\"buttonA\" onclick='changeState("+id_card+")'>Run</button>\
-            <br><button id=\"buttonreset "+id_card+"\" class=\"buttonA\" onclick='changeReset("+id_card+")'>Reset</button></span></div>\
       </div>\
     </div><br></br>";
 }
@@ -643,8 +660,7 @@ function addvaluecard(jsonValue){
     }
   }
 }
-var numCard = 0;
-var jsonout
+
 function SaveCard(){
   namecard = document.getElementById("input_namecard").value;
   appData[app] = AppID+","+poss+","+app+","+nodeID+","+netID +","+namecard+","+selectvalue1+","+selectvalue2+","+selectvalue3+","+selectvalue4+","+selectvalue5+","+selectvalue6;
@@ -655,18 +671,549 @@ function SaveCard(){
     }
   }
   jsonApp += "]}";
+  document.getElementById("jsonApp").value = jsonApp;
   console.log(jsonApp); 
   buildcard(jsonApp);
   websocket.send(jsonApp);
   app++;
-  // numCard++;
   console.log("App ID:" +app); 
 }
-
+// {"Application":[{"app":"0,0,0,1,0,3333,0,0,0,0,0,0"},{"app":"0,0,1,1,0,44444,0,0,0,0,0,0"},{"app":"0,0,2,1,0,5555,0,0,0,0,0,0"},{"app":"0,0,3,1,0,66666,0,0,0,0,0,0"}]}
 function buildCardJson() {
-  document.getElementById("jsonApp").value = jsonApp;
+  // document.getElementById("jsonApp").value = jsonApp;
   jsonAppInput = document.getElementById("jsonApp").value;
-
-  console.log(jsonAppInput);
+  
+  jsonApp = jsonAppInput;
+  app = JSON.parse(jsonAppInput).Application.length;
+  console.log(app);
+  for(var i = 0; i < (app);i++){
+    
+    appData[i] = AppID+","+poss+","+i+","+nodeID+","+netID +","+namecard+","+selectvalue1+","+selectvalue2+","+selectvalue3+","+selectvalue4+","+selectvalue5+","+selectvalue6;
+    jsonApp = "{\"Application\":[{\"app\":\""+appData[0]+"\"}";
+    if(i >0){
+      for(var k = 1; k<(app);k++){
+        jsonApp += ",{\"app\":\""+appData[k]+"\"}";
+      }
+    }
+    jsonApp += "]}";
+    
+  }
+  console.log(jsonApp);
+  console.log(jsonAppInput); 
   buildcard(jsonAppInput);
 }
+
+function CardSetup_dlg(titledlg, textdlg, closefunc ){
+  modalCardSet.active = document.getElementById('settingsModal.html');
+  var title = modalCardSet.active.getElementsByClassName("modal-title")[0];
+  var body = modalCardSet.active.getElementsByClassName("modal-text")[0];
+  title.innerHTML = titledlg;body.innerHTML = textdlg;cardID = textdlg;if (typeof closefunc === 'undefined') closefunc = CardSetClose;ShowModalCardSet(closefunc);      //loaddatasetting(textdlg);
+}
+function ShowModalCardSet(closefunc) { 
+  modalCardSet.active.style.display = "block"; 
+  modalCardSet.closefn = closefunc; }
+function CloseModalCardSet(response) { 
+  modalCardSet.active.style.display = 'none'; 
+  modalCardSet.closefn(response); var deleteProductList = document.getElementById("deleteProductList"); 
+  deleteProductList.style.display = "none"; }
+
+function CardSetClose(value) {
+  console.log(value); if (value == "Ok") { 
+    if (modalCardSet.active.getElementsByClassName("modal-title") == "Edit Application") { 
+      console.log("Edit App"); 
+    } else { 
+      saveSettings(cardID); 
+    } 
+  }
+}
+function toggleDeleteProductList() {
+  var option_product = document.getElementById("option_product");
+  var blockInput = document.getElementById("blockInput");
+  var deleteProductList = document.getElementById("deleteProductList");
+  if (deleteProductList.style.display === "none") {
+    deleteProductList.style.display = "block";
+    option_product.style.display = "none";
+    blockInput.style.display = "none";
+    document.getElementById("btntoggleDeleteProductList").innerHTML = "Hide";
+    displayDeleteProductList();
+  } else {
+    deleteProductList.style.display = "none";
+    option_product.style.display = "block";
+    blockInput.style.display = "block";
+    document.getElementById("btntoggleDeleteProductList").innerHTML = "Show";
+  }
+}
+
+function displayDeleteProductList() {
+  var editForm = document.getElementById("editForm");  
+  editForm.style.display = "none";
+
+  var productTableBody = document.getElementById("productTableBody");
+  productTableBody.innerHTML = ""; // Xóa nội dung bảng sản phẩm cũ
+
+  // Lấy danh sách sản phẩm từ chuỗi JSON
+  // var productJSON = JSON.parse(document.getElementById("dataProduct").value);
+  var productJSON = JSON.parse(DataPRODUCT);
+
+  // Lấy id của card
+  var id = document.getElementById("cardID").innerHTML;
+
+  // Hiển thị danh sách sản phẩm của card
+  productJSON.data[id].product.forEach(function(product, index) {
+    var row = document.createElement("tr");
+
+    // Tạo cột hiển thị tên sản phẩm
+    var productCell = document.createElement("td");
+    productCell.textContent = product;
+
+    // Tạo cột chứa nút Edit
+    var editButtonCell = document.createElement("td");
+    var editButton = document.createElement("button");
+    editButton.textContent = "Edit";
+    editButton.className = "btn btn-warning";
+    editButton.type = "button";
+    editButton.onclick = function() {
+      editProduct(id, index); // Truyền id của card và index của sản phẩm vào hàm chỉnh sửa sản phẩm
+    };
+    editButtonCell.appendChild(editButton);
+
+    // Tạo cột chứa nút Xóa
+    var deleteButtonCell = document.createElement("td");
+    var deleteButton = document.createElement("button");
+    deleteButton.textContent = "Delete";
+    deleteButton.className = "btn btn-secondary";
+    deleteButton.type = "button";
+    deleteButton.onclick = function() {
+      deleteProduct(id, index); // Truyền id của card và index của sản phẩm vào hàm xóa sản phẩm
+    };
+    deleteButtonCell.appendChild(deleteButton);
+
+    // Thêm cột vào hàng
+    row.appendChild(productCell);
+    row.appendChild(editButtonCell);
+    row.appendChild(deleteButtonCell);
+
+    // Thêm hàng vào bảng
+    productTableBody.appendChild(row);
+  });
+  SaveDataProduct();
+}
+
+function editProduct(cardID, index) {
+  // var productJSON = JSON.parse(document.getElementById("dataProduct").value);
+  var productJSON = JSON.parse(DataPRODUCT);
+  var product = productJSON.data[cardID].product[index];
+  var cycleTime = productJSON.data[cardID].cycletime[index];
+  var productSet = productJSON.data[cardID].productset[index];
+
+  // Ẩn bảng hiển thị sản phẩm
+  document.getElementById("productTable").style.display = "none";
+
+  // Hiển thị form chỉnh sửa sản phẩm
+  var editForm = document.getElementById("editForm");
+  editForm.style.display = "block";
+  
+
+  // Điền thông tin sản phẩm vào form chỉnh sửa
+  document.getElementById("editProductName").value = product;
+  document.getElementById("editCycleTime").value = cycleTime;
+  document.getElementById("editProductSet").value = productSet;
+
+  editForm.dataset.index = index;
+}
+function closeEditForm() {
+    // Ẩn form chỉnh sửa sản phẩm mà không lưu thay đổi
+    var editForm = document.getElementById("editForm");
+    editForm.style.display = "none";
+    document.getElementById("productTable").style.display = "table";
+}
+function saveProduct() {
+  var id = document.getElementById("cardID").innerHTML;
+  var productJSON = JSON.parse(document.getElementById("dataProduct").value);
+
+  // Lấy thông tin sản phẩm từ form chỉnh sửa
+  var editedProductName = document.getElementById("editProductName").value;
+  var editedCycleTime = document.getElementById("editCycleTime").value;
+  var editedProductSet = document.getElementById("editProductSet").value;
+
+  // Lấy index từ thuộc tính data-index của form chỉnh sửa
+  var index = parseInt(document.getElementById("editForm").dataset.index);
+
+  // Cập nhật thông tin sản phẩm vào đối tượng JSON
+  productJSON.data[id].product[index] = editedProductName;
+  productJSON.data[id].cycletime[index] = editedCycleTime;
+  productJSON.data[id].productset[index] = editedProductSet;
+
+  // Chuyển đối tượng JSON thành chuỗi JSON và lưu vào phần tử HTML
+  document.getElementById("dataProduct").value = JSON.stringify(productJSON);
+
+  // Hiển thị lại bảng sản phẩm
+  document.getElementById("productTable").style.display = "table";
+
+  // Ẩn form chỉnh sửa sản phẩm
+  var editForm = document.getElementById("editForm");
+  editForm.style.display = "none";
+  SaveDataProduct();
+  loaddatasetting(id);
+  displayDeleteProductList();
+}
+
+
+// Hàm xóa sản phẩm từ danh sách sản phẩm của card dựa trên id và index
+function deleteProduct(cardID, index) {
+  var id = document.getElementById("cardID").innerHTML;
+  var DataPRODUCT = document.getElementById("dataProduct").value;
+  var productJSON = JSON.parse(DataPRODUCT);
+
+  // Xóa sản phẩm khỏi danh sách của card
+  productJSON.data[cardID].product.splice(index, 1);
+  productJSON.data[cardID].cycletime.splice(index, 1);
+  productJSON.data[cardID].productset.splice(index, 1);
+
+  // Cập nhật lại chuỗi JSON chứa danh sách sản phẩm
+  document.getElementById("dataProduct").value = JSON.stringify(productJSON);
+
+  // Hiển thị lại danh sách sản phẩm để xóa
+  loaddatasetting(id);
+  displayDeleteProductList();
+  
+}
+var DataPRODUCT = document.getElementById("dataProduct").value = preferenceslist = "{\"data\":[{\"id\":0,\"product\":[\"San_Pham_2\",\"sp2\",\"SanPhamMoi1\"],\"cycletime\":[\"150\",\"150\",\"653\"],\"productset\":[\"4\",\"2\",\"5\"]},{\"id\":1,\"product\":[\"sp4567\",\"sp44\"],\"cycletime\":[\"250\",\"250\"],\"productset\":[\"2\",\"4\"]},{\"id\":2,\"product\":[\"sp5\",\"sp6\"],\"cycletime\":[\"300\",\"350\"],\"productset\":[\"5\",\"6\"]},{\"id\":3,\"product\":[\"sp7\",\"sp8\"],\"cycletime\":[\"400\",\"450\"],\"productset\":[\"7\",\"8\"]}]}";   
+
+// var DataPRODUCT = document.getElementById("dataProduct").value = preferenceslist ="";
+
+function loaddatasetting(id) {
+
+  console.log("loaddatasetting" + id);
+  var UpdateDataApp = JSON.parse(jsonApp);
+  var arrayData = [AppID,poss,id_card,nodeID,netID,namecard,value1, value2, value3,value4, value5,value6] = UpdateDataApp.Application[id].app.split(",");
+  // console.log("Duy: " +regsvalue[r3]);
+  document.getElementById("doiten").value = namecard;
+  document.getElementById("planInput").value = value1;
+  document.getElementById("resultInput").value = value2;
+  document.getElementById("planSetInput").value = value3;
+  document.getElementById("ProductDataSaveSelect").value4;
+  document.getElementById("TimeIncInput").value = value5;
+  document.getElementById("PCSInput").value = value6;
+
+  var productData;
+  var productParse = document.getElementById("dataProduct").value;
+  productJSON = JSON.parse(productParse);
+
+  if (productJSON.data[id] != null) {
+    productData = productJSON.data[id].product;
+
+    // Đặt giá trị vào select
+    var selectElement = document.getElementById("ProductDataSaveSelect");
+    selectElement.innerHTML = ''; // Xóa tất cả các option cũ
+
+    var optionID = 0;
+    productData.forEach(function (product) {
+      var option = document.createElement("option");
+      option.text = product;
+      option.value = optionID;
+      optionID = optionID + 1;
+      selectElement.appendChild(option);
+    });
+
+    // Chọn giá trị phù hợp nếu có
+    var productNameElement = document.getElementById("productName_" + id);
+    if (productNameElement) {
+      var productName = productNameElement.innerHTML;
+      var selectedIndex = Array.from(selectElement.options).findIndex(option => option.text === productName);
+      if (selectedIndex !== -1) {
+        selectElement.selectedIndex = selectedIndex;
+      }
+    }
+  }
+  document.getElementById("ProductDataSaveSelect").value = value4;
+}
+function saveSettings(id) {
+  console.log("app id= " + id);
+  var UpdateDataApp = JSON.parse(jsonApp);
+  var arrayData = [AppID,poss,id_card,nodeID,netID,namecard,value1, value2, value3,value4, value5,value6] = UpdateDataApp.Application[id].app.split(",");
+  // Retrieve values from modal input fields
+  var planValue = document.getElementById("planInput").value;
+  var resultValue = document.getElementById("resultInput").value;
+  var planSetValue = document.getElementById("planSetInput").value;
+  // var resultSetValue = document.getElementById("resultSetInput").value;
+  var TimeIncValue = document.getElementById("TimeIncInput").value;
+  var PCSValue = document.getElementById("PCSInput").value;
+
+  // Retrieve original values
+  var originalPlanValue = value1;
+  var originalResultValue = value2;
+  var originalPlanSetValue = value3;
+  // var originalResultSetValue = regsvalue[r4];
+  var originalTimeIncValue = value5;
+  var originalPCSValue = value6;
+
+  // Convert values to the same type (in this case, to numbers)
+  var planValueNum = parseFloat(planValue);
+  var resultValueNum = parseFloat(resultValue);
+  var planSetValueNum = parseFloat(planSetValue);
+  // var resultSetValueNum = parseFloat(resultSetValue);
+  var TimeIncValueNum = parseFloat(TimeIncValue);
+  var PCSValueNum = parseFloat(PCSValue);
+
+  // Convert original values to the same type
+  var originalPlanValueNum = parseFloat(originalPlanValue);
+  var originalResultValueNum = parseFloat(originalResultValue);
+  var originalPlanSetValueNum = parseFloat(originalPlanSetValue);
+  // var originalResultSetValueNum = parseFloat(originalResultSetValue);
+  var originalTimeIncValueNum = parseFloat(originalTimeIncValue);
+  var originalPCSValueNum = parseFloat(originalPCSValue);
+
+  // Check for changes and log/send only if values are different
+  // if (planValueNum !== originalPlanValueNum) {
+  //   console.log("Plan (" + r1 + ") value changed: " + originalPlanValue + " to " + planValue);
+  //   SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + r1 + " value=" + planValue), getLooklineCmdSuccess, getLooklineCmdfailed);
+  // }
+
+  // if (resultValueNum !== originalResultValueNum) {
+  //   console.log("Result (" + r2 + ") value changed: " + originalResultValue + " to " + resultValue);
+  //   SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + r2 + " value=" + resultValue), getLooklineCmdSuccess, getLooklineCmdfailed);
+  // }
+
+  // if (planSetValueNum !== originalPlanSetValueNum) {
+  //   console.log("Plan Set (" + r3 + ") value changed: " + originalPlanSetValue + " to " + planSetValue);
+  //   SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + r3 + " value=" + planSetValue), getLooklineCmdSuccess, getLooklineCmdfailed);
+  // }
+
+  // if (resultSetValueNum !== originalResultSetValueNum) {
+  //     console.log("Result Set ("+r4+") value changed: " + originalResultSetValue + " to " + resultSetValue);
+  //     SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + r4 + " value=" + resultSetValue), getLooklineCmdSuccess, getLooklineCmdfailed);
+  // }
+
+  // if (TimeIncValueNum !== originalTimeIncValueNum) {
+  //   console.log("Cycle Time (" + r5 + ") value changed: " + originalTimeIncValue + " to " + TimeIncValue);
+  //   SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + r5 + " value=" + TimeIncValue), getLooklineCmdSuccess, getLooklineCmdfailed);
+  // }
+
+  // if (PCSValueNum !== originalPCSValueNum) {
+  //   console.log("PCS (" + r6 + ") value changed: " + originalPCSValue + " to " + PCSValue);
+  //   SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + r6 + " value=" + PCSValue), getLooklineCmdSuccess, getLooklineCmdfailed);
+  // }
+}
+//bỏ nút save, nhập vào thì lưu
+// Gán sự kiện onblur cho từng trường input trong modal
+document.getElementById("planInput").onblur = function () {
+  saveSettings(cardID);
+};
+document.getElementById("resultInput").onblur = function () {
+  saveSettings(cardID);
+};
+document.getElementById("planSetInput").onblur = function () {
+  saveSettings(cardID);
+};
+// document.getElementById("resultSetInput").onblur = function() {
+//     saveSettings(cardID);
+// };
+document.getElementById("TimeIncInput").onblur = function () {
+  saveSettings(cardID);
+};
+document.getElementById("PCSInput").onblur = function () {
+  saveSettings(cardID);
+};    
+function addProduct() {
+  var productName = document.getElementById("newProductName").value.trim();
+  if (productName === "") {
+      alert("Tên sản phẩm không được để trống!");
+      return;
+  }
+  var newProductName = document.getElementById("newProductName").value;
+  var selectElement = document.getElementById("ProductDataSaveSelect");
+  var id = document.getElementById("cardID").innerHTML;  
+  var UpdateDataApp = JSON.parse(jsonApp);
+  var arrayData = [AppID,poss,id_card,nodeID,netID,namecard,value1, value2, value3,value4, value5,value6] = UpdateDataApp.Application[id].app.split(",");
+  // var DataPRODUCT = document.getElementById("dataProduct").value;
+  productJSON =  JSON.parse(DataPRODUCT)
+  var idEnd = productJSON.data.length;
+  if(productJSON.data[id] == null){
+  console.log("tao moi");
+  var datas = [];
+  datas.push(newProductName)//idEnd
+  productJSON.data.push({id: idEnd,product: datas});
+  dataProduct = productJSON;
+    console.log("newData: " + JSON.stringify(dataProduct));
+  document.getElementById("dataProduct").value = JSON.stringify(dataProduct);
+  var option = document.createElement("option");
+  option.text = newProductName;
+  option.value = 0;
+  selectElement.appendChild(option);
+  document.getElementById("newProductName").value = "";
+  }
+  else {
+    // Lấy giá trị mới từ các phần tử HTML
+    var newProductName = document.getElementById("newProductName").value;
+    var newCycleTime = document.getElementById("TimeIncInput").value;
+    var newProductSet = document.getElementById("planSetInput").value;
+    // In ra các giá trị mới
+    console.log("newProductName:", newProductName);
+    console.log("newCycleTime:", newCycleTime);
+    console.log("newProductSet:", newProductSet);
+    // Lấy danh sách sản phẩm từ chuỗi JSON
+    var productJSON = JSON.parse(DataPRODUCT);
+    // Lấy số lượng sản phẩm hiện có
+    var newID = productJSON.data[id].product.length;
+    // Thêm tên sản phẩm mới vào mảng product
+    productJSON.data[id].product.push(newProductName);
+    // Thêm giá trị mới của cycletime và productset cho sản phẩm mới
+    productJSON.data[id].cycletime.push(newCycleTime);
+    productJSON.data[id].productset.push(newProductSet);
+    // Cập nhật lại chuỗi JSON chứa danh sách sản phẩm
+    document.getElementById("dataProduct").value = JSON.stringify(productJSON);
+    // In ra chuỗi JSON đã được cập nhật
+    console.log("Updated JSON:", JSON.stringify(productJSON));
+    // Tạo một option mới để thêm vào dropdown list
+    var selectElement = document.getElementById("ProductDataSaveSelect");
+    var option = document.createElement("option");
+    option.text = newProductName;
+    option.value = newID;
+    selectElement.appendChild(option);
+    // Xóa giá trị của phần tử HTML sau khi đã thêm sản phẩm mới thành công
+    document.getElementById("newProductName").value = "";
+    
+  }
+  SaveDataProduct();
+  loaddatasetting(id);
+  // displayDeleteProductList();
+}
+    
+function SaveDataProduct(){
+  // preferenceslist[0].product = document.getElementById("dataProduct").value ; 
+  preferenceslist[0].product = DataPRODUCT ; 
+  // SavePreferences(!0)
+}
+function displaySelectedProduct() {
+
+  var id = document.getElementById("cardID").innerHTML;
+  var UpdateDataApp = JSON.parse(jsonApp);
+  var arrayData = [AppID,poss,id_card,nodeID,netID,namecard,value1, value2, value3,value4, value5,value6] = UpdateDataApp.Application[id].app.split(",")
+
+  var productID = document.getElementById("ProductDataSaveSelect").value;
+  console.log("Select id:" + productID);
+  var cardid = document.getElementById("cardID").innerHTML;
+
+  var CyleTime = productJSON.data[cardid].cycletime[productID];
+  document.getElementById("TimeIncInput").value = CyleTime;
+  // console.log(CyleTime);
+
+  var ProductSet = productJSON.data[cardid].productset[productID];
+  document.getElementById("planSetInput").value = ProductSet;
+  // console.log(ProductSet);
+
+  var sp = productJSON.data[cardid].product[productID];
+    // Hiển thị giá trị vừa chọn ra thẻ h3 có cùng ID với cardID
+  console.log("id:"+ id);
+  console.log("ProductSet:" + ProductSet);
+  console.log("CyleTime:" + CyleTime);
+  if(sp.length% 2 == 0){console.log("độ dài chẵn");}else{console.log("độ dài lẻ");sp = sp + " "}
+
+
+  // SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + r4 + " value=" + productID), getLooklineCmdSuccess, getLooklineCmdfailed);
+
+  // SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=product id=" + id + " value=" + sp), getLooklineCmdSuccess, getLooklineCmdfailed);
+  
+  // SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + r3 + " value=" + ProductSet), getLooklineCmdSuccess, getLooklineCmdfailed);
+
+  // SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + r5 + " value=" + CyleTime), getLooklineCmdSuccess, getLooklineCmdfailed);
+    
+}
+    
+function changeName() {
+  var id = document.getElementById("cardID").innerHTML;
+  console.log("id:" + id);
+  var UpdateDataApp = JSON.parse(jsonApp);
+  var arrayData = [AppID,poss,id_card,nodeID,netID,namecard,value1, value2, value3,value4, value5,value6] = UpdateDataApp.Application[id].app.split(",");
+  var newName = document.getElementById("doiten").value;
+  console.log("new name:" + newName);
+  var cardDATA = UpdateDataApp.Application[id].app.split(",")[5];
+  cardDATA = cardDATA.replace(namecard, newName);
+  namecard = namecard.replace(namecard, newName);
+  // document.getElementById("input_namecard").value = cardDATA;
+  document.getElementById("namecard"+id).innerHTML = cardDATA;
+
+  for(var i = 0; i < (app);i++){
+    if(i == id){
+      appData[i] = AppID+","+poss+","+i+","+nodeID+","+netID +","+namecard+","+selectvalue1+","+selectvalue2+","+selectvalue3+","+selectvalue4+","+selectvalue5+","+selectvalue6;
+      jsonApp = "{\"Application\":[{\"app\":\""+appData[0]+"\"}";
+      if(app >0){
+        for(var k = 1; k<(app);k++){
+          jsonApp += ",{\"app\":\""+appData[k]+"\"}";
+        }
+      }
+      jsonApp += "]}";
+    }
+  }
+  console.log(jsonApp); 
+  websocket.send(jsonApp);
+
+  // AppSave();
+  // AppGet();
+}
+function changeState(id) {
+  console.log("state id= " + id);
+  var UpdateDataApp = JSON.parse(jsonApp);
+  var arrayData = [AppID,poss,id_card,nodeID,netID,namecard,value1, value2, value3,value4, value5,value6] = UpdateDataApp.Application[id].app.split(",");
+
+  if (lock[id] == 0) { stateID[id] = 2; }
+  if (lock[id] == 1) { stateID[id] = 1; }
+  // number[type]
+  // if (stateID[id]) {
+  //   SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=stop id=" + vals[number[vals[2]] + 6]), getLooklineCmdSuccess, getLooklineCmdfailed);
+    // console.log("/command?plain=[ESP403]cmd=stop id=" + vals[number[vals[2]] + 6]);
+    // SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=stop id="+vals[number[vals[2]]+6]), getLooklineCmdSuccess, getLooklineCmdfailed);
+    // console.log("/command?plain=[ESP403]cmd=stop id="+vals[number[vals[2]]+6]);
+
+  // }
+  // if (stateID[id] == 2) {
+  //   SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=run id=" + vals[number[vals[2]] + 6]), getLooklineCmdSuccess, getLooklineCmdfailed);
+    // console.log("/command?plain=[ESP403]cmd=run id=" + vals[number[vals[2]] + 6]);
+  // }
+  lock[id] = !lock[id];
+}   
+function changeReset(id) {
+  console.log("reset id= " + id);
+  var UpdateDataApp = JSON.parse(jsonApp);
+  var arrayData = [AppID,poss,id_card,nodeID,netID,namecard,value1, value2, value3,value4, value5,value6] = UpdateDataApp.Application[id].app.split(",");
+  // console.log("Resetting Plan (" + r1 + ") and Result (" + r2 + ") values to 0");
+  // SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + r1 + " value=0"), getLooklineCmdSuccess, getLooklineCmdfailed);
+  // var savedR2 = r2;
+  // setTimeout(function () {
+  //   SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + savedR2 + " value=0"), getLooklineCmdSuccess, getLooklineCmdfailed);
+  // }, 500);
+}
+// function AppGet() { try{void 0 !== preferenceslist[0].app_data ? document.getElementById("AppDataSave").value = preferenceslist[0].app_data : document.getElementById("AppDataSave").value = "",
+//   void 0 !== preferenceslist[0].app_data ? jsonApp = document.getElementById("AppDataSave").value : jsonApp = "" ;}catch(e) {console.log(e);}
+
+  
+//     // if(AppID > 0){}
+//     if(document.getElementById("AppDataSave").value  != ""){
+//     jsonApp = document.getElementById("AppDataSave").value ;
+//     var BuildApp = JSON.parse(jsonApp);
+//     var buildAppHtml = "";
+//     document.getElementById("showAppItem").innerHTML = "";
+//     document.getElementById("dashAppItem").innerHTML = "";
+//     document.getElementById("dashButtonItem").innerHTML = "";
+//       // function AddAppBlock(item, type)
+//       try{
+//         console.log('Build now | ' + BuildApp.Application[0].app);
+//       } catch{
+        
+//       }
+    
+      
+//       AppID = 0;
+//     for(var k = 0; k<BuildApp.Application.length;k++){
+//       const a = [AppID,poss,id_card,nodeID,netID,namecard,value1, value2, value3,value4, value5,value6] = BuildApp.Application[k].app.split(',');
+//       // var r = {BappID, Bposs, Bapp, BnodeID, BnetID, name, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12}
+//       appData[k] =BappID+","+Bposs+","+Bapp+","+BnodeID+","+BnetID;
+//       for (let i = 1; i <= number[Bapp]; i++) {if (Bapp >= i){appData[k] += "," + a[i+6];}}
+//       AddAppBlock(BuildApp.Application[k].app, Bapp, 1);
+//       AddAppBlock(BuildApp.Application[k].app, Bapp, 3);
+//       AppID = k+1;
+//     }
+//     // }
+//   }
+// }
