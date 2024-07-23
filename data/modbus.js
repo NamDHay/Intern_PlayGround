@@ -386,4 +386,5 @@ function clearSlave() {
     var json_send = "{\"Command\":\"clearSlave\"}";
     console.log(json_send);
     websocket.send(json_send);
+    document.getElementById("slavecard").innerHTML = ""
 }

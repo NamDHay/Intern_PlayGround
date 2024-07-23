@@ -8,10 +8,12 @@
 
 class MODBUS_PARAMETER
 {
+public:
     bool loadTable;
     uint8_t typeTable;
     byte slaveTable;
     uint8_t numSlave;
+    QueueHandle_t qUpdateTable;
     struct Address_t
     {
         long startAddress;
@@ -19,12 +21,12 @@ class MODBUS_PARAMETER
     };
     struct Slave_t
     {
+        uint8_t typeData[200];
         Address_t WriteAddress;
         Address_t ReadAddress;
         String ID;
-        uint8_t typeData[200];
     };
-    Slave_t slave[255];
+    Slave_t slave[100];
 };
 extern MODBUS_PARAMETER mbParam;
 class MODBUS_RTU

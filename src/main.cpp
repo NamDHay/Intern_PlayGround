@@ -11,6 +11,7 @@ FFS filesystem;
 OnlineManage online;
 MODBUS_RTU modbusRTU;
 MODBUS_TCP modbusTCP;
+MODBUS_PARAMETER mbParam;
 
 void setup() {
   Serial.begin(115200);
