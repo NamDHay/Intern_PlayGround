@@ -21,12 +21,13 @@ public:
     };
     struct Slave_t
     {
+        uint16_t Data[200];
         uint8_t typeData[200];
         Address_t WriteAddress;
         Address_t ReadAddress;
         String ID;
     };
-    Slave_t slave[100];
+    Slave_t slave[10];
 };
 extern MODBUS_PARAMETER mbParam;
 class MODBUS_RTU

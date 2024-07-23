@@ -19,15 +19,10 @@
 ModbusRTU mbRTU;
 ModbusIP mbTCP;
 
-uint16_t Master_ReadData[200];
-uint16_t Master_WriteData[200];
-uint16_t Slave_ReadData[200];
-uint16_t Slave_WriteData[200];
-uint16_t Client_ReadData[200];
-uint16_t Client_WriteData[200];
-uint16_t Server_ReadData[200];
-uint16_t Server_WriteData[200];
-uint16_t TxData_ReadData[200];
+// uint16_t Master_ReadData[200];
+// uint16_t Master_WriteData[200];
+// uint16_t Client_ReadData[200];
+// uint16_t Client_WriteData[200];
 
 int getIpBlock(int index, String str)
 {
@@ -96,79 +91,6 @@ void update_WebTable(long startAddress, long endAddress, uint8_t *type, String I
         online.notifyClients(fbDataString);
     }
 }
-// void update_WebData_Interval(long startAddress, long endAddress, uint16_t *data, uint8_t *type, String ID) // Must be void function to avoid control reaches end of non-void function [-Wreturn-type]
-// {
-//     // Serial.print("startAddress" + String(startAddress));
-//     // Serial.print("|");
-//     // Serial.print("endAddress" + String(endAddress));
-//     // Serial.print("|");
-//     // for (long i = 0; i < (endAddress - startAddress + 1); i++)
-//     // {
-//     //     Serial.print(data[i]);
-//     //     Serial.print("|");
-//     // }
-//     // Serial.println();
-//     union f2w_t
-//     {
-//         float f;
-//         uint16_t w[2];
-//     } f2w;
-//     union dw2w_t
-//     {
-//         int32_t dw;
-//         uint16_t w[2];
-//     } dw2w;
-//     JsonDocument Doc; // this guy make error messages if not return void
-//     String fbDataString = "";
-//     size_t length = (endAddress - startAddress + 1);
-//     long count = 0;
-//     if (online.isConnected == true)
-//     {
-//         Doc["Command"] = "tableData";
-//         Doc["ID"] = ID;
-//         for (uint8_t i = 0; i < length; i++)
-//         {
-//             if (startAddress > endAddress)
-//             {
-//                 Serial.println("Out of range");
-//                 break;
-//             }
-
-//             switch (type[i])
-//             {
-//             case COIL_TYPE:
-//                 Doc["Data"][i] = CHECKCOIL(data[count], 0);
-//                 count++;
-//                 startAddress++;
-//                 break;
-//             case WORD_TYPE:
-//                 Doc["Data"][i] = data[count];
-//                 startAddress += 1;
-//                 count++;
-//                 break;
-//             case DWORDS_TYPE:
-//                 dw2w.w[0] = data[count];
-//                 dw2w.w[1] = data[count + 1];
-//                 Doc["Data"][i] = dw2w.dw;
-//                 startAddress += 2;
-//                 count += 2;
-//                 break;
-//             case FLOAT_TYPE:
-//                 f2w.w[0] = data[count];
-//                 f2w.w[1] = data[count + 1];
-//                 Doc["Data"][i] = f2w.f;
-//                 startAddress += 2;
-//                 count += 2;
-//                 break;
-//             default:
-//                 break;
-//             }
-//         }
-//         serializeJson(Doc, fbDataString);
-//         serializeJsonPretty(Doc, Serial);
-//         online.notifyClients(fbDataString);
-//     }
-// }
 void update_ModbusData_Interval()
 {
     union f2w_t
@@ -196,11 +118,18 @@ void update_ModbusData_Interval()
             {
                 if (!mbRTU.slave())
                 {
+                    Serial.println("Read data from " + String(mbParam.slave[i].ID.toInt()) + " from " + String(mbParam.slave[i].ReadAddress.startAddress) + " to " + String(mbParam.slave[i].ReadAddress.endAddress));
                     while (modbusRTU.read_Multiple_Data(mbParam.slave[i].ID.toInt(),
-                                                        (uint16_t *)&TxData_ReadData,
+                                                        (uint16_t *)&mbParam.slave[i].Data,
                                                         modbusRTU.slave[i].ReadAddress.startAddress,
                                                         lenght) != true)
                         ;
+                    for (long m = 0; m < lenght; m++)
+                    {
+                        Serial.print(mbParam.slave[i].Data[m]);
+                        Serial.print("|");
+                    }
+                    Serial.println();
                 }
                 else
                 {
@@ -213,12 +142,19 @@ void update_ModbusData_Interval()
             {
                 if (mbTCP.isConnected(str2IP(mbParam.slave[i].ID)))
                 {
+                    Serial.println("Read data from " + String(mbParam.slave[i].ID) + " from " + String(mbParam.slave[i].ReadAddress.startAddress) + " to " + String(mbParam.slave[i].ReadAddress.endAddress));
                     modbusTCP.isConnected = true;
                     while (modbusRTU.read_Multiple_Data(str2IP(mbParam.slave[i].ID),
-                                                        (uint16_t *)&TxData_ReadData,
+                                                        (uint16_t *)&mbParam.slave[i].Data,
                                                         modbusRTU.slave[i].ReadAddress.startAddress,
                                                         lenght) != true)
                         ;
+                    for (long n = 0; n < lenght; n++)
+                    {
+                        Serial.print(mbParam.slave[i].Data[i]);
+                        Serial.print("|");
+                    }
+                    Serial.println();
                 }
                 else
                 {
@@ -239,22 +175,22 @@ void update_ModbusData_Interval()
                 switch (mbParam.slave->typeData[i])
                 {
                 case COIL_TYPE:
-                    Doc["Data"][i]["Data"][j] = CHECKCOIL(TxData_ReadData[count], 0);
+                    Doc["Data"][i]["Data"][j] = CHECKCOIL(mbParam.slave[i].Data[count], 0);
                     count++;
                     break;
                 case WORD_TYPE:
-                    Doc["Data"][i]["Data"][j] = TxData_ReadData[count];
+                    Doc["Data"][i]["Data"][j] = mbParam.slave[i].Data[count];
                     count++;
                     break;
                 case DWORDS_TYPE:
-                    dw2w.w[0] = TxData_ReadData[count];
-                    dw2w.w[1] = TxData_ReadData[count + 1];
+                    dw2w.w[0] = mbParam.slave[i].Data[count];
+                    dw2w.w[1] = mbParam.slave[i].Data[count + 1];
                     Doc["Data"][i]["Data"][j] = dw2w.dw;
                     count += 2;
                     break;
                 case FLOAT_TYPE:
-                    f2w.w[0] = TxData_ReadData[count];
-                    f2w.w[1] = TxData_ReadData[count + 1];
+                    f2w.w[0] = mbParam.slave[i].Data[count];
+                    f2w.w[1] = mbParam.slave[i].Data[count + 1];
                     Doc["Data"][i]["Data"][j] = f2w.f;
                     count += 2;
                     break;
@@ -447,11 +383,16 @@ void MODBUS_RTU::loadSlave()
 
     for (byte i = 0; i < modbusRTU.numSlave; i++)
     {
-        modbusRTU.slave[i].ID = doc["Slave"][i]["id"].as<byte>();
-        modbusRTU.slave[i].ReadAddress.startAddress = doc["Slave"][i]["rs"].as<long>();
-        modbusRTU.slave[i].ReadAddress.endAddress = doc["Slave"][i]["re"].as<long>();
-        modbusRTU.slave[i].WriteAddress.startAddress = doc["Slave"][i]["ws"].as<long>();
-        modbusRTU.slave[i].WriteAddress.endAddress = doc["Slave"][i]["we"].as<long>();
+        // modbusRTU.slave[i].ID = doc["Slave"][i]["id"].as<byte>();
+        // modbusRTU.slave[i].ReadAddress.startAddress = doc["Slave"][i]["rs"].as<long>();
+        // modbusRTU.slave[i].ReadAddress.endAddress = doc["Slave"][i]["re"].as<long>();
+        // modbusRTU.slave[i].WriteAddress.startAddress = doc["Slave"][i]["ws"].as<long>();
+        // modbusRTU.slave[i].WriteAddress.endAddress = doc["Slave"][i]["we"].as<long>();
+        mbParam.slave[i].ID = doc["Slave"][i]["id"].as<String>();
+        mbParam.slave[i].ReadAddress.startAddress = doc["Slave"][i]["rs"].as<long>();
+        mbParam.slave[i].ReadAddress.endAddress = doc["Slave"][i]["re"].as<long>();
+        mbParam.slave[i].WriteAddress.startAddress = doc["Slave"][i]["ws"].as<long>();
+        mbParam.slave[i].WriteAddress.endAddress = doc["Slave"][i]["we"].as<long>();
     }
 
     modbusRTU.writeSlave();
@@ -694,13 +635,13 @@ void MODBUS_TCP::loadSlave()
 
     modbusTCP.numSlave = doc["numSlave"];
 
-    for (byte i = 0; i < modbusTCP.numSlave; i++)
+    for (byte i = modbusRTU.numSlave; i < (modbusTCP.numSlave + modbusRTU.numSlave); i++)
     {
-        modbusTCP.slave[i].IP = doc["Slave"][i]["ip"].as<String>();
-        modbusTCP.slave[i].ReadAddress.startAddress = doc["Slave"][i]["rs"].as<long>();
-        modbusTCP.slave[i].ReadAddress.endAddress = doc["Slave"][i]["re"].as<long>();
-        modbusTCP.slave[i].WriteAddress.startAddress = doc["Slave"][i]["ws"].as<long>();
-        modbusTCP.slave[i].WriteAddress.endAddress = doc["Slave"][i]["we"].as<long>();
+        mbParam.slave[i].ID = doc["Slave"][i]["id"].as<String>();
+        mbParam.slave[i].ReadAddress.startAddress = doc["Slave"][i]["rs"].as<long>();
+        mbParam.slave[i].ReadAddress.endAddress = doc["Slave"][i]["re"].as<long>();
+        mbParam.slave[i].WriteAddress.startAddress = doc["Slave"][i]["ws"].as<long>();
+        mbParam.slave[i].WriteAddress.endAddress = doc["Slave"][i]["we"].as<long>();
     }
 
     modbusTCP.writeSlave();
@@ -879,11 +820,6 @@ void TaskModbus(void *pvParameter)
         if ((millis() - startUpdateIntervalTime >= UPDATE_INTERVAL_MS) && (mbParam.loadTable == true))
         {
             startUpdateIntervalTime = millis();
-            // update_WebData_Interval((modbusRTU.slave[RTUSlaveCount].ReadAddress.startAddress),
-            //                         (modbusRTU.slave[RTUSlaveCount].ReadAddress.endAddress),
-            //                         ((uint16_t *)&Master_ReadData),
-            //                         (modbusRTU.slave[RTUSlaveCount].typeData),
-            //                         String(modbusRTU.slave[RTUSlaveCount].ID));
         }
         if (xQueueReceive(mbParam.qUpdateTable, (void *)&setTable, 1 / portTICK_PERIOD_MS) == pdTRUE)
         {
