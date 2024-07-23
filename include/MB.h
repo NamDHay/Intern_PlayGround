@@ -28,6 +28,8 @@ public:
         String ID;
     };
     Slave_t slave[10];
+    void loadSlave();
+    void writeSlave();
 };
 extern MODBUS_PARAMETER mbParam;
 class MODBUS_RTU
@@ -45,19 +47,6 @@ public:
         unsigned long baud;
         HardwareSerial *port;
     } config;
-    struct Address_t
-    {
-        long startAddress;
-        long endAddress;
-    };
-    struct Slave_t
-    {
-        String ID;
-        Address_t WriteAddress;
-        Address_t ReadAddress;
-        uint8_t typeData[200];
-    };
-    Slave_t slave[20];
 
     void MasterInit(HardwareSerial *port, unsigned long baud);
     void SlaveInit(HardwareSerial *port, unsigned long baud);
@@ -65,8 +54,6 @@ public:
     bool write_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t length);
     void loadSetting();
     void writeSetting();
-    void loadSlave();
-    void writeSlave();
 };
 
 class MODBUS_TCP
@@ -87,19 +74,6 @@ public:
         String primaryDNS;
     };
     ethernet_t ethernet;
-    struct Address_t
-    {
-        long startAddress;
-        long endAddress;
-    };
-    struct Slave_t
-    {
-        String IP;
-        Address_t WriteAddress;
-        Address_t ReadAddress;
-        uint8_t typeData[200];
-    };
-    Slave_t slave[20];
 
     void EthernetInit();
     void ClientInit();
@@ -108,8 +82,6 @@ public:
     bool write_Multiple_Data(IPAddress ID, uint16_t *value, long startAddress, size_t length);
     void loadSetting();
     void writeSetting();
-    void loadSlave();
-    void writeSlave();
 };
 void TaskModbus(void *pvParameter);
 

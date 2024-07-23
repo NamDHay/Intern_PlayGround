@@ -194,46 +194,6 @@ void mbDataTypeHandler()
 // {"Command":"SlaveArray","SlaveArray":[{"slaveType":"1","ID":"undefined","writeStart":"9120","writeEnd":"9129","readStart":"6096","readEnd":"9119"}]}
 void mbSlavehandler()
 {
-
-    // if (rdoc["SlaveArray"][0]["slaveType"] == "0")
-    // {
-    //     modbusRTU.numSlave++;
-
-    //     modbusRTU.slave[(modbusRTU.numSlave - 1)].ID = rdoc["SlaveArray"][0]["ID"];
-    //     modbusRTU.slave[(modbusRTU.numSlave - 1)].ReadAddress.startAddress = rdoc["SlaveArray"][0]["readStart"];
-    //     modbusRTU.slave[(modbusRTU.numSlave - 1)].ReadAddress.endAddress = rdoc["SlaveArray"][0]["readEnd"];
-    //     modbusRTU.slave[(modbusRTU.numSlave - 1)].WriteAddress.startAddress = rdoc["SlaveArray"][0]["writeStart"];
-    //     modbusRTU.slave[(modbusRTU.numSlave - 1)].WriteAddress.endAddress = rdoc["SlaveArray"][0]["writeEnd"];
-
-    //     Serial.println("Node: " + String((modbusRTU.numSlave - 1)));
-    //     Serial.println("ID: " + String(modbusRTU.slave[(modbusRTU.numSlave - 1)].ID));
-    //     Serial.println("ReadStart: " + String(modbusRTU.slave[(modbusRTU.numSlave - 1)].ReadAddress.startAddress));
-    //     Serial.println("ReadEnd: " + String(modbusRTU.slave[(modbusRTU.numSlave - 1)].ReadAddress.endAddress));
-    //     Serial.println("WriteStart: " + String(modbusRTU.slave[(modbusRTU.numSlave - 1)].WriteAddress.startAddress));
-    //     Serial.println("WriteEnd: " + String(modbusRTU.slave[(modbusRTU.numSlave - 1)].WriteAddress.endAddress));
-
-    //     modbusRTU.writeSlave();
-    // }
-    // else
-    // {
-    //     modbusTCP.numSlave++;
-
-    //     modbusTCP.slave[(modbusTCP.numSlave - 1)].IP = rdoc["SlaveArray"][0]["ID"].as<String>();
-    //     modbusTCP.slave[(modbusTCP.numSlave - 1)].ReadAddress.startAddress = rdoc["SlaveArray"][0]["readStart"];
-    //     modbusTCP.slave[(modbusTCP.numSlave - 1)].ReadAddress.endAddress = rdoc["SlaveArray"][0]["readEnd"];
-    //     modbusTCP.slave[(modbusTCP.numSlave - 1)].WriteAddress.startAddress = rdoc["SlaveArray"][0]["writeStart"];
-    //     modbusTCP.slave[(modbusTCP.numSlave - 1)].WriteAddress.endAddress = rdoc["SlaveArray"][0]["writeEnd"];
-
-    //     Serial.println("Node: " + String((modbusTCP.numSlave - 1)));
-    //     Serial.println("ID: " + String(modbusTCP.slave[(modbusTCP.numSlave - 1)].IP));
-    //     Serial.println("ReadStart: " + String(modbusTCP.slave[(modbusTCP.numSlave - 1)].ReadAddress.startAddress));
-    //     Serial.println("ReadEnd: " + String(modbusTCP.slave[(modbusTCP.numSlave - 1)].ReadAddress.endAddress));
-    //     Serial.println("WriteStart: " + String(modbusTCP.slave[(modbusTCP.numSlave - 1)].WriteAddress.startAddress));
-    //     Serial.println("WriteEnd: " + String(modbusTCP.slave[(modbusTCP.numSlave - 1)].WriteAddress.endAddress));
-
-    //     modbusTCP.writeSlave();
-    // }
-
     mbParam.numSlave++;
 
     mbParam.slave[(mbParam.numSlave - 1)].ID = rdoc["SlaveArray"][0]["ID"].as<String>();
@@ -249,8 +209,7 @@ void mbSlavehandler()
     Serial.println("WriteStart: " + String(mbParam.slave[(mbParam.numSlave - 1)].WriteAddress.startAddress));
     Serial.println("WriteEnd: " + String(mbParam.slave[(mbParam.numSlave - 1)].WriteAddress.endAddress));
 
-    // modbusRTU.writeSlave();
-
+    mbParam.writeSlave();
     wDoc["Command"] = "SlaveArray";
     wDoc["Data"] = "AddDone";
     serializeJson(wDoc, fbDataString);
@@ -261,26 +220,13 @@ void mbSendSlavehandler()
     uint8_t count = 0;
     wDoc["Command"] = "getTotalSlave";
 
-    for (byte i = 0; i < modbusRTU.numSlave; i++)
+    for (byte i = 0; i < mbParam.numSlave; i++)
     {
-        wDoc["SlaveArray"][count]["slaveType"] = 0;
-        wDoc["SlaveArray"][count]["ID"] = modbusRTU.slave[i].ID;
-        wDoc["SlaveArray"][count]["readStart"] = modbusRTU.slave[i].ReadAddress.startAddress;
-        wDoc["SlaveArray"][count]["readEnd"] = modbusRTU.slave[i].ReadAddress.endAddress;
-        wDoc["SlaveArray"][count]["writeStart"] = modbusRTU.slave[i].WriteAddress.startAddress;
-        wDoc["SlaveArray"][count]["writeEnd"] = modbusRTU.slave[i].WriteAddress.endAddress;
-        count++;
-    }
-
-    for (byte j = 0; j < modbusTCP.numSlave; j++)
-    {
-        wDoc["SlaveArray"][count]["slaveType"] = 1;
-        wDoc["SlaveArray"][count]["ID"] = modbusTCP.slave[j].IP;
-        wDoc["SlaveArray"][count]["readStart"] = modbusTCP.slave[j].ReadAddress.startAddress;
-        wDoc["SlaveArray"][count]["readEnd"] = modbusTCP.slave[j].ReadAddress.endAddress;
-        wDoc["SlaveArray"][count]["writeStart"] = modbusTCP.slave[j].WriteAddress.startAddress;
-        wDoc["SlaveArray"][count]["writeEnd"] = modbusTCP.slave[j].WriteAddress.endAddress;
-        count++;
+        wDoc["SlaveArray"][count]["ID"] = mbParam.slave[i].ID;
+        wDoc["SlaveArray"][count]["readStart"] = mbParam.slave[i].ReadAddress.startAddress;
+        wDoc["SlaveArray"][count]["readEnd"] = mbParam.slave[i].ReadAddress.endAddress;
+        wDoc["SlaveArray"][count]["writeStart"] = mbParam.slave[i].WriteAddress.startAddress;
+        wDoc["SlaveArray"][count]["writeEnd"] = mbParam.slave[i].WriteAddress.endAddress;
     }
 
     serializeJson(wDoc, fbDataString);
@@ -408,7 +354,6 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         deserializeJson(rdoc, DataStr);
         Serial.println(DataStr);
         String command = rdoc["Command"].as<String>();
-
         if (command == "settingModbus")
         {
             filesystem.writefile("/mbsetting.json", DataStr, 0);
@@ -418,33 +363,28 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         {
             setWifiHandler();
         }
-        else if (command == "mbDataType")
+        else if (command == "mbDataType")   //Update the type of data on Web
         {
             mbDataTypeHandler();
         }
-        else if (command == "SlaveArray")
+        else if (command == "SlaveArray")   // Get from WebSocket and write to filesystem
         {
             mbSlavehandler();
         }
-        else if (command == "getTotalSlave")
+        else if (command == "getTotalSlave")    // Request get total slave
         {
             mbSendSlavehandler();
         }
-        else if (command == "clearSlave")
+        else if (command == "clearSlave")   // Clear slave in filesystem
         {
-            filesystem.deletefile("/rtuslave.json");
-            filesystem.deletefile("/tcpslave.json");
-            modbusRTU.loadSlave();
-            modbusTCP.loadSlave();
+            filesystem.deletefile("/mbSlave.json");
+            mbParam.loadSlave();
             mbSendSlavehandler();
         }
-        else if (command == "loadSlaveTable")
+        else if (command == "loadSlaveTable")   // Request load all slave tables to web server
         {
-            modbusRTU.slaveTable = rdoc["SlaveID"];
-            modbusRTU.typeTable = rdoc["Type"];
-            Serial.println("table ID " + String(modbusRTU.slaveTable));
             bool IsSetTable = true;
-            xQueueSend(modbusRTU.qUpdateTable, (void *)&IsSetTable, 1 / portTICK_PERIOD_MS);
+            xQueueSend(mbParam.qUpdateTable, (void *)&IsSetTable, 1 / portTICK_PERIOD_MS);
         }
     }
 }
