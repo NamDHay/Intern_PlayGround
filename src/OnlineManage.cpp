@@ -177,16 +177,16 @@ void mbDataTypeHandler()
     Serial.println("Size of type: " + String(size));
     for (int i = 0; i < size; i++)
     {
-        if (modbusRTU.master == 1)
-        {
-            modbusRTU.typeData[i] = rdoc["type"][i];
-            Serial.println("Type " + String(i) + ": " + String(modbusRTU.typeData[i]));
-        }
-        if (modbusTCP.client == 1)
-        {
-            modbusTCP.typeData[i] = rdoc["type"][i];
-            Serial.println("Type " + String(i) + ": " + String(modbusTCP.typeData[i]));
-        }
+        // if (modbusRTU.master == 1)
+        // {
+        //     modbusRTU.typeData[i] = rdoc["type"][i];
+        //     Serial.println("Type " + String(i) + ": " + String(modbusRTU.typeData[i]));
+        // }
+        // if (modbusTCP.client == 1)
+        // {
+        //     modbusTCP.typeData[i] = rdoc["type"][i];
+        //     Serial.println("Type " + String(i) + ": " + String(modbusTCP.typeData[i]));
+        // }
     }
     bool IsSetTable = true;
     xQueueSend(modbusRTU.qUpdateTable, (void *)&IsSetTable, 1 / portTICK_PERIOD_MS);

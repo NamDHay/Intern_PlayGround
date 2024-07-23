@@ -31,6 +31,7 @@ class MODBUS_RTU
 {
 public:
     bool loadTable;
+    bool isConnected;
     uint8_t typeTable;
     byte slaveTable;
     uint8_t numSlave;
@@ -69,6 +70,7 @@ class MODBUS_TCP
 {
 public:
     bool loadTable;
+    bool isConnected;
     uint8_t typeTable;
     byte slaveTable;
     uint8_t numSlave;
