@@ -384,9 +384,54 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
             bool IsSetTable = true;
             xQueueSend(mbParam.qUpdateTable, (void *)&IsSetTable, 1 / portTICK_PERIOD_MS);
         }
-        else if (command == "editModbusData") // Request load all slave tables to web server
+        else if (command == "editModbusData") // Request change data from web server
         {
-            
+            // {"Command":"editModbusData","slaveID":"0","address":"6105","type":"0","value":"1"}
+            uint8_t totalSend = 0;
+            uint8_t node = rdoc["slaveID"];
+            long address = rdoc["address"];
+            uint8_t type = rdoc["type"];
+            Serial.println("node: " + String(node) + " address: " + String(address) + " type: " + String(type));
+            switch (type)
+            {
+            case COIL_TYPE:
+                mbParam.write_data.w[0] = rdoc["value"];
+                totalSend = 1;
+                break;
+            case WORD_TYPE:
+                mbParam.write_data.w[0] = rdoc["value"];
+                totalSend = 1;
+                break;
+            case DWORDS_TYPE:
+                mbParam.write_data.dw = rdoc["value"];
+                totalSend = 2;
+                break;
+            case FLOAT_TYPE:
+                mbParam.write_data.f = rdoc["value"];
+                totalSend = 2;
+                break;
+            default:
+                break;
+            }
+            if ((modbusRTU.master == 1) && (mbParam.slave[node].ID.length() < 5))
+            {
+                Serial.println("Write slave RTU");
+                while (modbusRTU.write_Multiple_Data(mbParam.slave[node].ID.toInt(),
+                                                     (uint16_t *)&mbParam.write_data.w,
+                                                     address,
+                                                     totalSend) != true)
+                    ;
+
+            }
+            else if ((modbusTCP.client == 1) && (mbParam.slave[node].ID.length() > 5))
+            {
+                Serial.println("Write slave TCP");
+                while (modbusTCP.write_Multiple_Data(modbusTCP.str2IP(mbParam.slave[node].ID),
+                                                     (uint16_t *)&mbParam.write_data.w,
+                                                     address,
+                                                     totalSend) != true)
+                    ;
+            }
         }
     }
 }

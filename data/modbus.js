@@ -307,7 +307,7 @@ function loadTable(jsonValue) {
             <h5 class=\"state\">\
             <CENTER> No: " + i + "</CENTER>\
             </h5>\
-            <CENTER><p class=\"state\">ID: <div id=\"slave" + i + "\">%ID%</div></p></CENTER>\
+            <CENTER><span class=\"state\">ID: <div class=\"state\" id=\"slave" + i + "\">%ID%</div></span></CENTER>\
             <table class=\"table \"><thead class=\"thead-dark\"><th>STT</th><th>Address</th><th>Type</th><th>Data</th></thead><tbody>\
             ";
             for (var j = 0; j < key.Data[i].Data.length; j++) {

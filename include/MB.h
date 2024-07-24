@@ -6,6 +6,15 @@
 #include <ModbusIP_ESP8266.h>
 #include <ModbusRTU.h>
 
+#define WORD_TYPE 0
+#define COIL_TYPE 1
+#define DWORDS_TYPE 2
+#define FLOAT_TYPE 3
+
+#define CHECKCOIL(CoilGroup, CoilBit) ((((CoilGroup) & (1UL << CoilBit)) == (1UL << CoilBit)) ? 1 : 0)
+#define SETCOIL(CoilGroup, CoilBit) ((CoilGroup) |= (1UL << CoilBit))
+#define CLEARCOIL(CoilGroup, CoilBit) (CoilGroup &= ~(1UL << CoilBit))
+
 class MODBUS_PARAMETER
 {
 public:
@@ -28,6 +37,12 @@ public:
         String ID;
     };
     Slave_t slave[10];
+    union data_t
+    {
+        float f;
+        int32_t dw;
+        uint16_t w[2];
+    } write_data;
     void loadSlave();
     void writeSlave();
 };
@@ -75,6 +90,7 @@ public:
     };
     ethernet_t ethernet;
 
+    IPAddress str2IP(String str);
     void EthernetInit();
     void ClientInit();
     void ServerInit();

@@ -4,17 +4,8 @@
 #include <ArduinoJson.h>
 #include <File_System.h>
 
-#define WORD_TYPE 0
-#define COIL_TYPE 1
-#define DWORDS_TYPE 2
-#define FLOAT_TYPE 3
-
 #define RTU_MAX_RW 30
 #define TCP_MAX_RW 99
-
-#define CHECKCOIL(CoilGroup, CoilBit) ((((CoilGroup) & (1UL << CoilBit)) == (1UL << CoilBit)) ? 1 : 0)
-#define SETCOIL(CoilGroup, CoilBit) ((CoilGroup) |= (1UL << CoilBit))
-#define CLEARCOIL(CoilGroup, CoilBit) (CoilGroup &= ~(1UL << CoilBit))
 
 ModbusRTU mbRTU;
 ModbusIP mbTCP;
@@ -38,7 +29,7 @@ int getIpBlock(int index, String str)
 
     return found > index ? str.substring(strIndex[0], strIndex[1]).toInt() : 0;
 }
-IPAddress str2IP(String str)
+IPAddress MODBUS_TCP::str2IP(String str)
 {
     IPAddress ret(getIpBlock(0, str), getIpBlock(1, str), getIpBlock(2, str), getIpBlock(3, str));
     return ret;
@@ -111,14 +102,12 @@ void update_ModbusData_Interval()
         Doc["Command"] = "tableData";
         for (byte i = 0; i < mbParam.numSlave; i++)
         {
-            // Serial.println("Slave NO " + String(i));
             lenght = mbParam.slave[i].ReadAddress.endAddress - mbParam.slave[i].ReadAddress.startAddress + 1;
             Doc["Data"][i]["ID"] = mbParam.slave[i].ID;
             if ((modbusRTU.master == 1) && (mbParam.slave[i].ID.length() < 5))
             {
                 if (!mbRTU.slave())
                 {
-                    // Serial.println("Read data from " + String(mbParam.slave[i].ID.toInt()) + " from " + String(mbParam.slave[i].ReadAddress.startAddress) + " to " + String(mbParam.slave[i].ReadAddress.endAddress));
                     while (modbusRTU.read_Multiple_Data(mbParam.slave[i].ID.toInt(),
                                                         (uint16_t *)&mbParam.slave[i].Data,
                                                         mbParam.slave[i].ReadAddress.startAddress,
@@ -134,11 +123,10 @@ void update_ModbusData_Interval()
             }
             else if ((modbusTCP.client == 1) && (mbParam.slave[i].ID.length() > 5))
             {
-                if (mbTCP.isConnected(str2IP(mbParam.slave[i].ID)))
+                if (mbTCP.isConnected(modbusTCP.str2IP(mbParam.slave[i].ID)))
                 {
-                    // Serial.println("Read data from " + String(mbParam.slave[i].ID) + " from " + String(mbParam.slave[i].ReadAddress.startAddress) + " to " + String(mbParam.slave[i].ReadAddress.endAddress));
                     modbusTCP.isConnected = true;
-                    while (modbusTCP.read_Multiple_Data(str2IP(mbParam.slave[i].ID),
+                    while (modbusTCP.read_Multiple_Data(modbusTCP.str2IP(mbParam.slave[i].ID),
                                                         (uint16_t *)&mbParam.slave[i].Data,
                                                         mbParam.slave[i].ReadAddress.startAddress,
                                                         lenght) != true)
@@ -147,17 +135,11 @@ void update_ModbusData_Interval()
                 else
                 {
                     mbTCP.task();
-                    mbTCP.connect(str2IP(mbParam.slave[i].ID));
+                    mbTCP.connect(modbusTCP.str2IP(mbParam.slave[i].ID));
                     continue;
                 }
                 mbTCP.task();
             }
-            // for (long n = 0; n < lenght; n++)
-            // {
-            //     Serial.print(mbParam.slave[i].Data[n]);
-            //     Serial.print("|");
-            // }
-            // Serial.println();
             for (byte j = 0; j < lenght; j++)
             {
                 if (count > mbParam.slave[i].ReadAddress.endAddress)
