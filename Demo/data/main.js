@@ -41,7 +41,7 @@ var lock = [];//trạng thái của Run/Stop (0/1)
 var modalCardSet = new Object;
 modalCardSet.active = null
 modalCardSet.closefn = null;
-var DataPRODUCT;
+var staffPass = "abc", adminPass = "123", AutoStopPass = "";
 const intervalId = setInterval(intervalHandle, 1000);
 window.addEventListener('beforeunload', () => clearInterval(intervalId));
 window.addEventListener('load', onLoad);
@@ -94,6 +94,7 @@ function onMessage(event) {
     addvaluecard(event.data);
     if(daloadvcard) updatevalue();
     jsontable = event.data;
+
   }
   else if(message.Command == "ShowFile"){
     tablefile(event.data); 
@@ -102,8 +103,8 @@ function onMessage(event) {
 function onLoad(event) {
   initWebSocket();
   initButton();
-  DataPRODUCT = document.getElementById("dataProduct").value = preferenceslist = "{\"data\":[{\"id\":0,\"product\":[\"San_Pham_2\",\"sp2\",\"SanPhamMoi1\"],\"cycletime\":[\"150\",\"150\",\"653\"],\"productset\":[\"4\",\"2\",\"5\"]},{\"id\":1,\"product\":[\"sp4567\",\"sp44\"],\"cycletime\":[\"250\",\"250\"],\"productset\":[\"2\",\"4\"]},{\"id\":2,\"product\":[\"sp5\",\"sp6\"],\"cycletime\":[\"300\",\"350\"],\"productset\":[\"5\",\"6\"]},{\"id\":3,\"product\":[\"sp7\",\"sp8\"],\"cycletime\":[\"400\",\"450\"],\"productset\":[\"7\",\"8\"]}]}"; 
-  document.getElementById("jsonApp").value = "{\"Application\":[{\"app\":\"0,0,0,1,0,3333,0,0,0,0,0,0\"},{\"app\":\"0,0,1,1,0,44444,0,0,0,0,0,0\"},{\"app\":\"0,0,2,1,0,5555,0,0,0,0,0,0\"},{\"app\":\"0,0,3,1,0,66666,0,0,0,0,0,0\"}]}";
+  document.getElementById("dataProduct").value = preferenceslist = "{\"data\":[{\"id\":0,\"product\":[\"San_Pham_2\",\"sp2\",\"SanPhamMoi1\"],\"cycletime\":[\"150\",\"150\",\"653\"],\"productset\":[\"4\",\"2\",\"5\"]},{\"id\":1,\"product\":[\"sp4567\",\"sp44\"],\"cycletime\":[\"250\",\"250\"],\"productset\":[\"2\",\"4\"]},{\"id\":2,\"product\":[\"sp5\",\"sp6\"],\"cycletime\":[\"300\",\"350\"],\"productset\":[\"5\",\"6\"]},{\"id\":3,\"product\":[\"sp7\",\"sp8\"],\"cycletime\":[\"400\",\"450\"],\"productset\":[\"7\",\"8\"]}]}"; 
+  document.getElementById("jsonApp").value = "{\"Application\":[{\"app\":\"0,0,0,1,0,test1,0,1,2,0,4,5\"},{\"app\":\"0,0,1,1,0,test2,10,12,13,0,15,16\"},{\"app\":\"0,0,2,1,0,test3,3,6,9,0,15,18\"},{\"app\":\"0,0,3,1,0,test4,2,4,6,0,10,12\"}]}";
 }
 function io_ChangeState1() {
   io_array[4] = !io_array[4];
@@ -179,6 +180,69 @@ function UnlockAdmin() {
 function LogOut() {
   document.getElementById("roleAccount").innerHTML = "User";
 }
+function PassSave(id) {
+  // try{
+  console.log("pass_Save: " + document.getElementById("pass_Save").value);
+  if (id == 1) { 
+    staffPass = document.getElementById("pass_Save").value; preferenceslist[0].Pass_staff = document.getElementById("pass_Save").value; 
+  }
+  if (id == 2) { 
+    adminPass = document.getElementById("pass_Save").value; 
+    preferenceslist[0].Pass_admin = document.getElementById("pass_Save").value; 
+  }
+
+  console.log("staffPass: " + staffPass);
+  console.log("adminPass: " + adminPass);
+  var inputElement = document.getElementById("pass_Save");
+  // Đặt giá trị của input thành rỗng
+  inputElement.value = "";
+
+}
+function PassSave_AutoStop() {
+  console.log("PassSave_AutoStop save");
+  AutoStopPass = document.getElementById("pass_Save_AutoStop").value; 
+  preferenceslist[0].AutoStop = document.getElementById("pass_Save_AutoStop").value; 
+  
+
+  console.log("AutoStopPass: " + AutoStopPass);
+  var inputElement = document.getElementById("pass_Save_AutoStop");
+  // Đặt giá trị của input thành rỗng
+  inputElement.value = "";
+  // }
+  // catch(e) {console.log(e);}
+}
+function PassGet_AutoStop() {
+  console.log("PassGet_AutoStop get");
+  try {
+    void 0 == AutoStopPass ? AutoStopPass = preferenceslist[0].AutoStop : AutoStopPass = preferenceslist[0].AutoStop,
+      document.getElementById("AutoStopShow").innerHTML = AutoStopPass;
+
+    console.log("AutoStopPass: " + AutoStopPass);
+  } 
+  catch (e) { 
+    console.log(e); 
+  }
+  document.getElementById("dataProduct").value = preferenceslist[0].product;
+
+}
+function PassGet() {
+  console.log("PassGet");
+  try {
+    void 0 == staffPass ? staffPass = preferenceslist[0].Pass_staff : staffPass = preferenceslist[0].Pass_staff,
+      document.getElementById("staffShow").innerHTML = staffPass;
+
+    void 0 == adminPass ? adminPass = preferenceslist[0].Pass_admin : adminPass = preferenceslist[0].Pass_admin,
+      document.getElementById("adminShow").innerHTML = adminPass;
+
+    console.log("Get staffPass: " + staffPass);
+    console.log("Get adminPass: " + adminPass);
+  } 
+  catch (e) { 
+    console.log(e); 
+  }
+  document.getElementById("dataProduct").value = preferenceslist[0].product;
+
+}
 function validateAndSave() {
   var pass1 = document.getElementById("pass_Save").value;
   var pass2 = document.getElementById("pass_Save_confirm").value;
@@ -200,7 +264,7 @@ function validateAndSave() {
 function checkPassword(){
   var password = document.getElementById('passwordInput').value;
   //Admin
-  if(password == '123'){
+  if(password == adminPass){
     LogOut();
     closeModalUnlock();
     UnlockAdmin();
@@ -208,7 +272,7 @@ function checkPassword(){
     unlockSuccess();
   }
   //Staff
-  else if(password == '456'){
+  else if(password == staffPass){
     LogOut();
     closeModalUnlock();
     UnlockStaff();
@@ -227,10 +291,23 @@ function checkPassword(){
     document.getElementById("passwordInput").value = "";
   }
 }
-document.getElementById("passwordInput").addEventListener("keyup", function(event) {
+document.getElementById("passwordInput").addEventListener("keyup", function (event) {
   if (event.key == "Enter") {
-      event.preventDefault();
-      checkPassword();
+    event.preventDefault();
+    checkPassword();
+  }
+});
+document.getElementById("pass_Save").addEventListener("keyup", function (event) {
+  if (event.key == "Enter") {
+    event.preventDefault();
+    document.getElementById("pass_Save_confirm").focus();
+  }
+});
+
+document.getElementById("pass_Save_confirm").addEventListener("keyup", function (event) {
+  if (event.key == "Enter") {
+    event.preventDefault();
+    validateAndSave();
   }
 });
 function closeModalChange(){
@@ -562,6 +639,7 @@ function buildcard(jsoninput){
 function updatevalue(){
   var jsonObj = JSON.parse(jsonAppInput);
   var appLen = jsonObj.Application.length;
+
   for (var i = 0; i < appLen; i++) {
     var arrayData = [AppID,poss,id_card,nodeID,netID,namecard,value1, value2, value3,value4, value5,value6] = jsonObj.Application[i].app.split(",");
     var jsonTasbleObj = JSON.parse(jsontable);
@@ -572,7 +650,7 @@ function updatevalue(){
     document.getElementById("card"+i+"value4").innerHTML = jsonTasbleObj.Data[value4].value;
     document.getElementById("card"+i+"value5").innerHTML = jsonTasbleObj.Data[value5].value;
     document.getElementById("card"+i+"value6").innerHTML = jsonTasbleObj.Data[value6].value;
-    
+
   }
 
 }
@@ -698,7 +776,17 @@ function buildCardJson() {
   
   app = JSON.parse(jsonAppInput).Application.length;
   for(var i = 0; i < (app);i++){
+    AppID = JSON.parse(jsonAppInput).Application[i].app.split(",")[0];
+    poss = JSON.parse(jsonAppInput).Application[i].app.split(",")[1];
+    nodeID = JSON.parse(jsonAppInput).Application[i].app.split(",")[3];
+    netID = JSON.parse(jsonAppInput).Application[i].app.split(",")[4];
     namecard = JSON.parse(jsonAppInput).Application[i].app.split(",")[5];
+    selectvalue1 = JSON.parse(jsonAppInput).Application[i].app.split(",")[6];
+    selectvalue2 = JSON.parse(jsonAppInput).Application[i].app.split(",")[7];
+    selectvalue3 = JSON.parse(jsonAppInput).Application[i].app.split(",")[8];
+    selectvalue4 = JSON.parse(jsonAppInput).Application[i].app.split(",")[9];
+    selectvalue5 = JSON.parse(jsonAppInput).Application[i].app.split(",")[10];
+    selectvalue6 = JSON.parse(jsonAppInput).Application[i].app.split(",")[11];
     appData[i] = AppID+","+poss+","+i+","+nodeID+","+netID +","+namecard+","+selectvalue1+","+selectvalue2+","+selectvalue3+","+selectvalue4+","+selectvalue5+","+selectvalue6;
     jsonApp = "{\"Application\":[{\"app\":\""+appData[0]+"\"}";
     if(i >0){
@@ -708,8 +796,8 @@ function buildCardJson() {
     }
     jsonApp += "]}";
   }
-  console.log(jsonApp);
-  websocket.send(jsonApp);
+  console.log(jsonAppInput);
+  websocket.send(jsonAppInput);
   buildcard(jsonAppInput);
 }
 
@@ -717,7 +805,10 @@ function CardSetup_dlg(titledlg, textdlg, closefunc ){
   modalCardSet.active = document.getElementById('settingsModal.html');
   var title = modalCardSet.active.getElementsByClassName("modal-title")[0];
   var body = modalCardSet.active.getElementsByClassName("modal-text")[0];
-  title.innerHTML = titledlg;body.innerHTML = textdlg;cardID = textdlg;if (typeof closefunc === 'undefined') closefunc = CardSetClose;ShowModalCardSet(closefunc);      //loaddatasetting(textdlg);
+  title.innerHTML = titledlg;body.innerHTML = textdlg;cardID = textdlg;
+  if (typeof closefunc === 'undefined') closefunc = CardSetClose;
+  ShowModalCardSet(closefunc);      
+  loaddatasetting(textdlg);
 }
 function ShowModalCardSet(closefunc) { 
   modalCardSet.active.style.display = "block"; 
@@ -725,8 +816,7 @@ function ShowModalCardSet(closefunc) {
 }
 function CloseModalCardSet(response) { 
   modalCardSet.active.style.display = 'none'; 
-  modalCardSet.closefn(response); var deleteProductList = document.getElementById("deleteProductList"); 
-  deleteProductList.style.display = "none"; 
+  modalCardSet.closefn(response); 
 }
 
 function CardSetClose(value) {
@@ -765,8 +855,7 @@ function displayDeleteProductList() {
   productTableBody.innerHTML = ""; // Xóa nội dung bảng sản phẩm cũ
 
   // Lấy danh sách sản phẩm từ chuỗi JSON
-  // var productJSON = JSON.parse(document.getElementById("dataProduct").value);
-  var productJSON = JSON.parse(DataPRODUCT);
+  var productJSON = JSON.parse(document.getElementById("dataProduct").value);
 
   // Lấy id của card
   var id = document.getElementById("cardID").innerHTML;
@@ -797,7 +886,7 @@ function displayDeleteProductList() {
     deleteButton.className = "btn btn-secondary";
     deleteButton.type = "button";
     deleteButton.onclick = function() {
-      deleteProduct(id, index); // Truyền id của card và index của sản phẩm vào hàm xóa sản phẩm
+    deleteProduct(id, index); // Truyền id của card và index của sản phẩm vào hàm xóa sản phẩm
     };
     deleteButtonCell.appendChild(deleteButton);
 
@@ -809,12 +898,12 @@ function displayDeleteProductList() {
     // Thêm hàng vào bảng
     productTableBody.appendChild(row);
   });
+  
   SaveDataProduct();
 }
 
 function editProduct(cardID, index) {
-  // var productJSON = JSON.parse(document.getElementById("dataProduct").value);
-  var productJSON = JSON.parse(DataPRODUCT);
+  var productJSON = JSON.parse(document.getElementById("dataProduct").value);
   var product = productJSON.data[cardID].product[index];
   var cycleTime = productJSON.data[cardID].cycletime[index];
   var productSet = productJSON.data[cardID].productset[index];
@@ -833,6 +922,7 @@ function editProduct(cardID, index) {
   document.getElementById("editProductSet").value = productSet;
 
   editForm.dataset.index = index;
+  
 }
 function closeEditForm() {
     // Ẩn form chỉnh sửa sản phẩm mà không lưu thay đổi
@@ -866,6 +956,11 @@ function saveProduct() {
   // Ẩn form chỉnh sửa sản phẩm
   var editForm = document.getElementById("editForm");
   editForm.style.display = "none";
+  
+  document.getElementById("dataProduct").value = JSON.stringify(productJSON);
+  // In ra chuỗi JSON đã được cập nhật
+  console.log("Updated JSON:", JSON.stringify(productJSON));
+
   SaveDataProduct();
   loaddatasetting(id);
   displayDeleteProductList();
@@ -875,8 +970,7 @@ function saveProduct() {
 // Hàm xóa sản phẩm từ danh sách sản phẩm của card dựa trên id và index
 function deleteProduct(cardID, index) {
   var id = document.getElementById("cardID").innerHTML;
-  var DataPRODUCT = document.getElementById("dataProduct").value;
-  var productJSON = JSON.parse(DataPRODUCT);
+  var productJSON = JSON.parse(document.getElementById("dataProduct").value);
 
   // Xóa sản phẩm khỏi danh sách của card
   productJSON.data[cardID].product.splice(index, 1);
@@ -890,21 +984,22 @@ function deleteProduct(cardID, index) {
   loaddatasetting(id);
   displayDeleteProductList();
   
-}
-// var DataPRODUCT = document.getElementById("dataProduct").value = preferenceslist = "{\"data\":[{\"id\":0,\"product\":[\"San_Pham_2\",\"sp2\",\"SanPhamMoi1\"],\"cycletime\":[\"150\",\"150\",\"653\"],\"productset\":[\"4\",\"2\",\"5\"]},{\"id\":1,\"product\":[\"sp4567\",\"sp44\"],\"cycletime\":[\"250\",\"250\"],\"productset\":[\"2\",\"4\"]},{\"id\":2,\"product\":[\"sp5\",\"sp6\"],\"cycletime\":[\"300\",\"350\"],\"productset\":[\"5\",\"6\"]},{\"id\":3,\"product\":[\"sp7\",\"sp8\"],\"cycletime\":[\"400\",\"450\"],\"productset\":[\"7\",\"8\"]}]}";   
+} 
 
 function loaddatasetting(id) {
-
+  // var id = document.getElementById("cardID").innerHTML; 
   console.log("loaddatasetting" + id);
-  var UpdateDataApp = JSON.parse(jsonApp);
+  var UpdateDataApp = JSON.parse(jsonAppInput);
+  var jsonTasbleObj = JSON.parse(jsontable);
   var arrayData = [AppID,poss,id_card,nodeID,netID,namecard,value1, value2, value3,value4, value5,value6] = UpdateDataApp.Application[id].app.split(",");
-  document.getElementById("doiten").value = namecard;
-  document.getElementById("planInput").value = value1;
-  document.getElementById("resultInput").value = value2;
-  document.getElementById("planSetInput").value = value3;
-  document.getElementById("ProductDataSaveSelect").value4;
-  document.getElementById("TimeIncInput").value = value5;
-  document.getElementById("PCSInput").value = value6;
+  document.getElementById("doiten").value = UpdateDataApp.Application[id].app.split(",")[5];
+  
+  document.getElementById("planInput").value = jsonTasbleObj.Data[value1].value;
+  document.getElementById("resultInput").value = jsonTasbleObj.Data[value2].value;
+  document.getElementById("planSetInput").value = jsonTasbleObj.Data[value3].value;
+  document.getElementById("ProductDataSaveSelect").value = jsonTasbleObj.Data[value4].value;
+  document.getElementById("TimeIncInput").value = jsonTasbleObj.Data[value5].value;
+  document.getElementById("PCSInput").value = jsonTasbleObj.Data[value6].value;
 
   var productData;
   var productParse = document.getElementById("dataProduct").value;
@@ -936,11 +1031,16 @@ function loaddatasetting(id) {
       }
     }
   }
-  document.getElementById("ProductDataSaveSelect").value = value4;
+  else {
+    var selectElement = document.getElementById("ProductDataSaveSelect");
+    selectElement.innerHTML = '';
+  }
+  // document.getElementById("ProductDataSaveSelect").value = jsonTasbleObj.Data[value4].value;
 }
 function saveSettings(id) {
   console.log("app id= " + id);
   var UpdateDataApp = JSON.parse(jsonApp);
+  var jsonTasbleObj = JSON.parse(jsontable);
   var arrayData = [AppID,poss,id_card,nodeID,netID,namecard,value1, value2, value3,value4, value5,value6] = UpdateDataApp.Application[id].app.split(",");
   // Retrieve values from modal input fields
   var planValue = document.getElementById("planInput").value;
@@ -951,12 +1051,12 @@ function saveSettings(id) {
   var PCSValue = document.getElementById("PCSInput").value;
 
   // Retrieve original values
-  var originalPlanValue = value1;
-  var originalResultValue = value2;
-  var originalPlanSetValue = value3;
+  var originalPlanValue = jsonTasbleObj.Data[value1].value;;
+  var originalResultValue = jsonTasbleObj.Data[value2].value;;
+  var originalPlanSetValue = jsonTasbleObj.Data[value3].value;;
   // var originalResultSetValue = regsvalue[r4];
-  var originalTimeIncValue = value5;
-  var originalPCSValue = value6;
+  var originalTimeIncValue = jsonTasbleObj.Data[value5].value;;
+  var originalPCSValue = jsonTasbleObj.Data[value6].value;;
 
   // Convert values to the same type (in this case, to numbers)
   var planValueNum = parseFloat(planValue);
@@ -975,80 +1075,96 @@ function saveSettings(id) {
   var originalPCSValueNum = parseFloat(originalPCSValue);
 
   // Check for changes and log/send only if values are different
-  if (planValueNum !== originalPlanValueNum) {
-    console.log("Plan (" + value1 + ") value changed: " + originalPlanValue + " to " + planValue);
-    SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + value1 + " value=" + planValue), getLooklineCmdSuccess, getLooklineCmdfailed);
-  }
+  // if (planValueNum !== originalPlanValueNum) {
+  //   console.log("Plan (" + value1 + ") value changed: " + originalPlanValue + " to " + planValue);
+  //   SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + value1 + " value=" + planValue), getLooklineCmdSuccess, getLooklineCmdfailed);
+  // }
 
-  if (resultValueNum !== originalResultValueNum) {
-    console.log("Result (" + value2 + ") value changed: " + originalResultValue + " to " + resultValue);
-    SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + value2 + " value=" + resultValue), getLooklineCmdSuccess, getLooklineCmdfailed);
-  }
+  // if (resultValueNum !== originalResultValueNum) {
+  //   console.log("Result (" + value2 + ") value changed: " + originalResultValue + " to " + resultValue);
+  //   SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + value2 + " value=" + resultValue), getLooklineCmdSuccess, getLooklineCmdfailed);
+  // }
 
-  if (planSetValueNum !== originalPlanSetValueNum) {
-    console.log("Plan Set (" + value3 + ") value changed: " + originalPlanSetValue + " to " + planSetValue);
-    SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + value3 + " value=" + planSetValue), getLooklineCmdSuccess, getLooklineCmdfailed);
-  }
+  // if (planSetValueNum !== originalPlanSetValueNum) {
+  //   console.log("Plan Set (" + value3 + ") value changed: " + originalPlanSetValue + " to " + planSetValue);
+  //   SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + value3 + " value=" + planSetValue), getLooklineCmdSuccess, getLooklineCmdfailed);
+  // }
 
-  if (resultSetValueNum !== originalResultSetValueNum) {
-      console.log("Result Set ("+value4+") value changed: " + originalResultSetValue + " to " + resultSetValue);
-      SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + value4 + " value=" + resultSetValue), getLooklineCmdSuccess, getLooklineCmdfailed);
-  }
+  // if (resultSetValueNum !== originalResultSetValueNum) {
+  //     console.log("Result Set ("+value4+") value changed: " + originalResultSetValue + " to " + resultSetValue);
+  //     SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + value4 + " value=" + resultSetValue), getLooklineCmdSuccess, getLooklineCmdfailed);
+  // }
 
-  if (TimeIncValueNum !== originalTimeIncValueNum) {
-    console.log("Cycle Time (" + value5 + ") value changed: " + originalTimeIncValue + " to " + TimeIncValue);
-    SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + value5 + " value=" + TimeIncValue), getLooklineCmdSuccess, getLooklineCmdfailed);
-  }
+  // if (TimeIncValueNum !== originalTimeIncValueNum) {
+  //   console.log("Cycle Time (" + value5 + ") value changed: " + originalTimeIncValue + " to " + TimeIncValue);
+  //   SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + value5 + " value=" + TimeIncValue), getLooklineCmdSuccess, getLooklineCmdfailed);
+  // }
 
-  if (PCSValueNum !== originalPCSValueNum) {
-    console.log("PCS (" + value6 + ") value changed: " + originalPCSValue + " to " + PCSValue);
-    SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + value6 + " value=" + PCSValue), getLooklineCmdSuccess, getLooklineCmdfailed);
-  }
-}
+  // if (PCSValueNum !== originalPCSValueNum) {
+  //   console.log("PCS (" + value6 + ") value changed: " + originalPCSValue + " to " + PCSValue);
+  //   SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + value6 + " value=" + PCSValue), getLooklineCmdSuccess, getLooklineCmdfailed);
+  // }
+}   
 //bỏ nút save, nhập vào thì lưu
 // Gán sự kiện onblur cho từng trường input trong modal
 document.getElementById("planInput").onblur = function () {
+  console.log("planInput: " + document.getElementById("planInput").value);
   saveSettings(cardID);
 };
 document.getElementById("resultInput").onblur = function () {
+  console.log("resultInput: "+document.getElementById("resultInput").value);
   saveSettings(cardID);
 };
 document.getElementById("planSetInput").onblur = function () {
+  console.log("planSetInput: "+document.getElementById("planSetInput").value);
   saveSettings(cardID);
 };
+// document.getElementById("resultSetInput").onblur = function() {
+//   console.log("resultSetInput: "+document.getElementById("resultSetInput").value);
+//   saveSettings(cardID);
+// };
 document.getElementById("TimeIncInput").onblur = function () {
+  console.log("TimeIncInput: "+document.getElementById("TimeIncInput").value);
   saveSettings(cardID);
 };
 document.getElementById("PCSInput").onblur = function () {
+  console.log("PCSInput: "+document.getElementById("PCSInput").value);
   saveSettings(cardID);
 };    
 function addProduct() {
   var productName = document.getElementById("newProductName").value.trim();
   if (productName === "") {
-      alert("Tên sản phẩm không được để trống!");
-      return;
+    alert("Tên sản phẩm không được để trống!");
+    return;
   }
   var newProductName = document.getElementById("newProductName").value;
+  var newCycleTime = document.getElementById("TimeIncInput").value;
+  var newProductSet = document.getElementById("planSetInput").value;
   var selectElement = document.getElementById("ProductDataSaveSelect");
   var id = document.getElementById("cardID").innerHTML;  
   var UpdateDataApp = JSON.parse(jsonApp);
   var arrayData = [AppID,poss,id_card,nodeID,netID,namecard,value1, value2, value3,value4, value5,value6] = UpdateDataApp.Application[id].app.split(",");
-  // var DataPRODUCT = document.getElementById("dataProduct").value;
-  productJSON =  JSON.parse(DataPRODUCT)
+  productJSON =  JSON.parse(document.getElementById("dataProduct").value);
   var idEnd = productJSON.data.length;
   if(productJSON.data[id] == null){
-  console.log("tao moi");
-  var datas = [];
-  datas.push(newProductName)//idEnd
-  productJSON.data.push({id: idEnd,product: datas});
-  dataProduct = productJSON;
+    console.log("tao moi");
+    var dataproduct = [];
+    var datacycletime = [];
+    var dataproductset = [];
+    dataproduct.push(newProductName);//idEnd
+    datacycletime.push(newCycleTime);
+    dataproductset.push(newProductSet);
+    productJSON.data.push({id: idEnd,product: dataproduct,cycletime: datacycletime, productset: dataproductset});
+
+    dataProduct = productJSON;
     console.log("newData: " + JSON.stringify(dataProduct));
-  document.getElementById("dataProduct").value = JSON.stringify(dataProduct);
-  var option = document.createElement("option");
-  option.text = newProductName;
-  option.value = 0;
-  selectElement.appendChild(option);
-  document.getElementById("newProductName").value = "";
+    document.getElementById("dataProduct").value = JSON.stringify(dataProduct);
+    var option = document.createElement("option");
+    option.text = newProductName;
+    option.value = 0;
+    selectElement.appendChild(option);
+    document.getElementById("newProductName").value = "";
+
   }
   else {
     // Lấy giá trị mới từ các phần tử HTML
@@ -1060,7 +1176,7 @@ function addProduct() {
     console.log("newCycleTime:", newCycleTime);
     console.log("newProductSet:", newProductSet);
     // Lấy danh sách sản phẩm từ chuỗi JSON
-    var productJSON = JSON.parse(DataPRODUCT);
+    var productJSON = JSON.parse(document.getElementById("dataProduct").value);
     // Lấy số lượng sản phẩm hiện có
     var newID = productJSON.data[id].product.length;
     // Thêm tên sản phẩm mới vào mảng product
@@ -1084,16 +1200,14 @@ function addProduct() {
   }
   SaveDataProduct();
   loaddatasetting(id);
-
 }
     
 function SaveDataProduct(){
   preferenceslist[0].product = document.getElementById("dataProduct").value ; 
-  preferenceslist[0].product = DataPRODUCT ; 
-  // SavePreferences(!0)
+  websocket.send(document.getElementById("dataProduct").value);
 }
 function displaySelectedProduct() {
-  var productJSON = DataPRODUCT;
+
   var id = document.getElementById("cardID").innerHTML;
   var UpdateDataApp = JSON.parse(jsonApp);
   var arrayData = [AppID,poss,id_card,nodeID,netID,namecard,value1, value2, value3,value4, value5,value6] = UpdateDataApp.Application[id].app.split(",")
@@ -1101,7 +1215,7 @@ function displaySelectedProduct() {
   var productID = document.getElementById("ProductDataSaveSelect").value;
   console.log("Select id:" + productID);
   var cardid = document.getElementById("cardID").innerHTML;
-
+  console.log("card ID:" + cardid);
   var CyleTime = productJSON.data[cardid].cycletime[productID];
   document.getElementById("TimeIncInput").value = CyleTime;
 
@@ -1113,19 +1227,16 @@ function displaySelectedProduct() {
   console.log("id:"+ id);
   console.log("ProductSet:" + ProductSet);
   console.log("CyleTime:" + CyleTime);
-  if(sp.length% 2 == 0){console.log("độ dài chẵn");}else{console.log("độ dài lẻ");sp = sp + " "}
+  if(sp.length% 2 == 0){
+    console.log("độ dài chẵn");
+  } 
+  else{
+    console.log("độ dài lẻ");
+    sp = sp + " ";  
+  }
 
-
-  SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + value4 + " value=" + productID), getLooklineCmdSuccess, getLooklineCmdfailed);
-
-  SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=product id=" + id + " value=" + sp), getLooklineCmdSuccess, getLooklineCmdfailed);
-  
-  SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + value3 + " value=" + ProductSet), getLooklineCmdSuccess, getLooklineCmdfailed);
-
-  SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + value5 + " value=" + CyleTime), getLooklineCmdSuccess, getLooklineCmdfailed);
-    
 }
-    
+// change name card  
 function changeName() {
   var id = document.getElementById("cardID").innerHTML;
   console.log("id:" + id);
@@ -1151,10 +1262,8 @@ function changeName() {
   }
   console.log(jsonApp); 
   websocket.send(jsonApp);
-
-  // AppSave();
-  // AppGet();
 }
+// change state
 function changeState(id) {
   console.log("state id= " + id);
   var UpdateDataApp = JSON.parse(jsonApp);
@@ -1163,60 +1272,28 @@ function changeState(id) {
   if (lock[id] == 0) { stateID[id] = 2; }
   if (lock[id] == 1) { stateID[id] = 1; }
 
-  if (stateID[id]) {
-    SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=stop id=" + vals[number[vals[2]] + 6]), getLooklineCmdSuccess, getLooklineCmdfailed);
-    console.log("/command?plain=[ESP403]cmd=stop id=" + vals[number[vals[2]] + 6]);
-    SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=stop id="+vals[number[vals[2]]+6]), getLooklineCmdSuccess, getLooklineCmdfailed);
-    console.log("/command?plain=[ESP403]cmd=stop id="+vals[number[vals[2]]+6]);
+  // if (stateID[id]) {
+  //   SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=stop id=" + vals[number[vals[2]] + 6]), getLooklineCmdSuccess, getLooklineCmdfailed);
+  //   console.log("/command?plain=[ESP403]cmd=stop id=" + vals[number[vals[2]] + 6]);
+  //   SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=stop id="+vals[number[vals[2]]+6]), getLooklineCmdSuccess, getLooklineCmdfailed);
+  //   console.log("/command?plain=[ESP403]cmd=stop id="+vals[number[vals[2]]+6]);
 
-  }
-  if (stateID[id] == 2) {
-    SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=run id=" + vals[number[vals[2]] + 6]), getLooklineCmdSuccess, getLooklineCmdfailed);
-    console.log("/command?plain=[ESP403]cmd=run id=" + vals[number[vals[2]] + 6]);
-  }
+  // }
+  // if (stateID[id] == 2) {
+  //   SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=run id=" + vals[number[vals[2]] + 6]), getLooklineCmdSuccess, getLooklineCmdfailed);
+  //   console.log("/command?plain=[ESP403]cmd=run id=" + vals[number[vals[2]] + 6]);
+  // }
   lock[id] = !lock[id];
-}   
+}
+// change reset
 function changeReset(id) {
   console.log("reset id= " + id);
   var UpdateDataApp = JSON.parse(jsonApp);
   var arrayData = [AppID,poss,id_card,nodeID,netID,namecard,value1, value2, value3,value4, value5,value6] = UpdateDataApp.Application[id].app.split(",");
-  console.log("Resetting Plan (" + value1 + ") and Result (" + value2 + ") values to 0");
-  SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + value1 + " value=0"), getLooklineCmdSuccess, getLooklineCmdfailed);
-  var savedR2 = value2;
-  setTimeout(function () {
-    SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + savedR2 + " value=0"), getLooklineCmdSuccess, getLooklineCmdfailed);
-  }, 500);
+  // console.log("Resetting Plan (" + value1 + ") and Result (" + value2 + ") values to 0");
+  // SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + value1 + " value=0"), getLooklineCmdSuccess, getLooklineCmdfailed);
+  // var savedR2 = value2;
+  // setTimeout(function () {
+  //   SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + savedR2 + " value=0"), getLooklineCmdSuccess, getLooklineCmdfailed);
+  // }, 500);
 }
-// function AppGet() { try{void 0 !== preferenceslist[0].app_data ? document.getElementById("AppDataSave").value = preferenceslist[0].app_data : document.getElementById("AppDataSave").value = "",
-//   void 0 !== preferenceslist[0].app_data ? jsonApp = document.getElementById("AppDataSave").value : jsonApp = "" ;}catch(e) {console.log(e);}
-
-  
-//     // if(AppID > 0){}
-//     if(document.getElementById("AppDataSave").value  != ""){
-//     jsonApp = document.getElementById("AppDataSave").value ;
-//     var BuildApp = JSON.parse(jsonApp);
-//     var buildAppHtml = "";
-//     document.getElementById("showAppItem").innerHTML = "";
-//     document.getElementById("dashAppItem").innerHTML = "";
-//     document.getElementById("dashButtonItem").innerHTML = "";
-//       // function AddAppBlock(item, type)
-//       try{
-//         console.log('Build now | ' + BuildApp.Application[0].app);
-//       } catch{
-        
-//       }
-    
-      
-//       AppID = 0;
-//     for(var k = 0; k<BuildApp.Application.length;k++){
-//       const a = [AppID,poss,id_card,nodeID,netID,namecard,value1, value2, value3,value4, value5,value6] = BuildApp.Application[k].app.split(',');
-//       // var r = {BappID, Bposs, Bapp, BnodeID, BnetID, name, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12}
-//       appData[k] =BappID+","+Bposs+","+Bapp+","+BnodeID+","+BnetID;
-//       for (let i = 1; i <= number[Bapp]; i++) {if (Bapp >= i){appData[k] += "," + a[i+6];}}
-//       AddAppBlock(BuildApp.Application[k].app, Bapp, 1);
-//       AddAppBlock(BuildApp.Application[k].app, Bapp, 3);
-//       AppID = k+1;
-//     }
-//     // }
-//   }
-// }
