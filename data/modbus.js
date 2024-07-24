@@ -207,7 +207,11 @@ function addSlaveCard() {
         <p class=\"state\">From <span id=\"rs" + i + "\">%S%</span> To <span id=\"re" + i + "\">%E%</span></p>\
         <p class=\"state\">WRITE</p>\
         <p class=\"state\">From <span id=\"ws" + i + "\">%S%</span> To <span id=\"we" + i + "\">%E%</span></p>\
-        </div>";
+        <CENTER><svg class=\"bi\" width=\"24\" height=\"24\" id=\"slaveConnect" + i + "\"\
+        style = \"color: rgb(255, 0, 0);\" >\
+        <use xlink:href=\"#icon-connect\"></use>\
+        </svg></CENTER>\
+        </div > ";
 
         slave_card_html += card_html;
         if (i % 4 == 3) {
@@ -216,7 +220,6 @@ function addSlaveCard() {
     }
     document.getElementById("slavecard").innerHTML = slave_card_html;
 }
-// {"Command":"SlaveArray","SlaveArray":[{"slaveType":"0","ID":"1","writeStart":"6120","writeEnd":"6129","readStart":"6096","readEnd":"6119"}]}
 function initData(jsonValue) {
     console.log(jsonValue);
     var slave_obj = JSON.parse(jsonValue);
@@ -236,8 +239,6 @@ function initData(jsonValue) {
 function loadBoardSlave(jsonValue) {
     var keys = JSON.parse(jsonValue);
     numSlave = keys.SlaveArray.length;
-    var optValue = "";
-    var optText = "";
     addSlaveCard();
     for (var i = 0; i < numSlave; i++) {
         var ID = keys.SlaveArray[i].ID;
@@ -252,49 +253,12 @@ function loadBoardSlave(jsonValue) {
         document.getElementById('re' + i).innerHTML = re;
         document.getElementById('ws' + i).innerHTML = ws;
         document.getElementById('we' + i).innerHTML = we;
-
-        optValue = ID;
-        optText = ID;
-
-        $('#selectSlaveID').append(`<option value="${optValue}">${optText}</option>`);
-        $('#selectSlaveIP').append(`<option value="${optValue}">${optText}</option>`);
-    }
-}
-
-var loadingTCP = 0;
-var firstloadTCP = 0;
-function loadtableTCP(jsonValue) {
-    if (firstloadTCP == 1) {
-        firstloadTCP = 0
-        var TableHTML = "";
-        TableHTML = "<table class=\"table \"><thead class=\"thead-dark\"><th>STT</th><th>Address</th><th>Type Data</th><th>Data</th></thead><tbody>";
-        var keys = JSON.parse(jsonValue);
-        var stt = 0;
-        TableDataLen = keys.Data.length;
-        console.log("datalen" + TableDataLen);
-        for (var i = 0; i < TableDataLen; i++) {
-            stt++;
-            var address = keys.Data[i].address;
-            if (keys.Data[i].address == null) { TableDataLen = i; break; }
-            var type = "<select id=\"SelectType" + i + "\"><option value=0 %0%>WORD</option><option value=1 %1%>COIL</option><option value=2 %2%>DWORD</option><option value=3 %3%>FLOAT</option></select>";
-            if (keys.Data[i].type == "0") { type = type.replace("%0%", "selected"); type = type.replace("%1%", ""); type = type.replace("%2%", ""); type = type.replace("%3%", ""); }
-            if (keys.Data[i].type == "1") { type = type.replace("%1%", "selected"); type = type.replace("%0%", ""); type = type.replace("%2%", ""); type = type.replace("%3%", ""); }
-            if (keys.Data[i].type == "2") { type = type.replace("%2%", "selected"); type = type.replace("%1%", ""); type = type.replace("%0%", ""); type = type.replace("%3%", ""); }
-            if (keys.Data[i].type == "3") { type = type.replace("%3%", "selected"); type = type.replace("%1%", ""); type = type.replace("%2%", ""); type = type.replace("%0%", ""); }
-            TableHTML += "<tr><td>" + stt + "</td><td>" + address + "</td><td>" + type + "</td><td><div id=\"value" + i + "\">NULL</div></td></tr>";
-        }
-        TableHTML += "</tbody></table></br>";
-        TableHTML += "<button class=\"button\" onclick=\"saveModbusTableTCP()\">SAVE</button>";
-
-        document.getElementById("TableDataTCP").innerHTML = TableHTML;
-        loadingTCP = 1;
     }
 }
 var loading = 0;
 var firstload = 0;
 function loadTable(jsonValue) {
     var card_table_html = "";
-    console.log(jsonValue);
     var stt = 0;
     if (firstload == 1) {
         firstload = 0;
@@ -303,7 +267,7 @@ function loadTable(jsonValue) {
             if (i % 2 == 0) {
                 card_table_html += "<div class=\"row justify-content-around\">";
             }
-            card_table_html += "<div class=\"col-10 cardcuatao\">\
+            card_table_html += "<div id=\"table" + i + "\" class=\"col-10 cardcuatao\" style=\"display:none\">\
             <h5 class=\"state\">\
             <CENTER> No: " + i + "</CENTER>\
             </h5>\
@@ -311,8 +275,9 @@ function loadTable(jsonValue) {
             <table class=\"table \"><thead class=\"thead-dark\"><th>STT</th><th>Address</th><th>Type</th><th>Data</th></thead><tbody>\
             ";
             for (var j = 0; j < key.Data[i].Data.length; j++) {
+                if (key.Data[i].Data[j][0] == null) break;
                 stt++;
-                var type = "<select id=\"SelectType" + i + "_" + j + "\"><option value=0 %0%>WORD</option><option value=1 %1%>COIL</option><option value=2 %2%>DWORD</option><option value=3 %3%>FLOAT</option></select>";
+                var type = "<select id=\"SelectType" + i + "_" + j + "\" onchange=\"editModbusDataType('" + i + '_' + j + "')\"><option value=0 %0%>WORD</option><option value=1 %1%>COIL</option><option value=2 %2%>DWORD</option><option value=3 %3%>FLOAT</option></select>";
                 if (key.Data[i].Data[j][1] == "0") { type = type.replace("%0%", "selected"); type = type.replace("%1%", ""); type = type.replace("%2%", ""); type = type.replace("%3%", ""); }
                 if (key.Data[i].Data[j][1] == "1") { type = type.replace("%1%", "selected"); type = type.replace("%0%", ""); type = type.replace("%2%", ""); type = type.replace("%3%", ""); }
                 if (key.Data[i].Data[j][1] == "2") { type = type.replace("%2%", "selected"); type = type.replace("%1%", ""); type = type.replace("%0%", ""); type = type.replace("%3%", ""); }
@@ -320,7 +285,7 @@ function loadTable(jsonValue) {
 
                 card_table_html += "<tr><td>" + stt + "</td><td><div id=\"address" + i + "_" + j + "\">NULL</div></td><td>" + type + "</td><td><div id=\"value" + i + "_" + j + "\">NULL</div></td><td><button class=\"buttoncuatao\" onclick=\"editModbusData('" + i + '_' + j + "')\">EDIT</button></td></tr>";
             }
-            card_table_html += "</tbody></table><CENTER><button class=\"button\" onclick=\"saveModbusTable(" + i + ")\">SAVE</button></CENTER></div>";
+            card_table_html += "</tbody></table></div>";
             if (i % 2 == 1) {
                 card_table_html += "</div><br>";
             }
@@ -329,6 +294,7 @@ function loadTable(jsonValue) {
         for (var i = 0; i < numSlave; i++) {
             document.getElementById("slave" + i).innerHTML = key.Data[i].ID;
             for (var j = 0; j < key.Data[i].Data.length; j++) {
+                if (key.Data[i].Data[j][0] == null) break;
                 document.getElementById("address" + i + "_" + j).innerHTML = key.Data[i].Data[j][0];
             }
         }
@@ -338,22 +304,29 @@ function loadTable(jsonValue) {
 function loaddata(jsonValue) {
     var key = JSON.parse(jsonValue);
     for (var i = 0; i < numSlave; i++) {
-        for (var j = 0; j < key.Data[i].Data.length; j++) {
-            if (loading == 1) { if (onUpdate == 0) document.getElementById("value" + i + "_" + j).innerHTML = key.Data[i].Data[j]; }
+        if (key.Data[i].connect == "0") { 
+            document.getElementById("slaveConnect" + i).style = 'background-color: rgb(255, 0, 0)'; 
+            document.getElementById("table" + i).style = 'display: none;';
+            continue; }
+        else {
+            document.getElementById("slaveConnect" + i).style = 'background-color: rgb(0, 255, 0)'; 
+            document.getElementById("table" + i).style = 'display: block;';
+
+            for (var j = 0; j < key.Data[i].Data.length; j++) {
+                if (loading == 1) { if (onUpdate == 0) document.getElementById("value" + i + "_" + j).innerHTML = key.Data[i].Data[j]; }
+            }
         }
     }
 }
-function saveModbusTable(a) {
-    console.log(a);
-    // var msg = [];
-    // var msgOut = "{\"Command\":\"mbDataType\",\"lengh\":\"" + TableDataLen + "\",\"type\":[";
-    // for (var i = 0; i < TableDataLen; i++) { if (document.getElementById("SelectType" + i).value != null) msg[i] = document.getElementById("SelectType" + i).value; }
-    // msgOut += msg[0];
-    // for (var i = 1; i < TableDataLen; i++) { msgOut += "," + msg[i]; }
-    // msgOut += "]}";
-    // loadingTCP = 0;
-    // websocket.send(msgOut);
-    // console.log(msgOut);
+function editModbusDataType(a) {
+    var index = a.split("_");
+    var id = index[0];
+    var address = index[1];
+    var slaveAddress = document.getElementById("address" + id + "_" + address).innerHTML;
+    var type = document.getElementById("SelectType" + id + "_" + address).value;
+    var json_send = "{\"Command\":\"editModbusDataType\",\"slaveID\":\"" + id + "\",\"address\":\"" + slaveAddress + "\",\"type\":\"" + type + "\"}";
+    console.log(json_send);
+    websocket.send(json_send);
 }
 function editModbusData(a) {
     onUpdate = 1;
@@ -363,8 +336,7 @@ function editModbusData(a) {
     var slaveAddress = document.getElementById("address" + id + "_" + address).innerHTML;
     var type = document.getElementById("SelectType" + id + "_" + address).value;
     var value = document.getElementById("value" + id + "_" + address).innerHTML;
-    document.getElementById("value" + id + "_" + address).innerHTML = "<div><input type=\"text\" id=\"updateBox\" size=\"20\" placeholder=\"" + value + "\" onblur=\"updateDataBox('" + id + '_' + slaveAddress + '_' + type +"')\"></div><br></br>";
-
+    document.getElementById("value" + id + "_" + address).innerHTML = "<div><input type=\"text\" id=\"updateBox\" size=\"20\" placeholder=\"" + value + "\" onblur=\"updateDataBox('" + id + '_' + slaveAddress + '_' + type + "')\"></div><br></br>";
 }
 function updateDataBox(a) {
     onUpdate = 0;

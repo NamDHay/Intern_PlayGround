@@ -35,6 +35,7 @@ public:
         Address_t WriteAddress;
         Address_t ReadAddress;
         String ID;
+        bool IsConnected;
     };
     Slave_t slave[10];
     union data_t

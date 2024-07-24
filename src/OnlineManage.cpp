@@ -171,26 +171,6 @@ void getIOHandler()
     }
     Serial.flush();
 }
-void mbDataTypeHandler()
-{
-    size_t size = rdoc["lengh"];
-    Serial.println("Size of type: " + String(size));
-    for (int i = 0; i < size; i++)
-    {
-        // if (modbusRTU.master == 1)
-        // {
-        //     modbusRTU.typeData[i] = rdoc["type"][i];
-        //     Serial.println("Type " + String(i) + ": " + String(modbusRTU.typeData[i]));
-        // }
-        // if (modbusTCP.client == 1)
-        // {
-        //     modbusTCP.typeData[i] = rdoc["type"][i];
-        //     Serial.println("Type " + String(i) + ": " + String(modbusTCP.typeData[i]));
-        // }
-    }
-    bool IsSetTable = true;
-    xQueueSend(modbusRTU.qUpdateTable, (void *)&IsSetTable, 1 / portTICK_PERIOD_MS);
-}
 // {"Command":"SlaveArray","SlaveArray":[{"slaveType":"1","ID":"undefined","writeStart":"9120","writeEnd":"9129","readStart":"6096","readEnd":"9119"}]}
 void mbSlavehandler()
 {
@@ -338,8 +318,63 @@ void setWifiHandler()
     bool IsMessage = true;
     xQueueSend(online.qWifiSetting, (void *)&IsMessage, 1 / portTICK_PERIOD_MS);
 }
+void editModbusData()
+{
+    // {"Command":"editModbusData","slaveID":"0","address":"6105","type":"0","value":"1"}
+    uint8_t totalSend = 0;
+    uint8_t node = rdoc["slaveID"];
+    long address = rdoc["address"];
+    uint8_t type = rdoc["type"];
+    Serial.println("node: " + String(node) + " address: " + String(address) + " type: " + String(type));
+    uint8_t stt = address - mbParam.slave[node].ReadAddress.startAddress;
+    Serial.println("STT: " + String(stt));
+    mbParam.slave->typeData[stt] = type;
+    switch (type)
+    {
+    case COIL_TYPE:
+        mbParam.write_data.w[0] = rdoc["value"];
+        totalSend = 1;
+        break;
+    case WORD_TYPE:
+        mbParam.write_data.w[0] = rdoc["value"];
+        totalSend = 1;
+        break;
+    case DWORDS_TYPE:
+        mbParam.write_data.dw = rdoc["value"];
+        totalSend = 2;
+        break;
+    case FLOAT_TYPE:
+        mbParam.write_data.f = rdoc["value"];
+        totalSend = 2;
+        break;
+    default:
+        break;
+    }
+    if ((modbusRTU.master == 1) && (mbParam.slave[node].ID.length() < 5))
+    {
+        Serial.println("Write slave RTU");
+        while (modbusRTU.write_Multiple_Data(mbParam.slave[node].ID.toInt(),
+                                             (uint16_t *)&mbParam.write_data.w,
+                                             address,
+                                             totalSend) != true)
+            ;
+    }
+    else if ((modbusTCP.client == 1) && (mbParam.slave[node].ID.length() > 5))
+    {
+        Serial.println("Write slave TCP");
+        while (modbusTCP.write_Multiple_Data(modbusTCP.str2IP(mbParam.slave[node].ID),
+                                             (uint16_t *)&mbParam.write_data.w,
+                                             address,
+                                             totalSend) != true)
+            ;
+    }
+    bool IsSetTable = true;
+    xQueueSend(mbParam.qUpdateTable, (void *)&IsSetTable, 1 / portTICK_PERIOD_MS);
+    IsSetTable = false;
+}
 void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
 {
+    bool IsSetTable = true;
     AwsFrameInfo *info = (AwsFrameInfo *)arg;
     if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT)
     {
@@ -361,10 +396,6 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         {
             setWifiHandler();
         }
-        else if (command == "mbDataType") // Update the type of data on Web
-        {
-            mbDataTypeHandler();
-        }
         else if (command == "SlaveArray") // Get from WebSocket and write to filesystem
         {
             mbSlavehandler();
@@ -381,57 +412,24 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         }
         else if (command == "loadSlaveTable") // Request load all slave tables to web server
         {
-            bool IsSetTable = true;
+            IsSetTable = true;
             xQueueSend(mbParam.qUpdateTable, (void *)&IsSetTable, 1 / portTICK_PERIOD_MS);
+            IsSetTable = false;
         }
         else if (command == "editModbusData") // Request change data from web server
         {
-            // {"Command":"editModbusData","slaveID":"0","address":"6105","type":"0","value":"1"}
-            uint8_t totalSend = 0;
+            editModbusData();
+        }
+        else if (command == "editModbusDataType") // Request change data from web server
+        {
             uint8_t node = rdoc["slaveID"];
             long address = rdoc["address"];
             uint8_t type = rdoc["type"];
-            Serial.println("node: " + String(node) + " address: " + String(address) + " type: " + String(type));
-            switch (type)
-            {
-            case COIL_TYPE:
-                mbParam.write_data.w[0] = rdoc["value"];
-                totalSend = 1;
-                break;
-            case WORD_TYPE:
-                mbParam.write_data.w[0] = rdoc["value"];
-                totalSend = 1;
-                break;
-            case DWORDS_TYPE:
-                mbParam.write_data.dw = rdoc["value"];
-                totalSend = 2;
-                break;
-            case FLOAT_TYPE:
-                mbParam.write_data.f = rdoc["value"];
-                totalSend = 2;
-                break;
-            default:
-                break;
-            }
-            if ((modbusRTU.master == 1) && (mbParam.slave[node].ID.length() < 5))
-            {
-                Serial.println("Write slave RTU");
-                while (modbusRTU.write_Multiple_Data(mbParam.slave[node].ID.toInt(),
-                                                     (uint16_t *)&mbParam.write_data.w,
-                                                     address,
-                                                     totalSend) != true)
-                    ;
-
-            }
-            else if ((modbusTCP.client == 1) && (mbParam.slave[node].ID.length() > 5))
-            {
-                Serial.println("Write slave TCP");
-                while (modbusTCP.write_Multiple_Data(modbusTCP.str2IP(mbParam.slave[node].ID),
-                                                     (uint16_t *)&mbParam.write_data.w,
-                                                     address,
-                                                     totalSend) != true)
-                    ;
-            }
+            uint8_t stt = address - mbParam.slave[node].ReadAddress.startAddress;
+            mbParam.slave->typeData[stt] = type;
+            IsSetTable = true;
+            xQueueSend(mbParam.qUpdateTable, (void *)&IsSetTable, 1 / portTICK_PERIOD_MS);
+            IsSetTable = false;
         }
     }
 }

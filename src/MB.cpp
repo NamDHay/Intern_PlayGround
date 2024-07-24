@@ -108,11 +108,20 @@ void update_ModbusData_Interval()
             {
                 if (!mbRTU.slave())
                 {
+                    // Serial.println(mbRTU.slave());
                     while (modbusRTU.read_Multiple_Data(mbParam.slave[i].ID.toInt(),
                                                         (uint16_t *)&mbParam.slave[i].Data,
                                                         mbParam.slave[i].ReadAddress.startAddress,
                                                         lenght) != true)
                         ;
+                    if (modbusRTU.isConnected == true)
+                    {
+                        Doc["Data"][i]["connect"] = 1;
+                    }
+                    else
+                    {
+                        Doc["Data"][i]["connect"] = 0;
+                    }
                 }
                 else
                 {
@@ -125,7 +134,7 @@ void update_ModbusData_Interval()
             {
                 if (mbTCP.isConnected(modbusTCP.str2IP(mbParam.slave[i].ID)))
                 {
-                    modbusTCP.isConnected = true;
+                    Doc["Data"][i]["connect"] = 1;
                     while (modbusTCP.read_Multiple_Data(modbusTCP.str2IP(mbParam.slave[i].ID),
                                                         (uint16_t *)&mbParam.slave[i].Data,
                                                         mbParam.slave[i].ReadAddress.startAddress,
@@ -136,18 +145,19 @@ void update_ModbusData_Interval()
                 {
                     mbTCP.task();
                     mbTCP.connect(modbusTCP.str2IP(mbParam.slave[i].ID));
+                    Doc["Data"][i]["connect"] = 0;
                     continue;
                 }
                 mbTCP.task();
             }
             for (byte j = 0; j < lenght; j++)
             {
-                if (count > mbParam.slave[i].ReadAddress.endAddress)
+                if (count > (lenght - 1))
                 {
                     Serial.println("Out of range");
                     break;
                 }
-                switch (mbParam.slave->typeData[i])
+                switch (mbParam.slave[i].typeData[j])
                 {
                 case COIL_TYPE:
                     Doc["Data"][i]["Data"][j] = CHECKCOIL(mbParam.slave[i].Data[count], 0);
@@ -225,6 +235,22 @@ void MODBUS_PARAMETER::loadSlave()
 /**********************************************END MBPARAM PART**************************************************************/
 
 /*********************************************START RTU PART**************************************************************/
+bool cb(Modbus::ResultCode event, uint16_t transactionId, void *data)
+{ // Callback to monitor errors
+    if (event != Modbus::EX_SUCCESS)
+    {
+        Serial.print("Request result: 0x");
+        Serial.println(event, HEX);
+        Serial.print("No Connection");
+        modbusRTU.isConnected = false;
+    }
+    else
+    {
+        Serial.print("Connection");
+        modbusRTU.isConnected = true;
+    }
+    return true;
+}
 void MODBUS_RTU::MasterInit(HardwareSerial *port, unsigned long baud)
 {
     modbusRTU.config.port = port;
@@ -292,7 +318,8 @@ bool MODBUS_RTU::read_Multiple_Data(byte ID, uint16_t *value, long startAddress,
         mbRTU.readHreg(ID,
                        rstart,
                        rdata,
-                       RTU_MAX_RW);
+                       RTU_MAX_RW,
+                       cb);
         while (mbRTU.slave())
         {
             mbRTU.task();
@@ -312,7 +339,8 @@ bool MODBUS_RTU::read_Multiple_Data(byte ID, uint16_t *value, long startAddress,
         mbRTU.readHreg(ID,
                        rstart,
                        rdata,
-                       dataLength);
+                       dataLength,
+                       cb);
         while (mbRTU.slave())
         {
             mbRTU.task();
@@ -343,7 +371,8 @@ bool MODBUS_RTU::write_Multiple_Data(byte ID, uint16_t *value, long startAddress
         mbRTU.writeHreg(ID,
                         wstart,
                         wdata,
-                        RTU_MAX_RW);
+                        RTU_MAX_RW,
+                        cb);
         while (mbRTU.slave())
         {
             mbRTU.task();
@@ -364,7 +393,8 @@ bool MODBUS_RTU::write_Multiple_Data(byte ID, uint16_t *value, long startAddress
         mbRTU.writeHreg(ID,
                         wstart,
                         wdata,
-                        wdataLength);
+                        wdataLength,
+                        cb);
         while (mbRTU.slave())
         {
             mbRTU.task();
@@ -642,6 +672,7 @@ void TaskModbus(void *pvParameter)
         }
         if (xQueueReceive(mbParam.qUpdateTable, (void *)&setTable, 1 / portTICK_PERIOD_MS) == pdTRUE)
         {
+            Serial.println("Update table");
             update_WebTable();
             setTable = false;
             mbParam.loadTable = true;
