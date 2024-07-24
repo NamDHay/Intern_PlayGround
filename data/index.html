@@ -14486,27 +14486,10 @@
 
     <!-- Tab Home -->
     <div id="cardhome" class="contentcuatao" style="display: block;">
-        <div class="row justify-content-around">
-            <div class="cardcuatao col-6">
-                <CENTER>
-                    <h2>TABLE DATA</h2>
-                    <div id="selectSlaveRTU"></div><br>
-                    <button class="button" onclick="sendSelectSlaveRTU()">Select</button><br><br>
-                    <div id="TableDataRTU"></div><br>
-                    <button class="button" onclick="saveModbusTableRTU()">SAVE</button>
-                </CENTER>
-            </div>
-            <div class="cardcuatao col-6">
-                <CENTER>
-                    <h2>TABLE DATA</h2>
-                    <div id="selectSlaveTCP"></div><br>
-                    <button class="button" onclick="sendSelectSlaveTCP()">Select</button><br><br>
-                    <div id="TableDataTCP"></div><br>
-                    <button class="button" onclick="saveModbusTableTCP()">SAVE</button>
-                </CENTER>
-            </div>
-        </div>
-
+        <CENTER>
+            <h2>TABLE DATA</h2>
+        </CENTER><br>
+        <div id="slaveTable"></div>
     </div>
 
     <!-- Tab IO Config -->

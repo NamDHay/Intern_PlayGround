@@ -217,20 +217,18 @@ void mbSlavehandler()
 }
 void mbSendSlavehandler()
 {
-    uint8_t count = 0;
     wDoc["Command"] = "getTotalSlave";
-
     for (byte i = 0; i < mbParam.numSlave; i++)
     {
-        wDoc["SlaveArray"][count]["ID"] = mbParam.slave[i].ID;
-        wDoc["SlaveArray"][count]["readStart"] = mbParam.slave[i].ReadAddress.startAddress;
-        wDoc["SlaveArray"][count]["readEnd"] = mbParam.slave[i].ReadAddress.endAddress;
-        wDoc["SlaveArray"][count]["writeStart"] = mbParam.slave[i].WriteAddress.startAddress;
-        wDoc["SlaveArray"][count]["writeEnd"] = mbParam.slave[i].WriteAddress.endAddress;
+        wDoc["SlaveArray"][i]["ID"] = mbParam.slave[i].ID;
+        wDoc["SlaveArray"][i]["readStart"] = mbParam.slave[i].ReadAddress.startAddress;
+        wDoc["SlaveArray"][i]["readEnd"] = mbParam.slave[i].ReadAddress.endAddress;
+        wDoc["SlaveArray"][i]["writeStart"] = mbParam.slave[i].WriteAddress.startAddress;
+        wDoc["SlaveArray"][i]["writeEnd"] = mbParam.slave[i].WriteAddress.endAddress;
     }
 
     serializeJson(wDoc, fbDataString);
-    serializeJsonPretty(wDoc, Serial);
+    Serial.println(fbDataString);
     online.notifyClients(fbDataString);
 }
 void setModbusHandler()
@@ -363,28 +361,32 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         {
             setWifiHandler();
         }
-        else if (command == "mbDataType")   //Update the type of data on Web
+        else if (command == "mbDataType") // Update the type of data on Web
         {
             mbDataTypeHandler();
         }
-        else if (command == "SlaveArray")   // Get from WebSocket and write to filesystem
+        else if (command == "SlaveArray") // Get from WebSocket and write to filesystem
         {
             mbSlavehandler();
         }
-        else if (command == "getTotalSlave")    // Request get total slave
+        else if (command == "getTotalSlave") // Request get total slave
         {
             mbSendSlavehandler();
         }
-        else if (command == "clearSlave")   // Clear slave in filesystem
+        else if (command == "clearSlave") // Clear slave in filesystem
         {
             filesystem.deletefile("/mbSlave.json");
             mbParam.loadSlave();
             mbSendSlavehandler();
         }
-        else if (command == "loadSlaveTable")   // Request load all slave tables to web server
+        else if (command == "loadSlaveTable") // Request load all slave tables to web server
         {
             bool IsSetTable = true;
             xQueueSend(mbParam.qUpdateTable, (void *)&IsSetTable, 1 / portTICK_PERIOD_MS);
+        }
+        else if (command == "editModbusData") // Request load all slave tables to web server
+        {
+            
         }
     }
 }

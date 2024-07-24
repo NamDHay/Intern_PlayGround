@@ -32,17 +32,9 @@ function onClose(event) {
     setTimeout(initWebSocket, 100);
 }
 function onMessage(event) {
-    var state;
     var message = JSON.parse(event.data);
     // console.log(message);
-    if (message.Command == "toggleLed") {
-        if (message.Data == "0")
-            state = "ON";
-        else state = "OFF";
-        document.getElementById('state').innerHTML = state;
-    } else if (message.Command == "getIO") {
-
-    } else if (message.Command == "settingWifi") {
+    if (message.Command == "settingWifi") {
         alert("Setting Done")
     }
     else if (message.Command == "settingModbus") {
@@ -51,14 +43,14 @@ function onMessage(event) {
     else if (message.Command == "TableID") {
         firstload = 1;
         loading = 0;
-        loadtable(event.data);
+        loadTable(event.data);
     }
     else if (message.Command == "ShowFile") {
         tablefile(event.data);
         console.log("ShowFile");
     }
     else if (message.Command == "tableData") {
-        loaddata(event.data);
+        if (loading == 1) loaddata(event.data);
     }
     else if (message.Command == "SlaveArray") {
         alert("Add Done");
@@ -66,6 +58,7 @@ function onMessage(event) {
     }
     else if (message.Command == "getTotalSlave") {
         loadBoardSlave(event.data);
+        websocket.send("{'Command':'loadSlaveTable'}");
     }
 }
 function onLoad(event) {
@@ -211,13 +204,7 @@ function loadChart() {
     tablefile(datafile);
 }
 
-function loaddata(jsonValue) {
-    var keys = JSON.parse(jsonValue);
-    for (var i = 0; i < TableDataLen; i++) {
-        var value = keys.Data[i];
-        if (loading == 1) { document.getElementById("value" + i).innerHTML = value; }
-    }
-}
+
 function tablefile(jsonValue) {
     var TableHTML = "";
     TableHTML = "<table class=\"table \"><thead class=\"thead-dark\"><th>STT</th><th>ID</th><th>Time</th><th>File Name</th><th>Use Space</th><th>Type Memory</th></thead><tbody>";
