@@ -87,7 +87,7 @@ function onMessage(event) {
   else if (message.Command == "Data") {
     if(daload == 0){
       loadtable(event.data);
-      changeRegsoptions();
+      changeRegOptions();
       daload = 1;
     }
     loadDataTable(event.data);
@@ -103,7 +103,9 @@ function onMessage(event) {
 function onLoad(event) {
   initWebSocket();
   initButton();
-  document.getElementById("dataProduct").value = preferenceslist = "{\"data\":[{\"id\":0,\"product\":[\"San_Pham_2\",\"sp2\",\"SanPhamMoi1\"],\"cycletime\":[\"150\",\"150\",\"653\"],\"productset\":[\"4\",\"2\",\"5\"]},{\"id\":1,\"product\":[\"sp4567\",\"sp44\"],\"cycletime\":[\"250\",\"250\"],\"productset\":[\"2\",\"4\"]},{\"id\":2,\"product\":[\"sp5\",\"sp6\"],\"cycletime\":[\"300\",\"350\"],\"productset\":[\"5\",\"6\"]},{\"id\":3,\"product\":[\"sp7\",\"sp8\"],\"cycletime\":[\"400\",\"450\"],\"productset\":[\"7\",\"8\"]}]}"; 
+  // document.getElementById("dataProduct").value = preferenceslist = "{\"data\":[{\"id\":0,\"product\":[\"San_Pham_2\",\"sp2\",\"SanPhamMoi1\"],\"cycletime\":[\"150\",\"150\",\"653\"],\"productset\":[\"4\",\"2\",\"5\"]},{\"id\":1,\"product\":[\"sp4567\",\"sp44\"],\"cycletime\":[\"250\",\"250\"],\"productset\":[\"2\",\"4\"]},{\"id\":2,\"product\":[\"sp5\",\"sp6\"],\"cycletime\":[\"300\",\"350\"],\"productset\":[\"5\",\"6\"]},{\"id\":3,\"product\":[\"sp7\",\"sp8\"],\"cycletime\":[\"400\",\"450\"],\"productset\":[\"7\",\"8\"]}]}"; 
+  document.getElementById("dataProduct").value = preferenceslist = "{\"data\":[]}"; 
+  document.getElementById("datawritemodbus").value ="{\"writeReg\":[]}"; 
   document.getElementById("jsonApp").value = "{\"Application\":[{\"app\":\"0,0,0,1,0,test1,0,1,2,0,4,5\"},{\"app\":\"0,0,1,1,0,test2,10,12,13,0,15,16\"},{\"app\":\"0,0,2,1,0,test3,3,6,9,0,15,18\"},{\"app\":\"0,0,3,1,0,test4,2,4,6,0,10,12\"}]}";
 }
 function io_ChangeState1() {
@@ -617,7 +619,7 @@ function tablefile(jsonValue){
   document.getElementById("use").innerHTML = (use/1024).toFixed(2) + "KB";
   document.getElementById("free").innerHTML = (free/1024).toFixed(2) + "KB";
 }
-
+//build card
 function buildcard(jsoninput){  
   html = "";
   jsonAppInput = jsoninput;
@@ -636,6 +638,7 @@ function buildcard(jsoninput){
   daloadvcard = 1;
   updatevalue();
 }
+//update value card
 function updatevalue(){
   var jsonObj = JSON.parse(jsonAppInput);
   var appLen = jsonObj.Application.length;
@@ -654,7 +657,8 @@ function updatevalue(){
   }
 
 }
-function changeRegsoptions(){
+//Show reg option from table
+function changeRegOptions(){
   var value = 0;
   var htmlcard = "";
   for(var k = 1; k < 7; k++) {
@@ -669,6 +673,7 @@ function changeRegsoptions(){
   }
 
 }
+//HTML card
 function AddCardBody(){
   html+="<div class='cardcuatao_input'>\
         <Center>\
@@ -720,7 +725,7 @@ function AddCardBody(){
       </div>\
     </div><br></br>";
 }
-
+//select reg from table
 function addvaluecard(jsonValue){
   selectvalue2 = document.getElementById('selectvalue2').value;  
   selectvalue1 = document.getElementById('selectvalue1').value;  
@@ -751,7 +756,7 @@ function addvaluecard(jsonValue){
     }
   }
 }
-
+//Save add card
 function SaveCard(){
   namecard = document.getElementById("input_namecard").value;
   appData[app] = AppID+","+poss+","+app+","+nodeID+","+netID +","+namecard+","+selectvalue1+","+selectvalue2+","+selectvalue3+","+selectvalue4+","+selectvalue5+","+selectvalue6;
@@ -769,7 +774,7 @@ function SaveCard(){
   app++;
   console.log("App ID:" +app); 
 }
-
+// Build card from Json
 function buildCardJson() {
   jsonAppInput = document.getElementById("jsonApp").value;
   jsonApp = jsonAppInput;
@@ -805,7 +810,9 @@ function CardSetup_dlg(titledlg, textdlg, closefunc ){
   modalCardSet.active = document.getElementById('settingsModal.html');
   var title = modalCardSet.active.getElementsByClassName("modal-title")[0];
   var body = modalCardSet.active.getElementsByClassName("modal-text")[0];
-  title.innerHTML = titledlg;body.innerHTML = textdlg;cardID = textdlg;
+  title.innerHTML = titledlg;
+  body.innerHTML = textdlg;
+  cardID = textdlg;
   if (typeof closefunc === 'undefined') closefunc = CardSetClose;
   ShowModalCardSet(closefunc);      
   loaddatasetting(textdlg);
@@ -966,7 +973,6 @@ function saveProduct() {
   displayDeleteProductList();
 }
 
-
 // Hàm xóa sản phẩm từ danh sách sản phẩm của card dựa trên id và index
 function deleteProduct(cardID, index) {
   var id = document.getElementById("cardID").innerHTML;
@@ -983,7 +989,6 @@ function deleteProduct(cardID, index) {
   // Hiển thị lại danh sách sản phẩm để xóa
   loaddatasetting(id);
   displayDeleteProductList();
-  
 } 
 
 function loaddatasetting(id) {
@@ -1030,14 +1035,23 @@ function loaddatasetting(id) {
         selectElement.selectedIndex = selectedIndex;
       }
     }
+    var productID = document.getElementById("ProductDataSaveSelect").value;
+    console.log("Select id:" + productID);
+    var cardid = document.getElementById("cardID").innerHTML;
+    console.log("card ID:" + cardid);
+    var CyleTime = productJSON.data[cardid].cycletime[productID];
+    document.getElementById("TimeIncInput").value = CyleTime;
+  
+    var ProductSet = productJSON.data[cardid].productset[productID];
+    document.getElementById("planSetInput").value = ProductSet;
   }
   else {
-    var selectElement = document.getElementById("ProductDataSaveSelect");
-    selectElement.innerHTML = '';
+    document.getElementById("ProductDataSaveSelect").innerHTML = '';
   }
   // document.getElementById("ProductDataSaveSelect").value = jsonTasbleObj.Data[value4].value;
 }
 function saveSettings(id) {
+  // writeRegModbus();
   console.log("app id= " + id);
   var UpdateDataApp = JSON.parse(jsonApp);
   var jsonTasbleObj = JSON.parse(jsontable);
@@ -1109,25 +1123,31 @@ function saveSettings(id) {
 // Gán sự kiện onblur cho từng trường input trong modal
 document.getElementById("planInput").onblur = function () {
   console.log("planInput: " + document.getElementById("planInput").value);
+  // writeRegModbus();
   saveSettings(cardID);
 };
 document.getElementById("resultInput").onblur = function () {
+  // writeRegModbus();
   console.log("resultInput: "+document.getElementById("resultInput").value);
   saveSettings(cardID);
 };
 document.getElementById("planSetInput").onblur = function () {
+  // writeRegModbus();
   console.log("planSetInput: "+document.getElementById("planSetInput").value);
   saveSettings(cardID);
 };
-// document.getElementById("resultSetInput").onblur = function() {
-//   console.log("resultSetInput: "+document.getElementById("resultSetInput").value);
-//   saveSettings(cardID);
-// };
+document.getElementById("resultSetInput").onblur = function() {
+  console.log("resultSetInput: "+document.getElementById("resultSetInput").value);
+  // writeRegModbus();
+  saveSettings(cardID);
+};
 document.getElementById("TimeIncInput").onblur = function () {
+  // writeRegModbus();
   console.log("TimeIncInput: "+document.getElementById("TimeIncInput").value);
   saveSettings(cardID);
 };
 document.getElementById("PCSInput").onblur = function () {
+  // writeRegModbus();
   console.log("PCSInput: "+document.getElementById("PCSInput").value);
   saveSettings(cardID);
 };    
@@ -1151,7 +1171,7 @@ function addProduct() {
     var dataproduct = [];
     var datacycletime = [];
     var dataproductset = [];
-    dataproduct.push(newProductName);//idEnd
+    dataproduct.push(newProductName);
     datacycletime.push(newCycleTime);
     dataproductset.push(newProductSet);
     productJSON.data.push({id: idEnd,product: dataproduct,cycletime: datacycletime, productset: dataproductset});
@@ -1164,7 +1184,6 @@ function addProduct() {
     option.value = 0;
     selectElement.appendChild(option);
     document.getElementById("newProductName").value = "";
-
   }
   else {
     // Lấy giá trị mới từ các phần tử HTML
@@ -1210,7 +1229,7 @@ function displaySelectedProduct() {
 
   var id = document.getElementById("cardID").innerHTML;
   var UpdateDataApp = JSON.parse(jsonApp);
-  var arrayData = [AppID,poss,id_card,nodeID,netID,namecard,value1, value2, value3,value4, value5,value6] = UpdateDataApp.Application[id].app.split(",")
+  var arrayData = [AppID,poss,id_card,nodeID,netID,namecard,value1, value2, value3,value4, value5,value6] = UpdateDataApp.Application[id].app.split(",");
 
   var productID = document.getElementById("ProductDataSaveSelect").value;
   console.log("Select id:" + productID);
@@ -1234,7 +1253,6 @@ function displaySelectedProduct() {
     console.log("độ dài lẻ");
     sp = sp + " ";  
   }
-
 }
 // change name card  
 function changeName() {
@@ -1272,17 +1290,6 @@ function changeState(id) {
   if (lock[id] == 0) { stateID[id] = 2; }
   if (lock[id] == 1) { stateID[id] = 1; }
 
-  // if (stateID[id]) {
-  //   SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=stop id=" + vals[number[vals[2]] + 6]), getLooklineCmdSuccess, getLooklineCmdfailed);
-  //   console.log("/command?plain=[ESP403]cmd=stop id=" + vals[number[vals[2]] + 6]);
-  //   SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=stop id="+vals[number[vals[2]]+6]), getLooklineCmdSuccess, getLooklineCmdfailed);
-  //   console.log("/command?plain=[ESP403]cmd=stop id="+vals[number[vals[2]]+6]);
-
-  // }
-  // if (stateID[id] == 2) {
-  //   SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=run id=" + vals[number[vals[2]] + 6]), getLooklineCmdSuccess, getLooklineCmdfailed);
-  //   console.log("/command?plain=[ESP403]cmd=run id=" + vals[number[vals[2]] + 6]);
-  // }
   lock[id] = !lock[id];
 }
 // change reset
@@ -1296,4 +1303,103 @@ function changeReset(id) {
   // setTimeout(function () {
   //   SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + savedR2 + " value=0"), getLooklineCmdSuccess, getLooklineCmdfailed);
   // }, 500);
+}
+
+function writeRegModbus(){
+  var id = document.getElementById("cardID").innerHTML;
+  var UpdateDataApp = JSON.parse(jsonApp);
+  var arrayData = [AppID,poss,id_card,nodeID,netID,namecard,value1, value2, value3,value4, value5,value6] = UpdateDataApp.Application[id].app.split(",");
+  var jsonTasbleObj = JSON.parse(jsontable);
+  var writeJson = JSON.parse(document.getElementById("datawritemodbus").value);
+
+  var addresswrite = [];
+  var slaveid_write = [];
+  var type_write = [];
+  var value_write = [];
+  var newPlanInput = document.getElementById("planInput").value;
+  var newResultInput = document.getElementById("resultInput").value;
+  var newPlanSetInput = document.getElementById("planSetInput").value;
+  var newProductDataSaveSelect = document.getElementById("ProductDataSaveSelect").value;
+  var newTimeIncInput = document.getElementById("TimeIncInput").value;
+  var newPCSInput = document.getElementById("PCSInput").value;
+  if(writeJson.writeReg[0] == null){
+ 
+    if(newPlanInput != jsonTasbleObj.Data[value1].value){
+      addresswrite.push(UpdateDataApp.Application[id].app.split(",")[6]);
+      slaveid_write.push(UpdateDataApp.Application[id].app.split(",")[3]);
+      value_write.push(newPlanInput);
+      writeJson.writeReg.push({slaveID: slaveid_write, address: addresswrite, type: type_write,value: value_write});
+    }
+    if(newResultInput != jsonTasbleObj.Data[value2].value){
+      addresswrite.push(UpdateDataApp.Application[id].app.split(",")[6]);
+      slaveid_write.push(UpdateDataApp.Application[id].app.split(",")[3]);
+      value_write.push(newResultInput);
+      writeJson.writeReg.push({slaveID: slaveid_write, address: addresswrite, type: type_write,value: value_write});
+    }
+    if(newPlanSetInput != jsonTasbleObj.Data[value3].value){
+      addresswrite.push(UpdateDataApp.Application[id].app.split(",")[6]);
+      slaveid_write.push(UpdateDataApp.Application[id].app.split(",")[3]);
+      value_write.push(newPlanSetInput);
+      writeJson.writeReg.push({slaveID: slaveid_write, address: addresswrite, type: type_write,value: value_write});
+    }
+    if(newProductDataSaveSelect != jsonTasbleObj.Data[value4].value){
+      addresswrite.push(UpdateDataApp.Application[id].app.split(",")[6]);
+      slaveid_write.push(UpdateDataApp.Application[id].app.split(",")[3]);
+      value_write.push(newProductDataSaveSelect);
+      writeJson.writeReg.push({slaveID: slaveid_write, address: addresswrite, type: type_write,value: value_write});
+    }
+    if(newTimeIncInput != jsonTasbleObj.Data[value5].value){
+      addresswrite.push(UpdateDataApp.Application[id].app.split(",")[6]);
+      slaveid_write.push(UpdateDataApp.Application[id].app.split(",")[3]);
+      value_write.push(newTimeIncInput);
+      writeJson.writeReg.push({slaveID: slaveid_write, address: addresswrite, type: type_write,value: value_write});
+    } 
+    if(newPCSInput != jsonTasbleObj.Data[value6].value){
+      addresswrite.push(UpdateDataApp.Application[id].app.split(",")[6]);
+      slaveid_write.push(UpdateDataApp.Application[id].app.split(",")[3]);
+      value_write.push(newPCSInput);
+      writeJson.writeReg.push({slaveID: slaveid_write, address: addresswrite, type: type_write,value: value_write});
+    }
+    console.log("newDataWrite: " + JSON.stringify(writeJson));
+    document.getElementById("datawritemodbus").value = JSON.stringify(writeJson);
+  }
+  else {
+    if(newPlanInput != jsonTasbleObj.Data[value1].value){
+      writeJson.writeReg.address.push(UpdateDataApp.Application[id].app.split(",")[6]);
+      writeJson.writeReg.slaveID.push(UpdateDataApp.Application[id].app.split(",")[3]);
+      writeJson.writeReg.value.push(newPlanInput);
+    }
+    if(newResultInput != jsonTasbleObj.Data[value2].value){
+      writeJson.writeReg.address.push(UpdateDataApp.Application[id].app.split(",")[6]);
+      writeJson.writeReg.slaveID.push(UpdateDataApp.Application[id].app.split(",")[3]);
+      writeJson.writeReg.value.push(newResultInput);
+    }
+    if(newPlanSetInput != jsonTasbleObj.Data[value3].value){
+      writeJson.writeReg.address.push(UpdateDataApp.Application[id].app.split(",")[6]);
+      writeJson.writeReg.slaveID.push(UpdateDataApp.Application[id].app.split(",")[3]);
+      writeJson.writeReg.value.push(newPlanSetInput);
+    }
+    if(newProductDataSaveSelect != jsonTasbleObj.Data[value4].value){
+      writeJson.writeReg.address.push(UpdateDataApp.Application[id].app.split(",")[6]);
+      writeJson.writeReg.slaveID.push(UpdateDataApp.Application[id].app.split(",")[3]);
+      writeJson.writeReg.value.push(newProductDataSaveSelect);
+    }
+    if(newTimeIncInput != jsonTasbleObj.Data[value5].value){
+      writeJson.writeReg.address.push(UpdateDataApp.Application[id].app.split(",")[6]);
+      writeJson.writeReg.slaveID.push(UpdateDataApp.Application[id].app.split(",")[3]);
+      writeJson.writeReg.value.push(newTimeIncInput);
+    } 
+    if(newPCSInput != jsonTasbleObj.Data[value6].value){
+      writeJson.writeReg.address.push(UpdateDataApp.Application[id].app.split(",")[6]);
+      writeJson.writeReg.slaveID.push(UpdateDataApp.Application[id].app.split(",")[3]);
+      writeJson.writeReg.value.push(newPCSInput);
+    }
+    console.log("UpdateDataWrite: " + JSON.stringify(writeJson));
+    document.getElementById("datawritemodbus").value = JSON.stringify(writeJson);
+    // writeJson.writeReg.address.push(UpdateDataApp.Application[id].app.split(",")[6]);
+    // writeJson.writeReg.slaveID.push(UpdateDataApp.Application[id].app.split(",")[3]);
+    // writeJson.writeReg.value.push(newvalue);
+  }
+  // console.log(document.getElementById("datawritemodbus").value);
+  websocket.send(document.getElementById("datawritemodbus").value);
 }
