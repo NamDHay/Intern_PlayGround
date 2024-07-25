@@ -90,6 +90,7 @@ function onMessage(event) {
       changeRegOptions();
       daload = 1;
     }
+    
     loadDataTable(event.data);
     addvaluecard(event.data);
     if(daloadvcard) updatevalue();
@@ -1051,7 +1052,7 @@ function loaddatasetting(id) {
   // document.getElementById("ProductDataSaveSelect").value = jsonTasbleObj.Data[value4].value;
 }
 function saveSettings(id) {
-  // writeRegModbus();
+  writeRegModbus();
   console.log("app id= " + id);
   var UpdateDataApp = JSON.parse(jsonApp);
   var jsonTasbleObj = JSON.parse(jsontable);
@@ -1123,31 +1124,26 @@ function saveSettings(id) {
 // Gán sự kiện onblur cho từng trường input trong modal
 document.getElementById("planInput").onblur = function () {
   console.log("planInput: " + document.getElementById("planInput").value);
-  // writeRegModbus();
+  
   saveSettings(cardID);
 };
 document.getElementById("resultInput").onblur = function () {
-  // writeRegModbus();
   console.log("resultInput: "+document.getElementById("resultInput").value);
   saveSettings(cardID);
 };
 document.getElementById("planSetInput").onblur = function () {
-  // writeRegModbus();
   console.log("planSetInput: "+document.getElementById("planSetInput").value);
   saveSettings(cardID);
 };
 document.getElementById("resultSetInput").onblur = function() {
   console.log("resultSetInput: "+document.getElementById("resultSetInput").value);
-  // writeRegModbus();
   saveSettings(cardID);
 };
 document.getElementById("TimeIncInput").onblur = function () {
-  // writeRegModbus();
   console.log("TimeIncInput: "+document.getElementById("TimeIncInput").value);
   saveSettings(cardID);
 };
 document.getElementById("PCSInput").onblur = function () {
-  // writeRegModbus();
   console.log("PCSInput: "+document.getElementById("PCSInput").value);
   saveSettings(cardID);
 };    
@@ -1364,32 +1360,32 @@ function writeRegModbus(){
     document.getElementById("datawritemodbus").value = JSON.stringify(writeJson);
   }
   else {
-    if(newPlanInput != jsonTasbleObj.Data[value1].value){
+    if((newPlanInput != jsonTasbleObj.Data[value1].value)&&(newPlanInput != "")){
       writeJson.writeReg.address.push(UpdateDataApp.Application[id].app.split(",")[6]);
       writeJson.writeReg.slaveID.push(UpdateDataApp.Application[id].app.split(",")[3]);
       writeJson.writeReg.value.push(newPlanInput);
     }
-    if(newResultInput != jsonTasbleObj.Data[value2].value){
+    if((newResultInput != jsonTasbleObj.Data[value2].value)&&(newResultInput != "")){
       writeJson.writeReg.address.push(UpdateDataApp.Application[id].app.split(",")[6]);
       writeJson.writeReg.slaveID.push(UpdateDataApp.Application[id].app.split(",")[3]);
       writeJson.writeReg.value.push(newResultInput);
     }
-    if(newPlanSetInput != jsonTasbleObj.Data[value3].value){
+    if((newPlanSetInput != jsonTasbleObj.Data[value3].value)&&(newPlanSetInput != "")){
       writeJson.writeReg.address.push(UpdateDataApp.Application[id].app.split(",")[6]);
       writeJson.writeReg.slaveID.push(UpdateDataApp.Application[id].app.split(",")[3]);
       writeJson.writeReg.value.push(newPlanSetInput);
     }
-    if(newProductDataSaveSelect != jsonTasbleObj.Data[value4].value){
+    if((newProductDataSaveSelect != jsonTasbleObj.Data[value4].value)&&(newProductDataSaveSelect != "")){
       writeJson.writeReg.address.push(UpdateDataApp.Application[id].app.split(",")[6]);
       writeJson.writeReg.slaveID.push(UpdateDataApp.Application[id].app.split(",")[3]);
       writeJson.writeReg.value.push(newProductDataSaveSelect);
     }
-    if(newTimeIncInput != jsonTasbleObj.Data[value5].value){
+    if((newTimeIncInput != jsonTasbleObj.Data[value5].value)&&(newTimeIncInput != "")){
       writeJson.writeReg.address.push(UpdateDataApp.Application[id].app.split(",")[6]);
       writeJson.writeReg.slaveID.push(UpdateDataApp.Application[id].app.split(",")[3]);
       writeJson.writeReg.value.push(newTimeIncInput);
     } 
-    if(newPCSInput != jsonTasbleObj.Data[value6].value){
+    if((newPCSInput != jsonTasbleObj.Data[value6].value)&&(newPCSInput != "")){
       writeJson.writeReg.address.push(UpdateDataApp.Application[id].app.split(",")[6]);
       writeJson.writeReg.slaveID.push(UpdateDataApp.Application[id].app.split(",")[3]);
       writeJson.writeReg.value.push(newPCSInput);
@@ -1400,6 +1396,5 @@ function writeRegModbus(){
     // writeJson.writeReg.slaveID.push(UpdateDataApp.Application[id].app.split(",")[3]);
     // writeJson.writeReg.value.push(newvalue);
   }
-  // console.log(document.getElementById("datawritemodbus").value);
   websocket.send(document.getElementById("datawritemodbus").value);
 }
