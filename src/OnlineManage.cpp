@@ -372,6 +372,11 @@ void editModbusData()
     xQueueSend(mbParam.qUpdateTable, (void *)&IsSetTable, 1 / portTICK_PERIOD_MS);
     IsSetTable = false;
 }
+// {"Command":"app","Application":[{"app":"0,0,0,1,0,test1,0,1,2,0,4,5"},{"app":"0,0,1,1,0,test2,10,12,13,0,15,16"},{"app":"0,0,2,1,0,test3,3,6,9,0,15,18"},{"app":"0,0,3,1,0,test4,2,4,6,0,10,12"}]}
+void saveLogApp()
+{   
+    
+}
 void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
 {
     bool IsSetTable = true;
@@ -389,7 +394,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         String command = rdoc["Command"].as<String>();
         if (command == "settingModbus")
         {
-            filesystem.writefile("/mbsetting.json", DataStr, 0);
+            // filesystem.writefile("/mbsetting.json", DataStr, 0);
             setModbusHandler();
         }
         else if (command == "settingWifi")
@@ -430,6 +435,10 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
             IsSetTable = true;
             xQueueSend(mbParam.qUpdateTable, (void *)&IsSetTable, 1 / portTICK_PERIOD_MS);
             IsSetTable = false;
+        }
+        else if (command == "App")
+        {
+            filesystem.writefile("/application.json", DataStr, 0);
         }
     }
 }
@@ -530,7 +539,8 @@ void TaskOnlineManager(void *pvParameter)
             WiFi.begin(online.wifi_setting.ssid, online.wifi_setting.pass);
             isMessageReceived = false;
         }
-        if(millis() - startCheckWifiTime >  0) {
+        if (millis() - startCheckWifiTime > 0)
+        {
             startCheckWifiTime = millis();
         }
         dnsServer.processNextRequest();

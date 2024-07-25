@@ -3,12 +3,15 @@
 #include <MB.h>
 #include <ArduinoJson.h>
 #include <File_System.h>
+#include <inttypes.h> /* strtoimax */
 
 #define RTU_MAX_RW 30
 #define TCP_MAX_RW 99
 
 ModbusRTU mbRTU;
 ModbusIP mbTCP;
+
+bool loadApp = false;
 
 int getIpBlock(int index, String str)
 {
@@ -106,7 +109,6 @@ void update_ModbusData_Interval()
         {
             if (!mbRTU.slave())
             {
-                // Serial.println(mbRTU.slave());
                 while (modbusRTU.read_Multiple_Data(mbParam.slave[i].ID.toInt(),
                                                     (uint16_t *)&mbParam.slave[i].Data,
                                                     mbParam.slave[i].ReadAddress.startAddress,
@@ -609,6 +611,50 @@ void MODBUS_TCP::writeSetting()
 /*********************************************END TCP PART****************************************************************/
 
 /*********************************************START MODBUS TASK***********************************************************/
+void char_to_uint16()
+{
+}
+void write_Test_Char()
+{
+    String txstr;
+    String rxstr;
+    for (size_t i = 0; i < 2; i++)
+    {
+        if (i == 0)
+        {
+            txstr = "Hello";
+        }
+        else
+        {
+            txstr = "NamDHay";
+        }
+        if ((modbusTCP.client == 1) && (mbParam.slave[0].ID.length() > 5))
+        {
+            if (mbTCP.isConnected(modbusTCP.str2IP(mbParam.slave[0].ID)))
+            {
+                while (modbusTCP.write_Multiple_Data(modbusTCP.str2IP(mbParam.slave[0].ID),
+                                                     (uint16_t *)&txstr,
+                                                     0,
+                                                     10) != true)
+                    ;
+                while (modbusTCP.read_Multiple_Data(modbusTCP.str2IP(mbParam.slave[0].ID),
+                                                    (uint16_t *)&rxstr,
+                                                    0,
+                                                    10) != true)
+                    ;
+
+                Serial.println();
+            }
+            else
+            {
+                mbTCP.task();
+                mbTCP.connect(modbusTCP.str2IP(mbParam.slave[0].ID));
+            }
+            mbTCP.task();
+        }
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+    }
+}
 void TaskModbus(void *pvParameter)
 {
     modbusRTU.loadSetting();
@@ -639,6 +685,7 @@ void TaskModbus(void *pvParameter)
         if ((millis() - startUpdateIntervalTime >= UPDATE_INTERVAL_MS))
         {
             update_ModbusData_Interval();
+            // write_Test_Char();
             startUpdateIntervalTime = millis();
         }
         if (xQueueReceive(mbParam.qUpdateTable, (void *)&setTable, 1 / portTICK_PERIOD_MS) == pdTRUE)
@@ -647,6 +694,15 @@ void TaskModbus(void *pvParameter)
             update_WebTable();
             setTable = false;
             mbParam.loadTable = true;
+            loadApp = true;
+        }
+        if (loadApp == true)
+        {
+            String dataRead = "";
+            JsonDocument doc;
+            dataRead = filesystem.readfile("/application.json");
+            online.notifyClients(dataRead);
+            loadApp = false;
         }
     }
 }

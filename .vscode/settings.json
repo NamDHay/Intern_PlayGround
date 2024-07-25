@@ -70,5 +70,5 @@
     "string": "cpp",
     "string_view": "cpp"
   },
-  "cmake.sourceDirectory": "D:/Intern_PlayGround/lib/ArduinoJson"
+  "cmake.sourceDirectory": "D:/Workspace/Intern_PlayGround/lib/ArduinoJson"
 }

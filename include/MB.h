@@ -10,6 +10,7 @@
 #define COIL_TYPE 1
 #define DWORDS_TYPE 2
 #define FLOAT_TYPE 3
+#define CHAR_TYPE 4
 
 #define CHECKCOIL(CoilGroup, CoilBit) ((((CoilGroup) & (1UL << CoilBit)) == (1UL << CoilBit)) ? 1 : 0)
 #define SETCOIL(CoilGroup, CoilBit) ((CoilGroup) |= (1UL << CoilBit))
