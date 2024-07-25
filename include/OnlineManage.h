@@ -1,7 +1,7 @@
 #ifndef __ONLINE_MANAGE_H__
 #define __ONLINE_MANAGE_H__
 
-#include <WiFi.h>
+#include <WiFiMulti.h>
 #include <ArduinoJson.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>

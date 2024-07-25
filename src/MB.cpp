@@ -97,59 +97,59 @@ void update_ModbusData_Interval()
     String fbDataString = "";
     long count = 0;
     size_t lenght;
-    if (online.isConnected == true)
+    Doc["Command"] = "tableData";
+    for (byte i = 0; i < mbParam.numSlave; i++)
     {
-        Doc["Command"] = "tableData";
-        for (byte i = 0; i < mbParam.numSlave; i++)
+        lenght = mbParam.slave[i].ReadAddress.endAddress - mbParam.slave[i].ReadAddress.startAddress + 1;
+        Doc["Data"][i]["ID"] = mbParam.slave[i].ID;
+        if ((modbusRTU.master == 1) && (mbParam.slave[i].ID.length() < 5))
         {
-            lenght = mbParam.slave[i].ReadAddress.endAddress - mbParam.slave[i].ReadAddress.startAddress + 1;
-            Doc["Data"][i]["ID"] = mbParam.slave[i].ID;
-            if ((modbusRTU.master == 1) && (mbParam.slave[i].ID.length() < 5))
+            if (!mbRTU.slave())
             {
-                if (!mbRTU.slave())
-                {
-                    // Serial.println(mbRTU.slave());
-                    while (modbusRTU.read_Multiple_Data(mbParam.slave[i].ID.toInt(),
-                                                        (uint16_t *)&mbParam.slave[i].Data,
-                                                        mbParam.slave[i].ReadAddress.startAddress,
-                                                        lenght) != true)
-                        ;
-                    if (modbusRTU.isConnected == true)
-                    {
-                        Doc["Data"][i]["connect"] = 1;
-                    }
-                    else
-                    {
-                        Doc["Data"][i]["connect"] = 0;
-                    }
-                }
-                else
-                {
-                    mbRTU.task();
-                    continue;
-                }
-                mbRTU.task();
-            }
-            else if ((modbusTCP.client == 1) && (mbParam.slave[i].ID.length() > 5))
-            {
-                if (mbTCP.isConnected(modbusTCP.str2IP(mbParam.slave[i].ID)))
+                // Serial.println(mbRTU.slave());
+                while (modbusRTU.read_Multiple_Data(mbParam.slave[i].ID.toInt(),
+                                                    (uint16_t *)&mbParam.slave[i].Data,
+                                                    mbParam.slave[i].ReadAddress.startAddress,
+                                                    lenght) != true)
+                    ;
+                if (modbusRTU.isConnected == true)
                 {
                     Doc["Data"][i]["connect"] = 1;
-                    while (modbusTCP.read_Multiple_Data(modbusTCP.str2IP(mbParam.slave[i].ID),
-                                                        (uint16_t *)&mbParam.slave[i].Data,
-                                                        mbParam.slave[i].ReadAddress.startAddress,
-                                                        lenght) != true)
-                        ;
                 }
                 else
                 {
-                    mbTCP.task();
-                    mbTCP.connect(modbusTCP.str2IP(mbParam.slave[i].ID));
                     Doc["Data"][i]["connect"] = 0;
-                    continue;
                 }
-                mbTCP.task();
             }
+            else
+            {
+                mbRTU.task();
+                continue;
+            }
+            mbRTU.task();
+        }
+        else if ((modbusTCP.client == 1) && (mbParam.slave[i].ID.length() > 5))
+        {
+            if (mbTCP.isConnected(modbusTCP.str2IP(mbParam.slave[i].ID)))
+            {
+                Doc["Data"][i]["connect"] = 1;
+                while (modbusTCP.read_Multiple_Data(modbusTCP.str2IP(mbParam.slave[i].ID),
+                                                    (uint16_t *)&mbParam.slave[i].Data,
+                                                    mbParam.slave[i].ReadAddress.startAddress,
+                                                    lenght) != true)
+                    ;
+            }
+            else
+            {
+                mbTCP.task();
+                mbTCP.connect(modbusTCP.str2IP(mbParam.slave[i].ID));
+                Doc["Data"][i]["connect"] = 0;
+                continue;
+            }
+            mbTCP.task();
+        }
+        if (online.isConnected == true)
+        {
             for (byte j = 0; j < lenght; j++)
             {
                 if (count > (lenght - 1))
@@ -184,14 +184,13 @@ void update_ModbusData_Interval()
                 }
             }
             count = 0;
+            serializeJson(Doc, fbDataString);
+            Serial.println(fbDataString);
+            if (mbParam.loadTable == true)
+                online.notifyClients(fbDataString);
         }
-        serializeJson(Doc, fbDataString);
-        Serial.println(fbDataString);
-        if (mbParam.loadTable == true)
-            online.notifyClients(fbDataString);
     }
 }
-
 /*********************************************START MBPARAM PART**************************************************************/
 void MODBUS_PARAMETER::writeSlave()
 {
@@ -239,14 +238,14 @@ bool cb(Modbus::ResultCode event, uint16_t transactionId, void *data)
 { // Callback to monitor errors
     if (event != Modbus::EX_SUCCESS)
     {
-        Serial.print("Request result: 0x");
-        Serial.println(event, HEX);
-        Serial.print("No Connection");
+        // Serial.print("Request result: 0x");
+        // Serial.println(event, HEX);
+        // Serial.print("No Connection");
         modbusRTU.isConnected = false;
     }
     else
     {
-        Serial.print("Connection");
+        // Serial.print("Connection");
         modbusRTU.isConnected = true;
     }
     return true;
@@ -615,34 +614,6 @@ void TaskModbus(void *pvParameter)
     modbusRTU.loadSetting();
     modbusTCP.loadSetting();
     mbParam.loadSlave();
-
-    /*Start Test Part*/
-    // modbusTCP.client = 0;
-    // modbusRTU.master = 1;
-
-    // modbusRTU.MasterReadReg.startAddress = 0;
-    // modbusRTU.MasterReadReg.endAddress = 99;
-    // modbusRTU.MasterWriteReg.startAddress = 100;
-    // modbusRTU.MasterWriteReg.endAddress = 199;
-    // modbusRTU.SlaveReadReg.startAddress = 0;
-    // modbusRTU.SlaveReadReg.endAddress = 99;
-    // modbusRTU.SlaveWriteReg.startAddress = 100;
-    // modbusRTU.SlaveWriteReg.endAddress = 199;
-
-    // modbusTCP.ethernet.ipAdress = "192.168.137.3";
-    // modbusTCP.ethernet.gateway = "192.168.137.1";
-    // modbusTCP.ethernet.subnet = "255.255.255.0";
-    // modbusTCP.ethernet.primaryDNS = "8.8.8.8";
-    // modbusTCP.remote = "192.168.137.2";
-
-    // modbusRTU.config.port = &Serial2;
-    // modbusRTU.config.baud = 9600;
-
-    // modbusTCP.ClientReadReg.startAddress = 0;
-    // modbusTCP.ClientReadReg.endAddress = 99;
-    // modbusTCP.ClientWriteReg.startAddress = 100;
-    // modbusTCP.ClientWriteReg.endAddress = 199;
-    /*End Test Part*/
 
     bool setTable = false;
     modbusRTU.loadTable = true;

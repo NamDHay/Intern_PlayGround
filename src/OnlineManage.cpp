@@ -530,6 +530,9 @@ void TaskOnlineManager(void *pvParameter)
             WiFi.begin(online.wifi_setting.ssid, online.wifi_setting.pass);
             isMessageReceived = false;
         }
+        if(millis() - startCheckWifiTime >  0) {
+            startCheckWifiTime = millis();
+        }
         dnsServer.processNextRequest();
         ws.cleanupClients();
     }
