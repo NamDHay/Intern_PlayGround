@@ -374,7 +374,7 @@
       <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
       <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
     </symbol>
-    <symbol id="icon-person" viewBox="0 0 16 16">
+    <symbol id="icon-menu" viewBox="0 0 16 16">
       <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5"/>
     </symbol>
   </svg>
@@ -383,23 +383,35 @@
   </div>
 
   <!-- Thanh Setting -->
+  
   <nav class="navbar navbar-expand-sm " style="background-color: #143642;">
     <div class="container-fluid">
+      <ul class="nav nav-tabs">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false" style=" color: black; "><svg class="bi" width="30" height="30"><use xlink:href="#icon-menu"></use></svg></a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" id="btnHome" href="#" style="font-size: 1.2rem; font-weight: bold;color: black; ">Home</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" id="btnModbus" href="#" style="font-size: 1.2rem; font-weight: bold;color: black; ">ModBus</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" id="btnIo" href="#" style="font-size: 1.2rem; font-weight: bold;color: black; ">IO</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" id="btntable" href="#" style="font-size: 1.2rem; font-weight: bold;color: black; ">Table Data</a></li>
+          </ul>
+        </li>
+      </ul>
       <ul class="nav navbar-nav me-auto nav-pills mb-3" id="pills-tab" role="tablist">
         <li class="nav-item">
-          <a class="navbar-brand" id="tabHome" style="font-size: 2.0rem; font-weight: bold; text-align: center; color: yellow; ">HOME</a>
+          <br><a class="navbar-brand" id="tabHome" style="font-size: 2.0rem; font-weight: bold; text-align: center; color: yellow; display:block;">HOME</a>
         </li>
         <li class="nav-item">
-          <a class="navbar-brand" id="tabmodbus" style="font-size: 2.0rem; font-weight: bold; text-align: center; color: yellow; ">ModBus</a>
+          <br><a class="navbar-brand" id="tabmodbus" style="font-size: 2.0rem; font-weight: bold; text-align: center; color: yellow;  display: none;">ModBus</a>
         </li>
         <li class="nav-item">
-          <a class="navbar-brand" id="tabIO" style="font-size: 2.0rem; font-weight: bold; text-align: center; color: yellow; ">IO</a>
+          <br><a class="navbar-brand" id="tabIO" style="font-size: 2.0rem; font-weight: bold; text-align: center; color: yellow;  display: none;">IO</a>
         </li>
         <li class="nav-item">
-          <a class="navbar-brand" id="tabshowfile" style="font-size: 2.0rem; font-weight: bold; text-align: center; color: yellow; ">Show File</a>
-        </li>
-        <li class="nav-item">
-          <a class="navbar-brand" id="tabshowdata" style="font-size: 2.0rem; font-weight: bold; text-align: center; color: yellow; ">Show Data</a>
+          <br><a class="navbar-brand" id="tabtabledata" style="font-size: 2.0rem; font-weight: bold; text-align: center; color: yellow; display: none;" >Table Data</a>
         </li> 
       </ul>
       <ul class="navbar-nav" style="height: 40px;">
@@ -443,8 +455,8 @@
     </div>
   </nav>
 
-  <!-- Tab Home -->
-  <div id="cardhome" class="contentcuatao" style="display: block;">
+  <!-- Tab Table Data -->
+  <div id="cardtable" class="contentcuatao" style="display: none;">
     <div class="cardcuatao">
       <CENTER>
           <h2>TABLE DATA</h2>
@@ -452,6 +464,18 @@
       </CENTER>
       <Center><span><button id="buttonsavetable" class="button">SAVE</button></span></Center>  
     </div>
+  </div>
+
+  <!-- Tab Home -->
+  <div id="cardhome" class="contentcuatao" style="display: block;">
+    <!-- <div class="cardcuatao">
+      <CENTER>
+          <h2>TABLE DATA</h2>
+          <div id="TableData"></div>
+      </CENTER>
+      <Center><span><button id="buttonsavetable" class="button">SAVE</button></span></Center>  
+    </div> -->
+    <br><div id="addcard"></div>
   </div>
 
   <!-- Tab IO Config -->
@@ -563,7 +587,7 @@
         <textarea  id="datawritemodbus" cols="30" rows="5" style="width: 100%; height: fit-content; border-radius: 0.25rem;"></textarea>
       </div><br>
     <!-- <div id="waitData" class="loader"></div> -->
-    <div id="addcard"></div>
+    
     
   </div>
   
@@ -903,7 +927,7 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-body text-center">
-        <p>Login Successful!</p>
+        <p id="successModaltext">Login Successful!</p>
       </div>
     </div>
   </div>
@@ -920,6 +944,7 @@
 </div>
 
   <script src="./main.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </body>
 
 </html>

@@ -107,7 +107,7 @@ function onLoad(event) {
   // document.getElementById("dataProduct").value = preferenceslist = "{\"data\":[{\"id\":0,\"product\":[\"San_Pham_2\",\"sp2\",\"SanPhamMoi1\"],\"cycletime\":[\"150\",\"150\",\"653\"],\"productset\":[\"4\",\"2\",\"5\"]},{\"id\":1,\"product\":[\"sp4567\",\"sp44\"],\"cycletime\":[\"250\",\"250\"],\"productset\":[\"2\",\"4\"]},{\"id\":2,\"product\":[\"sp5\",\"sp6\"],\"cycletime\":[\"300\",\"350\"],\"productset\":[\"5\",\"6\"]},{\"id\":3,\"product\":[\"sp7\",\"sp8\"],\"cycletime\":[\"400\",\"450\"],\"productset\":[\"7\",\"8\"]}]}"; 
   document.getElementById("dataProduct").value = preferenceslist = "{\"data\":[]}"; 
   document.getElementById("datawritemodbus").value ="{\"writeReg\":[]}"; 
-  document.getElementById("jsonApp").value = "{\"Application\":[{\"app\":\"0,0,0,1,0,test1,0,1,2,0,4,5\"},{\"app\":\"0,0,1,1,0,test2,10,12,13,0,15,16\"},{\"app\":\"0,0,2,1,0,test3,3,6,9,0,15,18\"},{\"app\":\"0,0,3,1,0,test4,2,4,6,0,10,12\"}]}";
+  document.getElementById("jsonApp").value = "{\"Command\":\"App\",\"Application\":[{\"app\":\"0,0,0,1,0,test1,0,1,2,0,4,5\"},{\"app\":\"0,0,1,1,0,test2,10,12,13,0,15,16\"},{\"app\":\"0,0,2,1,0,test3,3,6,9,0,15,18\"},{\"app\":\"0,0,3,1,0,test4,2,4,6,0,10,12\"}]}";
 }
 function io_ChangeState1() {
   io_array[4] = !io_array[4];
@@ -130,23 +130,25 @@ function initButton() {
   document.getElementById('button4').addEventListener('click', io_ChangeState4);
   document.getElementById('buttontoggle').addEventListener('click',buttontoggle);
   document.getElementById('buttonsavetable').addEventListener('click', saveModbusTable);
-  document.getElementById('tabmodbus').addEventListener('click', settingmodbus);
-  document.getElementById('tabIO').addEventListener('click', settingio);
-  document.getElementById('tabHome').addEventListener('click', Home);
-  document.getElementById('tabshowfile').addEventListener('click', Showfile);
-  document.getElementById('tabshowdata').addEventListener('click', TabShowData);
+  document.getElementById('btnModbus').addEventListener('click', settingmodbus);
+  document.getElementById('btnIo').addEventListener('click', settingio);
+  document.getElementById('btnHome').addEventListener('click', Home);
+  // document.getElementById('tabshowdata').addEventListener('click', TabShowData);
   document.getElementById('buttonadd').addEventListener('click', AddCard);
   document.getElementById('bntLoadcard').addEventListener('click', buildCardJson);
   document.getElementById('buttonsavecard').addEventListener('click', SaveCard); 
   document.getElementById('buttonlog').addEventListener('click', showlogin);
+  document.getElementById('buttonlog').addEventListener('click', showlogin);
   // Gắn sự kiện click cho các nút mở modal
   document.getElementById('settingBtnNV').addEventListener('click', openSettingModalNV);
   document.getElementById('buttonadd').addEventListener('click', openAddCard);
-  document.getElementById('settingBtnKL').addEventListener('click', openSettingModalKL);
-  document.getElementById('settingBtnEX').addEventListener('click', openSettingModalEX);
+  document.getElementById('settingBtnKL').addEventListener('click', Showfile);
+  document.getElementById('settingBtnEX').addEventListener('click', TabShowData);
   document.getElementById('settingBtnLog').addEventListener('click', openSettingModalLog);
   document.getElementById('settingBtnList').addEventListener('click', openSettingModalList);
   document.getElementById('settingBtnSetting').addEventListener('click', openSettingModalSetting);
+  document.getElementById('btntable').addEventListener('click', TabTableData);
+
 }
 
 function closeModalUnlock(){
@@ -180,8 +182,39 @@ function UnlockAdmin() {
     }
   });
 }
+function updateUI(height) {
+  // $("body").width($(window).width()-4)
+  if (height > 0) $('#vplab_divider').height(height)
+  $("#tabs").height($(window).height())
+  $("#feed_url").height($("#Stationary_chart").height())
+  $("#feed_url").height($("#Moving_chart").height())
+  $("#tab_console").height($(window).height())
+}
+function changeTab(id) {
+  if (!id) return
+  $(".a_tab").addClass('hidden_forced')
+  $(".nav-link").removeClass('active')
+  $("#" + id).addClass('nav-link py-3 active')
+  $("#tab_" + id).removeClass('hidden_forced')
+  updateUI($("#tab_" + id).height());
+  // if(id == 'application')loadData()//hardcode
+  if (id == 'wifi') build_HTML_lookline_list('wifi', 'wifi_list_data')
+  if (id == 'ethernet') build_HTML_lookline_list('tcp', 'ethernet_list_data')
+  if (id == 'modbus') build_HTML_lookline_list('modbus', 'modbus_list_data')
+  if (id == 'application') build_HTML_lookline_list('application', 'application_list_data')
+  if (id == 'rf') build_HTML_lookline_list('rf', 'rf_list_data')
+  // application_list_data
+}
 function LogOut() {
   document.getElementById("roleAccount").innerHTML = "User";
+  var ids = ['dashboard', 'settingA', 'features', 'board', 'application', 'console', 'advanced', 'wifi', 'rf', 'ethernet', 'modbus', 'zicon', 'openbuttonchange', 'changePassA', 'name_product'];
+  ids.forEach(function (id) {
+    var element = document.getElementById(id);
+    if (element) {
+      element.style.display = 'none';
+    }
+  });
+  changeTab("dashboard");
 }
 function PassSave(id) {
   // try{
@@ -272,7 +305,7 @@ function checkPassword(){
     closeModalUnlock();
     UnlockAdmin();
     document.getElementById("passwordInput").value = "";
-    unlockSuccess();
+    unlockAdminSuccess();
   }
   //Staff
   else if(password == staffPass){
@@ -280,13 +313,7 @@ function checkPassword(){
     closeModalUnlock();
     UnlockStaff();
     document.getElementById("passwordInput").value = "";
-    unlockSuccess();
-  }
-  else if(password == ''){
-    LogOut();
-    alert("Please enter password.");
-    unlockFail();
-    document.getElementById("passwordInput").value = "";
+    unlockStaffSuccess();
   }
   else{
     LogOut();
@@ -324,9 +351,16 @@ function unlockFail(){
   setTimeout(function(){modal.hide(); }, 1000);
 }
 
-function unlockSuccess(){
+function unlockAdminSuccess(){
   var modal = new bootstrap.Modal(document.getElementById('successModal'));
   modal.show();
+  document.getElementById('successModaltext').innerHTML = "Login Admin Successful!";
+  setTimeout(function(){modal.hide(); }, 1000);
+}
+function unlockStaffSuccess(){
+  var modal = new bootstrap.Modal(document.getElementById('successModal'));
+  modal.show();
+  document.getElementById('successModaltext').innerHTML = "Login Staff Successful!";
   setTimeout(function(){modal.hide(); }, 1000);
 }
 function ChangeSuccess(){
@@ -378,6 +412,13 @@ function settingmodbus() {
   document.getElementById("cardshowfile").style.display = "none"
   document.getElementById("cardshowdata").style.display = "none";
   document.getElementById("cardadd").style.display = "none";
+  document.getElementById("cardtable").style.display = "none";
+
+  document.getElementById("tabmodbus").style.display = "block";
+  document.getElementById("tabHome").style.display = "none";
+  document.getElementById("tabIO").style.display = "none";
+  document.getElementById("tabtabledata").style.display = "none";
+
 }
 function settingio() {
   document.getElementById("cardmodbus").style.display = "none";
@@ -386,6 +427,13 @@ function settingio() {
   document.getElementById("cardshowfile").style.display = "none"
   document.getElementById("cardshowdata").style.display = "none";
   document.getElementById("cardadd").style.display = "none";
+  document.getElementById("cardtable").style.display = "none";
+
+  document.getElementById("tabmodbus").style.display = "none";
+  document.getElementById("tabHome").style.display = "none";
+  document.getElementById("tabIO").style.display = "block";
+  document.getElementById("tabtabledata").style.display = "none";
+
 }
 function Home() {
   document.getElementById("cardmodbus").style.display = "none";
@@ -394,6 +442,30 @@ function Home() {
   document.getElementById("cardshowfile").style.display = "none"
   document.getElementById("cardshowdata").style.display = "none";
   document.getElementById("cardadd").style.display = "none";
+  document.getElementById("cardtable").style.display = "none";
+
+  document.getElementById("tabmodbus").style.display = "none";
+  document.getElementById("tabHome").style.display = "block";
+  document.getElementById("tabIO").style.display = "none";
+  document.getElementById("tabtabledata").style.display = "none";
+
+}
+function TabTableData() {
+  document.getElementById("cardmodbus").style.display = "none";
+  document.getElementById("cardio").style.display = "none";
+  document.getElementById("cardhome").style.display = "none";
+  document.getElementById("cardshowfile").style.display = "none"
+  document.getElementById("cardshowdata").style.display = "none";
+  document.getElementById("cardadd").style.display = "none";
+  document.getElementById("cardtable").style.display = "block";
+
+  document.getElementById("tabmodbus").style.display = "none";
+  document.getElementById("tabHome").style.display = "none";
+  document.getElementById("tabIO").style.display = "none";
+  document.getElementById("tabtabledata").style.display = "block";
+  
+
+
 }
 function Showfile(){
   document.getElementById("cardmodbus").style.display = "none";
@@ -402,6 +474,13 @@ function Showfile(){
   document.getElementById("cardshowfile").style.display = "block"
   document.getElementById("cardshowdata").style.display = "none";
   document.getElementById("cardadd").style.display = "none";
+  document.getElementById("cardtable").style.display = "none";
+
+  document.getElementById("tabmodbus").style.display = "none";
+  document.getElementById("tabHome").style.display = "none";
+  document.getElementById("tabIO").style.display = "none";
+  document.getElementById("tabtabledata").style.display = "none";
+
 }
 function TabShowData(){
   document.getElementById("cardmodbus").style.display = "none";
@@ -410,6 +489,12 @@ function TabShowData(){
   document.getElementById("cardshowfile").style.display = "none";
   document.getElementById("cardshowdata").style.display = "block";
   document.getElementById("cardadd").style.display = "none";
+  document.getElementById("cardtable").style.display = "none";
+
+  document.getElementById("tabmodbus").style.display = "none";
+  document.getElementById("tabHome").style.display = "none";
+  document.getElementById("tabIO").style.display = "none";
+  document.getElementById("tabtabledata").style.display = "none";
 }
 function AddCard(){
   document.getElementById("cardmodbus").style.display = "none";
@@ -418,6 +503,7 @@ function AddCard(){
   document.getElementById("cardshowfile").style.display = "none";
   document.getElementById("cardshowdata").style.display = "none";
   document.getElementById("cardadd").style.display = "block";
+  document.getElementById("cardtable").style.display = "none";
 }
 function save(){
   var ssid_input = document.getElementById('input_ssid').value;
@@ -761,7 +847,7 @@ function addvaluecard(jsonValue){
 function SaveCard(){
   namecard = document.getElementById("input_namecard").value;
   appData[app] = AppID+","+poss+","+app+","+nodeID+","+netID +","+namecard+","+selectvalue1+","+selectvalue2+","+selectvalue3+","+selectvalue4+","+selectvalue5+","+selectvalue6;
-  jsonApp = "{\"Application\":[{\"app\":\""+appData[0]+"\"}";
+  jsonApp = "{\"Command\":\"App\",\"Application\":[{\"app\":\""+appData[0]+"\"}";
   if(app >0){
     for(var k = 1; k<(app+1);k++){
       jsonApp += ",{\"app\":\""+appData[k]+"\"}";
@@ -794,7 +880,7 @@ function buildCardJson() {
     selectvalue5 = JSON.parse(jsonAppInput).Application[i].app.split(",")[10];
     selectvalue6 = JSON.parse(jsonAppInput).Application[i].app.split(",")[11];
     appData[i] = AppID+","+poss+","+i+","+nodeID+","+netID +","+namecard+","+selectvalue1+","+selectvalue2+","+selectvalue3+","+selectvalue4+","+selectvalue5+","+selectvalue6;
-    jsonApp = "{\"Application\":[{\"app\":\""+appData[0]+"\"}";
+    jsonApp = "{\"Command\":\"App\",\"Application\":[{\"app\":\""+appData[0]+"\"}";
     if(i >0){
       for(var k = 1; k<(app);k++){
         jsonApp += ",{\"app\":\""+appData[k]+"\"}";
@@ -1052,7 +1138,7 @@ function loaddatasetting(id) {
   // document.getElementById("ProductDataSaveSelect").value = jsonTasbleObj.Data[value4].value;
 }
 function saveSettings(id) {
-  writeRegModbus();
+  writeRegModbus(id);
   console.log("app id= " + id);
   var UpdateDataApp = JSON.parse(jsonApp);
   var jsonTasbleObj = JSON.parse(jsontable);
@@ -1120,33 +1206,7 @@ function saveSettings(id) {
   //   SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + value6 + " value=" + PCSValue), getLooklineCmdSuccess, getLooklineCmdfailed);
   // }
 }   
-//bỏ nút save, nhập vào thì lưu
-// Gán sự kiện onblur cho từng trường input trong modal
-document.getElementById("planInput").onblur = function () {
-  console.log("planInput: " + document.getElementById("planInput").value);
   
-  saveSettings(cardID);
-};
-document.getElementById("resultInput").onblur = function () {
-  console.log("resultInput: "+document.getElementById("resultInput").value);
-  saveSettings(cardID);
-};
-document.getElementById("planSetInput").onblur = function () {
-  console.log("planSetInput: "+document.getElementById("planSetInput").value);
-  saveSettings(cardID);
-};
-document.getElementById("resultSetInput").onblur = function() {
-  console.log("resultSetInput: "+document.getElementById("resultSetInput").value);
-  saveSettings(cardID);
-};
-document.getElementById("TimeIncInput").onblur = function () {
-  console.log("TimeIncInput: "+document.getElementById("TimeIncInput").value);
-  saveSettings(cardID);
-};
-document.getElementById("PCSInput").onblur = function () {
-  console.log("PCSInput: "+document.getElementById("PCSInput").value);
-  saveSettings(cardID);
-};    
 function addProduct() {
   var productName = document.getElementById("newProductName").value.trim();
   if (productName === "") {
@@ -1265,7 +1325,7 @@ function changeName() {
   for(var i = 0; i < (app);i++){
     if(i == id){
       appData[i] = AppID+","+poss+","+i+","+nodeID+","+netID +","+namecard+","+selectvalue1+","+selectvalue2+","+selectvalue3+","+selectvalue4+","+selectvalue5+","+selectvalue6;
-      jsonApp = "{\"Application\":[{\"app\":\""+appData[0]+"\"}";
+      jsonApp = "{\"Command\":\"App\",\"Application\":[{\"app\":\""+appData[0]+"\"}";
       if(app >0){
         for(var k = 1; k<(app);k++){
           jsonApp += ",{\"app\":\""+appData[k]+"\"}";
@@ -1274,7 +1334,8 @@ function changeName() {
       jsonApp += "]}";
     }
   }
-  console.log(jsonApp); 
+  console.log(jsonApp);
+  document.getElementById("jsonApp").value = jsonApp; 
   websocket.send(jsonApp);
 }
 // change state
@@ -1300,9 +1361,35 @@ function changeReset(id) {
   //   SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + savedR2 + " value=0"), getLooklineCmdSuccess, getLooklineCmdfailed);
   // }, 500);
 }
-
-function writeRegModbus(){
-  var id = document.getElementById("cardID").innerHTML;
+//bỏ nút save, nhập vào thì lưu
+// Gán sự kiện onblur cho từng trường input trong modal
+document.getElementById("planInput").onblur = function () {
+  console.log("planInput: " + document.getElementById("planInput").value);
+  
+  saveSettings(cardID);
+};
+document.getElementById("resultInput").onblur = function () {
+  console.log("resultInput: "+document.getElementById("resultInput").value);
+  saveSettings(cardID);
+};
+document.getElementById("planSetInput").onblur = function () {
+  console.log("planSetInput: "+document.getElementById("planSetInput").value);
+  saveSettings(cardID);
+};
+// document.getElementById("resultSetInput").onblur = function() {
+//   console.log("resultSetInput: "+document.getElementById("resultSetInput").value);
+//   saveSettings(cardID);
+// };
+document.getElementById("TimeIncInput").onblur = function () {
+  console.log("TimeIncInput: "+document.getElementById("TimeIncInput").value);
+  saveSettings(cardID);
+};
+document.getElementById("PCSInput").onblur = function () {
+  console.log("PCSInput: "+document.getElementById("PCSInput").value);
+  saveSettings(cardID);
+};  
+function writeRegModbus(id){
+  // var id = document.getElementById("cardID").innerHTML;
   var UpdateDataApp = JSON.parse(jsonApp);
   var arrayData = [AppID,poss,id_card,nodeID,netID,namecard,value1, value2, value3,value4, value5,value6] = UpdateDataApp.Application[id].app.split(",");
   var jsonTasbleObj = JSON.parse(jsontable);
@@ -1318,83 +1405,88 @@ function writeRegModbus(){
   var newProductDataSaveSelect = document.getElementById("ProductDataSaveSelect").value;
   var newTimeIncInput = document.getElementById("TimeIncInput").value;
   var newPCSInput = document.getElementById("PCSInput").value;
-  if(writeJson.writeReg[0] == null){
+  var idEnd = writeJson.writeReg.length;
+  var address1 = UpdateDataApp.Application[id].app.split(",")[6];
+  var address2 =UpdateDataApp.Application[id].app.split(",")[7];
+  var address3 =UpdateDataApp.Application[id].app.split(",")[8];
+  var address4 =UpdateDataApp.Application[id].app.split(",")[9];
+  var address5 =UpdateDataApp.Application[id].app.split(",")[10];
+  var address6 =UpdateDataApp.Application[id].app.split(",")[11];
+  if(writeJson.writeReg[id] == null){
  
-    if(newPlanInput != jsonTasbleObj.Data[value1].value){
-      addresswrite.push(UpdateDataApp.Application[id].app.split(",")[6]);
+    if((newPlanInput != jsonTasbleObj.Data[value1].value)&&(newPlanInput!= null)){
+      addresswrite.push(address1);
       slaveid_write.push(UpdateDataApp.Application[id].app.split(",")[3]);
       value_write.push(newPlanInput);
-      writeJson.writeReg.push({slaveID: slaveid_write, address: addresswrite, type: type_write,value: value_write});
+      writeJson.writeReg.push({idcard:idEnd ,slaveID: slaveid_write, address: addresswrite, type: type_write,value: value_write});
     }
-    if(newResultInput != jsonTasbleObj.Data[value2].value){
-      addresswrite.push(UpdateDataApp.Application[id].app.split(",")[6]);
+    if((newResultInput != jsonTasbleObj.Data[value2].value)&&(newResultInput != null)){
+      addresswrite.push(address2);
       slaveid_write.push(UpdateDataApp.Application[id].app.split(",")[3]);
       value_write.push(newResultInput);
-      writeJson.writeReg.push({slaveID: slaveid_write, address: addresswrite, type: type_write,value: value_write});
+      writeJson.writeReg.push({idcard:idEnd ,slaveID: slaveid_write, address: addresswrite, type: type_write,value: value_write});
     }
-    if(newPlanSetInput != jsonTasbleObj.Data[value3].value){
-      addresswrite.push(UpdateDataApp.Application[id].app.split(",")[6]);
+    if((newPlanSetInput != jsonTasbleObj.Data[value3].value)&&(newPlanSetInput != null)){
+      addresswrite.push(address3);
       slaveid_write.push(UpdateDataApp.Application[id].app.split(",")[3]);
       value_write.push(newPlanSetInput);
-      writeJson.writeReg.push({slaveID: slaveid_write, address: addresswrite, type: type_write,value: value_write});
+      writeJson.writeReg.push({idcard:idEnd ,slaveID: slaveid_write, address: addresswrite, type: type_write,value: value_write});
     }
-    if(newProductDataSaveSelect != jsonTasbleObj.Data[value4].value){
-      addresswrite.push(UpdateDataApp.Application[id].app.split(",")[6]);
-      slaveid_write.push(UpdateDataApp.Application[id].app.split(",")[3]);
-      value_write.push(newProductDataSaveSelect);
-      writeJson.writeReg.push({slaveID: slaveid_write, address: addresswrite, type: type_write,value: value_write});
-    }
-    if(newTimeIncInput != jsonTasbleObj.Data[value5].value){
-      addresswrite.push(UpdateDataApp.Application[id].app.split(",")[6]);
+    // if((newProductDataSaveSelect != jsonTasbleObj.Data[value4].value)&&(newProductDataSaveSelect != null)){
+    //   addresswrite.push(address4);
+    //   slaveid_write.push(UpdateDataApp.Application[id].app.split(",")[3]);
+    //   value_write.push(newProductDataSaveSelect);
+    //   writeJson.writeReg.push({idcard:idEnd ,slaveID: slaveid_write, address: addresswrite, type: type_write,value: value_write});
+    // }
+    if((newTimeIncInput != jsonTasbleObj.Data[value5].value)&&(newTimeIncInput != null)){
+      addresswrite.push(address5);
       slaveid_write.push(UpdateDataApp.Application[id].app.split(",")[3]);
       value_write.push(newTimeIncInput);
-      writeJson.writeReg.push({slaveID: slaveid_write, address: addresswrite, type: type_write,value: value_write});
+      writeJson.writeReg.push({idcard:idEnd ,slaveID: slaveid_write, address: addresswrite, type: type_write,value: value_write});
     } 
-    if(newPCSInput != jsonTasbleObj.Data[value6].value){
-      addresswrite.push(UpdateDataApp.Application[id].app.split(",")[6]);
+    if((newPCSInput != jsonTasbleObj.Data[value6].value)&&(newPCSInput != null)){
+      addresswrite.push(address6);
       slaveid_write.push(UpdateDataApp.Application[id].app.split(",")[3]);
       value_write.push(newPCSInput);
-      writeJson.writeReg.push({slaveID: slaveid_write, address: addresswrite, type: type_write,value: value_write});
+      writeJson.writeReg.push({idcard:idEnd ,slaveID: slaveid_write, address: addresswrite, type: type_write,value: value_write});
     }
     console.log("newDataWrite: " + JSON.stringify(writeJson));
     document.getElementById("datawritemodbus").value = JSON.stringify(writeJson);
   }
   else {
-    if((newPlanInput != jsonTasbleObj.Data[value1].value)&&(newPlanInput != "")){
-      writeJson.writeReg.address.push(UpdateDataApp.Application[id].app.split(",")[6]);
-      writeJson.writeReg.slaveID.push(UpdateDataApp.Application[id].app.split(",")[3]);
-      writeJson.writeReg.value.push(newPlanInput);
+    
+    if((newPlanInput != jsonTasbleObj.Data[value1].value)&&(newPlanInput != null)){
+      writeJson.writeReg[id].address.push(address1);
+      writeJson.writeReg[id].slaveID.push(UpdateDataApp.Application[id].app.split(",")[3]);
+      writeJson.writeReg[id].value.push(newPlanInput);
     }
-    if((newResultInput != jsonTasbleObj.Data[value2].value)&&(newResultInput != "")){
-      writeJson.writeReg.address.push(UpdateDataApp.Application[id].app.split(",")[6]);
-      writeJson.writeReg.slaveID.push(UpdateDataApp.Application[id].app.split(",")[3]);
-      writeJson.writeReg.value.push(newResultInput);
+    if((newResultInput != jsonTasbleObj.Data[value2].value)&&(newResultInput != null)){
+      writeJson.writeReg[id].address.push(address2);
+      writeJson.writeReg[id].slaveID.push(UpdateDataApp.Application[id].app.split(",")[3]);
+      writeJson.writeReg[id].value.push(newResultInput);
     }
-    if((newPlanSetInput != jsonTasbleObj.Data[value3].value)&&(newPlanSetInput != "")){
-      writeJson.writeReg.address.push(UpdateDataApp.Application[id].app.split(",")[6]);
-      writeJson.writeReg.slaveID.push(UpdateDataApp.Application[id].app.split(",")[3]);
-      writeJson.writeReg.value.push(newPlanSetInput);
+    if((newPlanSetInput != jsonTasbleObj.Data[value3].value)&&(newPlanSetInput != null)){
+      writeJson.writeReg[id].address.push(address3);
+      writeJson.writeReg[id].slaveID.push(UpdateDataApp.Application[id].app.split(",")[3]);
+      writeJson.writeReg[id].value.push(newPlanSetInput);
     }
-    if((newProductDataSaveSelect != jsonTasbleObj.Data[value4].value)&&(newProductDataSaveSelect != "")){
-      writeJson.writeReg.address.push(UpdateDataApp.Application[id].app.split(",")[6]);
-      writeJson.writeReg.slaveID.push(UpdateDataApp.Application[id].app.split(",")[3]);
-      writeJson.writeReg.value.push(newProductDataSaveSelect);
-    }
-    if((newTimeIncInput != jsonTasbleObj.Data[value5].value)&&(newTimeIncInput != "")){
-      writeJson.writeReg.address.push(UpdateDataApp.Application[id].app.split(",")[6]);
-      writeJson.writeReg.slaveID.push(UpdateDataApp.Application[id].app.split(",")[3]);
-      writeJson.writeReg.value.push(newTimeIncInput);
+    // if((newProductDataSaveSelect != jsonTasbleObj.Data[value4].value)&&(newProductDataSaveSelect != null)){
+    //   writeJson.writeReg.address.push(address4);
+    //   writeJson.writeReg.slaveID.push(UpdateDataApp.Application[id].app.split(",")[3]);
+    //   writeJson.writeReg.value.push(newProductDataSaveSelect);
+    // }
+    if((newTimeIncInput != jsonTasbleObj.Data[value5].value)&&(newTimeIncInput != null)){
+      writeJson.writeReg[id].address.push(address5);
+      writeJson.writeReg[id].slaveID.push(UpdateDataApp.Application[id].app.split(",")[3]);
+      writeJson.writeReg[id].value.push(newTimeIncInput);
     } 
-    if((newPCSInput != jsonTasbleObj.Data[value6].value)&&(newPCSInput != "")){
-      writeJson.writeReg.address.push(UpdateDataApp.Application[id].app.split(",")[6]);
-      writeJson.writeReg.slaveID.push(UpdateDataApp.Application[id].app.split(",")[3]);
-      writeJson.writeReg.value.push(newPCSInput);
-    }
+    if((newPCSInput != jsonTasbleObj.Data[value6].value)&&(newPCSInput != null)){
+      writeJson.writeReg[id].address.push(address6);
+      writeJson.writeReg[id].slaveID.push(UpdateDataApp.Application[id].app.split(",")[3]);
+      writeJson.writeReg[id].value.push(newPCSInput);
+    } 
     console.log("UpdateDataWrite: " + JSON.stringify(writeJson));
     document.getElementById("datawritemodbus").value = JSON.stringify(writeJson);
-    // writeJson.writeReg.address.push(UpdateDataApp.Application[id].app.split(",")[6]);
-    // writeJson.writeReg.slaveID.push(UpdateDataApp.Application[id].app.split(",")[3]);
-    // writeJson.writeReg.value.push(newvalue);
   }
   websocket.send(document.getElementById("datawritemodbus").value);
 }
