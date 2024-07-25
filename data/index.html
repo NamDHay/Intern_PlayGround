@@ -191,7 +191,13 @@
     .contentcuatao {
       padding: 30px;
       max-width: 600px;
-      margin: 0 auto;
+      margin-left: 0 auto;
+      margin: auto;
+    }
+    .contentcard {
+      padding: 30px;
+      max-width: 600px;
+      margin-left: 0 auto;
     }
     .statecuatao {
       font-size: 1.2rem;
@@ -208,6 +214,17 @@
       padding-left: 30px;
       padding-right: 30px;
       /* box-shadow: 2px 2px 12px 1px rgba(140, 140, 140, .5); */
+    }
+    .cardproduct{
+      background-color: #e9f0f0 ;
+      padding: 5px;
+      max-width: 380px;
+      max-height: 650px;
+      border-radius: 10px;
+      padding-top: 10px;
+      padding-bottom: 10px;
+      padding-left: 5px;
+      padding-right: 5px;
     }
     .buttoncuatao_output {
       padding: 1px 5px;
@@ -433,10 +450,10 @@
                 <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#settingModalSP" id="settingBtnSP">
                   <svg class="bi" width="24" height="24"><use xlink:href="#info_icon"></use></svg>
                 </button>
-                <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#settingModalKL" id="settingBtnKL">
+                <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#settingModalKL" id="settingBtnKL" style="display:none;">
                   <svg class="bi" width="24" height="24"><use xlink:href="#download_icon"></use></svg>
                 </button>
-                <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#settingModalEX" id="settingBtnEX">
+                <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#settingModalEX" id="settingBtnEX" style="display:none;">
                   <svg class="bi" width="24" height="24"><use xlink:href="#icon-edit"></use></svg>
                 </button>
                 <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#settingModalLog" id="settingBtnLog">
@@ -467,15 +484,13 @@
   </div>
 
   <!-- Tab Home -->
-  <div id="cardhome" class="contentcuatao" style="display: block;">
-    <!-- <div class="cardcuatao">
-      <CENTER>
-          <h2>TABLE DATA</h2>
-          <div id="TableData"></div>
-      </CENTER>
-      <Center><span><button id="buttonsavetable" class="button">SAVE</button></span></Center>  
-    </div> -->
-    <br><div id="addcard"></div>
+  <div id="cardhome" class="contentcard" style="display: block;">
+    <div class="row gy-3">
+      <div class="col-500">
+        <div id="addcard"></div>
+      </div>
+    </div>
+    
   </div>
 
   <!-- Tab IO Config -->
@@ -575,7 +590,8 @@
     <div class="cardcuatao">
 
       <textarea rows="4" cols="50" type="text" id="jsonApp"></textarea>
-        <button id="bntLoadcard" class="button">load card</button>
+      <button id="bntLoadcard" class="button">Load Card</button>
+      <button id="bntReloadcard" class="button">Reload Card</button>
 
     </div><br>
     <div class="input-group" style="width:100%">
@@ -681,7 +697,7 @@
                 <use xlink:href="#icon-gyro"></use></svg>
               </button>
             </div>
-              <form action="http://192.168.1.128/getIP">
+              <form>
                 <div id="wifi" class="tabcontent" style="display: block;">
                   <div id="WifiList"></div>
                   <div class="container py-3">
@@ -693,10 +709,7 @@
                     <div>SSID: <input type="text" id="input_ssid" size="20" placeholder="WiFi Name"></div><br>
                     <div>PASS: <input type="text" id="input_pass" size="20" placeholder="WiFi Pass"></div><br>
                     <div>STATIC IP: <select id="staticip" value="0"><option value="0" selected="">Disable</option><option value="1">Enable</option></select></div><br>
-                    <div>WEB_ADDRESS: <input type="text"  id="waddress" size="20" value="192.168.4.1"></div><br>
-                    <div>WEB_GETWAY: <input type="text" id="wgetway" size="20" value="192.168.4.1"></div><br>
-                    <div>WEB_SUBNET: <input type="text"  id="wsubnet" size="20" value="255.255.255.0"></div><br>
-                    <div>WIFI_MODE: <select id="wifimode" value="0"><option value="0" selected="">STA NORMAL</option><option value="1">AP NORMAL</option><option value="2">AP-STA NORMAL</option><option value="3">WIFI OFF</option></select></div><br>
+                    <div id="wifimode" style="display:none;"></div>
                   </div>
                 </div>
                 <div id="ethernet" class="tabcontent" style="display: none">
