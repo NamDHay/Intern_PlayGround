@@ -1211,7 +1211,7 @@ function CardSetClose(value) {
     if (modalCardSet.active.getElementsByClassName("modal-title") == "Edit Application") {
       console.log("Edit App");
     } else {
-      saveSettings(cardID);
+      // saveSettings(cardID);
     }
   }
 }
@@ -1446,9 +1446,9 @@ function loaddatasetting(id) {
     document.getElementById("ProductDataSaveSelect").innerHTML = '';
   }
 }
-function saveSettings(id) {
-  writeRegModbus(id);
-  console.log("app id= " + id);
+// function saveSettings(id) {
+//   // writeRegModbus(id);
+//   console.log("app id= " + id);
   // var UpdateDataApp = JSON.parse(jsonApp);
   // var jsonTasbleObj = JSON.parse(jsontable);
   // var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = UpdateDataApp.Application[id].app.split(",");
@@ -1514,7 +1514,7 @@ function saveSettings(id) {
   //   console.log("PCS (" + value6 + ") value changed: " + originalPCSValue + " to " + PCSValue);
   //   SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + value6 + " value=" + PCSValue), getLooklineCmdSuccess, getLooklineCmdfailed);
   // }
-}
+// }
 
 function addProduct() {
   var productName = document.getElementById("newProductName").value.trim();
@@ -1685,15 +1685,15 @@ function changeReset(id) {
 document.getElementById("planInput").onblur = function () {
   console.log("planInput: " + document.getElementById("planInput").value);
 
-  saveSettings(cardID);
+  saveSettings(cardID,document.getElementById("planInput").value,1);
 };
 document.getElementById("resultInput").onblur = function () {
   console.log("resultInput: " + document.getElementById("resultInput").value);
-  saveSettings(cardID);
+  saveSettings(cardID,document.getElementById("resultInput").value,2);
 };
 document.getElementById("planSetInput").onblur = function () {
   console.log("planSetInput: " + document.getElementById("planSetInput").value);
-  saveSettings(cardID);
+  saveSettings(cardID,document.getElementById("planSetInput").value,3);
 };
 // document.getElementById("resultSetInput").onblur = function() {
 //   console.log("resultSetInput: "+document.getElementById("resultSetInput").value);
@@ -1701,11 +1701,11 @@ document.getElementById("planSetInput").onblur = function () {
 // };
 document.getElementById("TimeIncInput").onblur = function () {
   console.log("TimeIncInput: " + document.getElementById("TimeIncInput").value);
-  saveSettings(cardID);
+  saveSettings(cardID,document.getElementById("TimeIncInput").value,5);
 };
 document.getElementById("PCSInput").onblur = function () {
   console.log("PCSInput: " + document.getElementById("PCSInput").value);
-  saveSettings(cardID);
+  saveSettings(cardID,document.getElementById("PCSInput").value,6);
 };
 
 function loadTable(jsonValue) {
@@ -1800,73 +1800,94 @@ function updateDataBox(a) {
   var json_send = "{\"Command\":\"editModbusData\",\"slaveID\":\"" + id + "\",\"address\":\"" + address + "\",\"type\":\"" + type + "\",\"value\":\"" + value + "\"}";
   console.log(json_send);
   websocket.send(json_send);
-}function writeRegModbus(id) {
-  // var id = document.getElementById("cardID").innerHTML;
-  var UpdateDataApp = JSON.parse(jsonApp);
-  var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = UpdateDataApp.Application[id].app.split(",");
-  var jsontabledata = JSON.parse(jsontableData);
-  var jsontableid = JSON.parse(jsontableID);
-  var chooseSlave = document.getElementById("selectreg").value;
-    if(chooseSlave == "") chooseSlave = UpdateDataApp.Application[i].app.split(",")[0];
-  // var writeJson = JSON.parse(document.getElementById("datawritemodbus").value);
+}
 
-  // var addresswrite = [];
-  // var slaveid_write = [];
-  // var type_write = [];
-  // var value_write = [];
-  var newPlanInput = document.getElementById("planInput").value;
-  var newResultInput = document.getElementById("resultInput").value;
-  var newPlanSetInput = document.getElementById("planSetInput").value;
-  var newProductDataSaveSelect = document.getElementById("ProductDataSaveSelect").value;
-  var newTimeIncInput = document.getElementById("TimeIncInput").value;
-  var newPCSInput = document.getElementById("PCSInput").value;
+function saveSettings(id ,value, Address) {
+  var jsonObj = JSON.parse(jsontableData);
+  var slaveID = jsonObj.Data[id].ID;
+  var jsonObjRegs = JSON.parse(jsonAppInput);
+  var vals = [BappID, Bposs, Bapp, BnodeID, BnetID, name, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, b1, b2, addRSSI, addTimetamp] = jsonObjRegs.Application[id].app.split(',');
+  var RegsAddress = vals[Address+5];
+  // var jsontabledata = JSON.parse(jsontableData);
+  // var jsontableid = JSOtableDataN.parse(jsontableID);
+  // var chooseSlave = document.getElementById("selectreg").value;
+  //   if(chooseSlave == "") chooseSlave = UpdateDataApp.Application[id].app.split(",")[0];
+  // var newPlanInput = document.getElementById("planInput").value;
+  // var newResultInput = document.getElementById("resultInput").value;
+  // var newPlanSetInput = document.getElementById("planSetInput").value;
+  // var newProductDataSaveSelect = document.getElementById("ProductDataSaveSelect").value;
+  // var newTimeIncInput = document.getElementById("TimeIncInput").value;
+  // var newPCSInput = document.getElementById("PCSInput").value;
 
-  var address1 = UpdateDataApp.Application[id].app.split(",")[6];
-  var address2 = UpdateDataApp.Application[id].app.split(",")[7];
-  var address3 = UpdateDataApp.Application[id].app.split(",")[8]; 
-  var address4 = UpdateDataApp.Application[id].app.split(",")[9];
-  var address5 = UpdateDataApp.Application[id].app.split(",")[10];
-  var address6 = UpdateDataApp.Application[id].app.split(",")[11];
-  var json_send = "{\"Command\":\"editModbusData\",\"slaveID\":\"" + id + "\",\"address\":\"" + address + "\",\"type\":\"" + type + "\",\"value\":\"" + value + "\"}";
-    if ((newPlanInput != document.getElementById("card" + id + "value1").value) && (newPlanInput != null)) {
-      addresswrite.push(address1);
-      slaveid_write.push(UpdateDataApp.Application[id].app.split(",")[3]);
-      value_write.push(newPlanInput);
-      writeJson.writeReg.push({ idcard: idEnd, slaveID: slaveid_write, address: addresswrite, type: type_write, value: value_write });
-    }
-    if ((newResultInput != document.getElementById("card" + id + "value2").value) && (newResultInput != null)) {
-      addresswrite.push(address2);
-      slaveid_write.push(UpdateDataApp.Application[id].app.split(",")[3]);
-      value_write.push(newResultInput);
-      writeJson.writeReg.push({ idcard: idEnd, slaveID: slaveid_write, address: addresswrite, type: type_write, value: value_write });
-    }
-    if ((newPlanSetInput != document.getElementById("card" + id + "value3").value) && (newPlanSetInput != null)) {
-      addresswrite.push(address3);
-      slaveid_write.push(UpdateDataApp.Application[id].app.split(",")[3]);
-      value_write.push(newPlanSetInput);
-      writeJson.writeReg.push({ idcard: idEnd, slaveID: slaveid_write, address: addresswrite, type: type_write, value: value_write });
-    }
-    if((newProductDataSaveSelect != document.getElementById("card" + id + "value4").value)&&(newProductDataSaveSelect != null)){
-      addresswrite.push(address4);
-      slaveid_write.push(UpdateDataApp.Application[id].app.split(",")[3]);
-      value_write.push(newProductDataSaveSelect);
-      writeJson.writeReg.push({idcard:idEnd ,slaveID: slaveid_write, address: addresswrite, type: type_write,value: value_write});
-    }
-    if ((newTimeIncInput != document.getElementById("card" + id + "value5").value) && (newTimeIncInput != null)) {
-      addresswrite.push(address5);
-      slaveid_write.push(UpdateDataApp.Application[id].app.split(",")[3]);
-      value_write.push(newTimeIncInput);
-      writeJson.writeReg.push({ idcard: idEnd, slaveID: slaveid_write, address: addresswrite, type: type_write, value: value_write });
-    }
-    if ((newPCSInput != document.getElementById("card" + id + "value6").value) && (newPCSInput != null)) {
-      addresswrite.push(address6);
-      slaveid_write.push(UpdateDataApp.Application[id].app.split(",")[3]);
-      value_write.push(newPCSInput);
-      writeJson.writeReg.push({ idcard: idEnd, slaveID: slaveid_write, address: addresswrite, type: type_write, value: value_write });
-    }
-    // console.log("newDataWrite: " + JSON.stringify(writeJson));
-    // document.getElementById("datawritemodbus").value = JSON.stringify(writeJson);
- 
-  
-  // websocket.send(document.getElementById("datawritemodbus").value);
+  // var address1 = UpdateDataApp.Application[id].app.split(",")[6];
+  // var address2 = UpdateDataApp.Application[id].app.split(",")[7];
+  // var address3 = UpdateDataApp.Application[id].app.split(",")[8]; 
+  // var address4 = UpdateDataApp.Application[id].app.split(",")[9];
+  // var address5 = UpdateDataApp.Application[id].app.split(",")[10];
+  // var address6 = UpdateDataApp.Application[id].app.split(",")[11];
+  // console.log("address1: " + address1);
+  // console.log("address2: " + address2);
+  // console.log("address3: " + address3);
+  // console.log("address4: " + address4);
+  // console.log("address5: " + address5);
+  // console.log("address6: " + address6);
+  // var slaveID;
+  // var addresswrite;
+  // var type;
+  // var value; 
+
+  // if ((newPlanInput != document.getElementById("card" + id + "value1").value) && (newPlanInput != "")) {
+  //   addresswrite = address1;
+  //   slaveID = jsontableid.Data[id].ID;
+  //   value = newPlanInput;
+  //   for(var j = 0; j < jsontableid.Data[chooseSlave].Data.length; j++)
+  //   type = jsontableid.Data[chooseSlave].Data[j][1];
+
+  // }
+  // else if ((newResultInput != document.getElementById("card" + id + "value2").value) && (newResultInput != "")) {
+  //   addresswrite = address2;
+  //   slaveID = jsontableid.Data[id].ID;
+  //   value = newResultInput;
+  //   for(var j = 0; j < jsontableid.Data[chooseSlave].Data.length; j++)
+  //   type = jsontableid.Data[chooseSlave].Data[j][1];
+
+  // }
+  // else if ((newPlanSetInput != document.getElementById("card" + id + "value3").value) && (newPlanSetInput != "")) {
+  //   addresswrite = address3;
+  //   slaveID = jsontableid.Data[id].ID;
+  //   value = newPlanSetInput;
+  //   for(var j = 0; j < jsontableid.Data[chooseSlave].Data.length; j++)
+  //   type = jsontableid.Data[chooseSlave].Data[j][1];
+
+  // }
+  // else if((newProductDataSaveSelect != document.getElementById("card" + id + "value4").value)&&(newProductDataSaveSelect != "")){
+  //   addresswrite = address4;
+  //   slaveID = jsontableid.Data[id].ID;
+  //   value = newTimeIncInput;
+  //   for(var j = 0; j < jsontableid.Data[chooseSlave].Data.length; j++)
+  //   type = jsontableid.Data[chooseSlave].Data[j][1];
+  // }
+  // else if ((newTimeIncInput != document.getElementById("card" + id + "value5").value) && (newTimeIncInput != "")) {
+  //   addresswrite = address5;
+  //   slaveID = jsontableid.Data[id].ID;
+  //   value = newTimeIncInput;
+  //   for(var j = 0; j < jsontableid.Data[chooseSlave].Data.length; j++)
+  //   type = jsontableid.Data[chooseSlave].Data[j][1];
+
+  // }
+  // else if ((newPCSInput != document.getElementById("card" + id + "value6").value) && (newPCSInput != "")) {
+  //   addresswrite = address6;
+  //   slaveID = jsontableid.Data[id].ID;
+  //   value = newPCSInput;
+  //   for(var j = 0; j < jsontableid.Data[chooseSlave].Data.length; j++)
+  //   type = jsontableid.Data[chooseSlave].Data[j][1];
+
+  // }
+  var json_send = "{\"Command\":\"editModbusData\",\"slaveID\":\"" + slaveID + "\",\"address\":\"" + RegsAddress + "\",\"value\":\"" + value + "\"}";
+  console.log(json_send);
+
+  document.getElementById("datawritemodbus").value = json_send;
+
+  websocket.send(json_send);
+  json_send = "";
 }
