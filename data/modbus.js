@@ -202,7 +202,7 @@ function addSlaveCard() {
         <h5 class=\"state\">\
         <CENTER> No: <span id=\"headerNo" + i + "\">%NO%</span></CENTER>\
         </h5>\
-        <p class=\"state\">ID: <span id=\"slave" + i + "\">%ID%</span></p>\
+        <p class=\"state\">ID: <span id=\"slavecardid" + i + "\">%ID%</span></p>\
         <p class=\"state\">READ</p>\
         <p class=\"state\">From <span id=\"rs" + i + "\">%S%</span> To <span id=\"re" + i + "\">%E%</span></p>\
         <p class=\"state\">WRITE</p>\
@@ -230,7 +230,7 @@ function initData(jsonValue) {
     var re = slave_obj.SlaveArray[0].readEnd;
 
     document.getElementById('headerNo' + (numSlave - 1)).innerHTML = (numSlave - 1);
-    document.getElementById('slave' + (numSlave - 1)).innerHTML = ID;
+    document.getElementById('slavecardid' + (numSlave - 1)).innerHTML = ID;
     document.getElementById('rs' + (numSlave - 1)).innerHTML = rs;
     document.getElementById('re' + (numSlave - 1)).innerHTML = re;
     document.getElementById('ws' + (numSlave - 1)).innerHTML = ws;

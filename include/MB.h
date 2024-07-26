@@ -24,6 +24,7 @@ public:
     byte slaveTable;
     uint8_t numSlave;
     QueueHandle_t qUpdateTable;
+    QueueHandle_t qApp;
     struct Address_t
     {
         long startAddress;
@@ -37,6 +38,11 @@ public:
         Address_t ReadAddress;
         String ID;
         bool IsConnected;
+    };
+    struct Device_Parameters_t {
+        char product[20];
+        long cycletime;
+        long productset;
     };
     Slave_t slave[10];
     union data_t

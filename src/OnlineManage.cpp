@@ -373,10 +373,6 @@ void editModbusData()
     IsSetTable = false;
 }
 // {"Command":"app","Application":[{"app":"0,0,0,1,0,test1,0,1,2,0,4,5"},{"app":"0,0,1,1,0,test2,10,12,13,0,15,16"},{"app":"0,0,2,1,0,test3,3,6,9,0,15,18"},{"app":"0,0,3,1,0,test4,2,4,6,0,10,12"}]}
-void saveLogApp()
-{   
-    
-}
 void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
 {
     bool IsSetTable = true;
@@ -439,6 +435,13 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         else if (command == "App")
         {
             filesystem.writefile("/application.json", DataStr, 0);
+            bool IsLoadApp = true;
+            xQueueSend(mbParam.qApp, (void *)&IsLoadApp, 1 / portTICK_PERIOD_MS);
+            IsLoadApp = false;
+        }
+        else if (command == "product")
+        {
+            
         }
     }
 }

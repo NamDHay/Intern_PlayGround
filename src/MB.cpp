@@ -8,11 +8,31 @@
 #define RTU_MAX_RW 30
 #define TCP_MAX_RW 99
 
+#define PLC_MAX_CHAR 20
+
 ModbusRTU mbRTU;
 ModbusIP mbTCP;
 
 bool loadApp = false;
 
+void c_to_u16 (char* c_arr, uint16_t* u_arr) {
+    int length = strlen(c_arr);
+    for(int i = 0; i < PLC_MAX_CHAR/2; i++){
+        u_arr[i] |= c_arr[2*i];
+        u_arr[i] = u_arr[i]<<8;
+        u_arr[i] |= c_arr[2*i+1];
+        printf("Data %d = %d\n", i, u_arr[i]);
+    }
+}
+void u16_to_c (char* c_arr, uint16_t* u_arr) {
+    int length = strlen(c_arr);
+    for(int i = 0; i < PLC_MAX_CHAR/2; i++){
+        c_arr[2*i] |= u_arr[i]>>8;
+        c_arr[2*i+1] |= u_arr[i];
+        printf("Data %d = %c\n", 2*i, c_arr[2*i]);
+        printf("Data %d = %c\n", 2*i+1, c_arr[2*i+1]);
+    }
+}
 int getIpBlock(int index, String str)
 {
     char separator = '.';
@@ -186,12 +206,12 @@ void update_ModbusData_Interval()
                 }
             }
             count = 0;
-            serializeJson(Doc, fbDataString);
-            Serial.println(fbDataString);
-            if (mbParam.loadTable == true)
-                online.notifyClients(fbDataString);
         }
     }
+    serializeJson(Doc, fbDataString);
+    Serial.println(fbDataString);
+    if (mbParam.loadTable == true)
+        online.notifyClients(fbDataString);
 }
 /*********************************************START MBPARAM PART**************************************************************/
 void MODBUS_PARAMETER::writeSlave()
@@ -671,6 +691,7 @@ void TaskModbus(void *pvParameter)
     modbusRTU.qUpdateTable = xQueueCreate(1, sizeof(bool));
     modbusTCP.qUpdateTable = xQueueCreate(1, sizeof(bool));
     mbParam.qUpdateTable = xQueueCreate(1, sizeof(bool));
+    mbParam.qApp = xQueueCreate(1, sizeof(bool));
 
     modbusTCP.EthernetInit();
 
@@ -696,7 +717,7 @@ void TaskModbus(void *pvParameter)
             mbParam.loadTable = true;
             loadApp = true;
         }
-        if (loadApp == true)
+        if ((xQueueReceive(mbParam.qApp, (void *)&loadApp, 1 / portTICK_PERIOD_MS) == pdTRUE) || (loadApp == true))
         {
             String dataRead = "";
             JsonDocument doc;
