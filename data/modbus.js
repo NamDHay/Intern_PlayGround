@@ -235,7 +235,8 @@ function initData(jsonValue) {
     document.getElementById('re' + (numSlave - 1)).innerHTML = re;
     document.getElementById('ws' + (numSlave - 1)).innerHTML = ws;
     document.getElementById('we' + (numSlave - 1)).innerHTML = we;
-} 
+}
+function loadBoardSlave(jsonValue) {
     var keys = JSON.parse(jsonValue);
     numSlave = keys.SlaveArray.length;
     addSlaveCard();

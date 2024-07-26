@@ -3,7 +3,6 @@
 #include <MB.h>
 #include <ArduinoJson.h>
 #include <File_System.h>
-#include <inttypes.h> /* strtoimax */
 
 #define RTU_MAX_RW 30
 #define TCP_MAX_RW 99
@@ -12,8 +11,6 @@
 
 ModbusRTU mbRTU;
 ModbusIP mbTCP;
-
-bool loadApp = false;
 
 int getIpBlock(int index, String str)
 {
@@ -76,6 +73,9 @@ void update_WebTable()
                 case FLOAT_TYPE:
                     count += 2;
                     break;
+                case CHAR_TYPE:
+                    count += 20;
+                    break;
                 default:
                     break;
                 }
@@ -88,6 +88,7 @@ void update_WebTable()
 }
 void update_ModbusData_Interval()
 {
+    char readChar[40];
     union f2w_t
     {
         float f;
@@ -183,6 +184,12 @@ void update_ModbusData_Interval()
                     Doc["Data"][i]["Data"][j] = f2w.f;
                     count += 2;
                     break;
+                case CHAR_TYPE:
+                    memset(readChar, 0, 40);
+                    mbParam.u16_to_c(readChar, &mbParam.slave[i].Data[count]);
+                    Doc["Data"][i]["Data"][j] = String(readChar);
+                    count += 20;
+                    break;
                 default:
                     break;
                 }
@@ -237,7 +244,7 @@ void MODBUS_PARAMETER::loadSlave()
 }
 void MODBUS_PARAMETER::c_to_u16(char *c_arr, uint16_t *u_arr)
 {
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < 20; i++)
     {
         u_arr[i] |= c_arr[2 * i + 1];
         u_arr[i] = u_arr[i] << 8;
@@ -246,7 +253,7 @@ void MODBUS_PARAMETER::c_to_u16(char *c_arr, uint16_t *u_arr)
 }
 void MODBUS_PARAMETER::u16_to_c(char *c_arr, uint16_t *u_arr)
 {
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < 20; i++)
     {
         c_arr[2 * i + 1] |= u_arr[i] >> 8;
         c_arr[2 * i] |= u_arr[i];
@@ -630,58 +637,35 @@ void MODBUS_TCP::writeSetting()
 /*********************************************END TCP PART****************************************************************/
 
 /*********************************************START MODBUS TASK***********************************************************/
-char test_string[40];
-uint16_t test_u16[20];
 void TaskModbus(void *pvParameter)
 {
+    String dataRead = "";
+    JsonDocument doc;
+
+    bool setTable = false;
+    modbusRTU.loadTable = true;
+
     modbusRTU.loadSetting();
     modbusTCP.loadSetting();
     mbParam.loadSlave();
 
-    bool setTable = false;
-    modbusRTU.loadTable = true;
-    modbusTCP.loadTable = true;
-    byte RTUSlaveCount = 0;
-    byte TCPSlaveCount = 0;
-    byte SlaveCount = 0;
-
     modbusRTU.qUpdateTable = xQueueCreate(1, sizeof(bool));
     modbusTCP.qUpdateTable = xQueueCreate(1, sizeof(bool));
     mbParam.qUpdateTable = xQueueCreate(1, sizeof(bool));
-    mbParam.qApp = xQueueCreate(1, sizeof(bool));
 
     modbusTCP.EthernetInit();
+
+    modbusRTU.MasterInit(modbusRTU.config.port, modbusRTU.config.baud);
+    modbusTCP.ClientInit();
 
     static long startUpdateRTUIntervalTime = millis();
     static long startUpdateTCPIntervalTime = millis();
     static long startUpdateIntervalTime = millis();
-    modbusRTU.MasterInit(modbusRTU.config.port, modbusRTU.config.baud);
-    modbusTCP.ClientInit();
-
-    memset(test_string, 0, 40);
-    memset(test_u16, 0, 20);
-    strcpy(test_string, "sp2811");
-    mbParam.c_to_u16(test_string, test_u16);
-
     for (;;)
     {
         if ((millis() - startUpdateIntervalTime >= UPDATE_INTERVAL_MS))
         {
             update_ModbusData_Interval();
-            // while (modbusRTU.write_Multiple_Data(1,
-            //                                      (uint16_t *)&test_u16,
-            //                                      6139,
-            //                                      20) != true)
-            //     ;
-            // mbRTU.task();
-            // while (modbusRTU.read_Multiple_Data(1,
-            //                                     (uint16_t *)&test_u16,
-            //                                     6139,
-            //                                     20) != true)
-            //     ;
-            // mbRTU.task();
-            // mbParam.u16_to_c(test_string, test_u16);
-            // Serial.println(String(test_string));
             startUpdateIntervalTime = millis();
         }
         if (xQueueReceive(mbParam.qUpdateTable, (void *)&setTable, 1 / portTICK_PERIOD_MS) == pdTRUE)
@@ -690,16 +674,12 @@ void TaskModbus(void *pvParameter)
             update_WebTable();
             setTable = false;
             mbParam.loadTable = true;
-            loadApp = true;
-        }
-        if ((xQueueReceive(mbParam.qApp, (void *)&loadApp, 1 / portTICK_PERIOD_MS) == pdTRUE) || (loadApp == true))
-        {
-            String dataRead = "";
-            JsonDocument doc;
             dataRead = filesystem.readfile("/application.json");
             Serial.println(dataRead);
             online.notifyClients(dataRead);
-            loadApp = false;
+            dataRead = filesystem.readfile("/dataProduct.json");
+            Serial.println(dataRead);
+            online.notifyClients(dataRead);
         }
     }
 }

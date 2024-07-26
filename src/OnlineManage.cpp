@@ -322,8 +322,8 @@ void editModbusData()
 {
     // {"Command":"editModbusData","slaveID":"0","address":"6105","type":"0","value":"1"}
     uint8_t totalSend = 0;
-    char* cstr;
-    uint16_t* ustr;
+    char *cstr;
+    uint16_t *ustr;
     uint8_t node = rdoc["slaveID"];
     long address = rdoc["address"];
     uint8_t type = rdoc["type"];
@@ -350,6 +350,8 @@ void editModbusData()
         totalSend = 2;
         break;
     case CHAR_TYPE:
+        memset(cstr, 0, 40);
+        memset(ustr, 0, 20);
         strcpy(cstr, rdoc["value"].as<String>().c_str());
         mbParam.c_to_u16(cstr, ustr);
         totalSend = 20;
@@ -361,7 +363,7 @@ void editModbusData()
     {
         Serial.println("Write slave RTU");
         while (modbusRTU.write_Multiple_Data(mbParam.slave[node].ID.toInt(),
-                                             (type == CHAR_TYPE) ? (uint16_t *)&ustr :(uint16_t *)&mbParam.write_data.w,
+                                             (type == CHAR_TYPE) ? (uint16_t *)&ustr : (uint16_t *)&mbParam.write_data.w,
                                              address,
                                              totalSend) != true)
             ;
@@ -378,13 +380,6 @@ void editModbusData()
     bool IsSetTable = true;
     xQueueSend(mbParam.qUpdateTable, (void *)&IsSetTable, 1 / portTICK_PERIOD_MS);
     IsSetTable = false;
-}
-void SetProductParameter()
-{
-    for (int i = 0; i < mbParam.numSlave; i++)
-    {
-        String node = rdoc["Data"][i]["ID"].as<String>();
-    }
 }
 void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
 {
@@ -448,9 +443,10 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         else if (command == "App") // Request application card information
         {
             filesystem.writefile("/application.json", DataStr, 0);
-            bool IsLoadApp = true;
-            xQueueSend(mbParam.qApp, (void *)&IsLoadApp, 1 / portTICK_PERIOD_MS);
-            IsLoadApp = false;
+        }
+        else if (command == "dataProduct") // Request product data
+        {
+            filesystem.writefile("/dataProduct.json", DataStr, 0);
         }
     }
 }

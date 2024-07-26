@@ -24,7 +24,6 @@ public:
     byte slaveTable;
     uint8_t numSlave;
     QueueHandle_t qUpdateTable;
-    QueueHandle_t qApp;
     struct Address_t
     {
         long startAddress;
