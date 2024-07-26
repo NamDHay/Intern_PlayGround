@@ -474,13 +474,10 @@
 
   <!-- Tab Table Data -->
   <div id="cardtable" class="contentcuatao" style="display: none;">
-    <div class="cardcuatao">
-      <CENTER>
-          <h2>TABLE DATA</h2>
-          <div id="TableData"></div>
-      </CENTER>
-      <Center><span><button id="buttonsavetable" class="button">SAVE</button></span></Center>  
-    </div>
+    <CENTER>
+      <h2>TABLE DATA</h2>
+    </CENTER><br>
+    <div id="slaveTable"></div>
   </div>
 
   <!-- Tab Home -->
@@ -490,7 +487,6 @@
         <div id="addcard"></div>
       </div>
     </div>
-    
   </div>
 
   <!-- Tab IO Config -->
@@ -550,26 +546,56 @@
   </div>
 
   <!-- Tab Modbus Config -->
-  <div id="cardmodbus" class="contentcuatao" style="display:none">
-    <div class="cardcuatao">
-      <Center><h2>MODBUS CONSOLE</h2></Center>
-      <h3>Config</h3>
-      <span><div>Slave ID: <input type="text" id="input_slaveid" size="20" placeholder="1"></div><br></span>
-      <span><div>Baud Rate: <input type="text" id="input_baud" size="20" placeholder="115200"></div><br></span>
- 
-      <span><div>Serial port: <select id="port" value="1"><option value="1" selected="">Serial2</option><option value="0">Serial1</option></select></div><br></span>
-      <span><div>Modbus Mode: <select id="mode" value="1"><option value="1" selected="">Master</option><option value="0">Slave</option></select></div><br></span>
-      <span><div>Type Data: <select id="typedata" value="0"><option value="0" selected="">Coil</option><option value="1">Word</option><option value="2">DWord</option><option value="3">Float</option></select></div><br></span>
-      <h3>Write Address</h3>
-      <span><div>Start Address: <input type="text" id="input_write_start" size="20" placeholder="Write Start-Address"></div><br></span>
-      <span><div>End Address: <input type="text" id="input_write_end" size="20" placeholder="Write End-Address"></div><br></span>
-      <h3>Read Address</h3>
-      <span><div>Start Address: <input type="text" id="input_read_start" size="20" placeholder="Read Start-Address"></div><br></span>
-      <span><div>End Address: <input type="text" id="input_read_end" size="20" placeholder="Read End-Address"></div><br></span>
-      <Center><span><button id="buttonsend" class="button">SEND</button></span></Center>
+  <div id="cardmodbus" style="display:none"><br>
+    <div class="cardcuatao contentcuatao">
+        <Center>
+            <h2>MODBUS CONSOLE</h2>
+        </Center>
+        <h3>Config</h3>
+        <span>
+            <div>MODBUS Type: <select id="typemodbus">
+                    <option value="">--Choose an option--</option>"
+                    <option value="0">RTU</option>
+                    <option value="1">TCP/IP</option>
+                    <option value="2">RTU & TCP/IP</option>
+                </select></div><br>
+        </span>
+        <div id="modedisplay"></div>
+        <Center><span><button id="buttonsend" class="button">SEND</button></span></Center>
     </div><br>
-      
-  </div><br>
+    <div class="row justify-content-around">
+        <button id="addslave" class="button col-2">ADD</button>
+        <button id="buttonclearslave" class="button col-2" onclick="clearSlave()">CLEAR</button>
+    </div><br>
+    <div id="slavecard"></div>
+</div><br>
+<div class="modal fade" id="cardadd" tabindex="-1" aria-labelledby="settingModalSPLabel" aria-hidden="true"
+    style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content" style="width: fit-content;">
+            <div class="modal-header">
+                <h5 class="modal-title" id="settingModalLabel " style="font-size: 1.5rem; font-weight: bold;">
+                    Slave
+                    Config</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div style="padding: 20px;" class="state">
+                <div class="row gx-5">
+                    <div class="col">MODBUS Type: </div><br><br>
+                    <CENTER>
+                        <div class="col"><select id="slavetype" class="state">
+                                <option value="">--Choose an option--</option>"
+                                <option value="0">RTU</option>
+                                <option value="1">TCP/IP</option>
+                            </select></div>
+                    </CENTER>
+                </div>
+                <div id="colorIPD"></div><br>
+                <Center><span><button id="buttonaddslave" class="button">ADD</button></span></Center>
+            </div>
+        </div>
+    </div>
+</div>
   
   <!-- Tab Show File -->
   <div id="cardshowfile" class="contentcuatao" style="display: none;">
@@ -634,7 +660,7 @@
     </div>
   </div>
   <!-- Tab Card -->
-  <div class="modal fade" id="cardadd" tabindex="-1" aria-labelledby="settingModalSPLabel" aria-hidden="true" style="display: none;">
+  <div class="modal fade" id="cardaddApp" tabindex="-1" aria-labelledby="settingModalSPLabel" aria-hidden="true" style="display: none;">
     <div class="modal-dialog">
       <div class="modal-content" style="width: fit-content;">
         <div class="modal-header">
@@ -643,7 +669,8 @@
         </div>
         <div style="padding: 10px;" class="state">
           <div>Name: <input type="text" class="state" id="input_namecard" size="15" placeholder="Name Card"></div><br>
-  
+          <div class="row gx-2"><div class="col-8 ">Select NodeID: </div><div class="col"><div><select id="selectreg" class="state"></select></div></div></div><br>
+
           <div class="row gx-2"><div class="col">Plan: </div><div class="col"><span id="value1" class="state"> Value </span></div><div class="col"><div><select id="selectvalue1" class="state"></select></div></div></div><br>
 
           <div class="row gx-2"><div class="col">Result: </div><div class="col"><span id="value2" class="state"> Value </span></div><div class="col"><select id="selectvalue2" class="state"></select></div></div><br>
@@ -957,6 +984,7 @@
 </div>
 
   <script src="./main.js"></script>
+  <!-- <script src="./modbus.js"></script> -->
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </body>
 
