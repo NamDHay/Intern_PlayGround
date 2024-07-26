@@ -40,10 +40,11 @@ public:
         bool IsConnected;
     };
     struct Device_Parameters_t {
-        char product[20];
+        char product[40];
         long cycletime;
         long productset;
     };
+    Device_Parameters_t device[10];
     Slave_t slave[10];
     union data_t
     {
@@ -53,6 +54,8 @@ public:
     } write_data;
     void loadSlave();
     void writeSlave();
+    void u16_to_c(char *c_arr, uint16_t *u_arr);
+    void c_to_u16(char *c_arr, uint16_t *u_arr);
 };
 extern MODBUS_PARAMETER mbParam;
 class MODBUS_RTU

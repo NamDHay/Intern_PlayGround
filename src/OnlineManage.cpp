@@ -322,6 +322,8 @@ void editModbusData()
 {
     // {"Command":"editModbusData","slaveID":"0","address":"6105","type":"0","value":"1"}
     uint8_t totalSend = 0;
+    char* cstr;
+    uint16_t* ustr;
     uint8_t node = rdoc["slaveID"];
     long address = rdoc["address"];
     uint8_t type = rdoc["type"];
@@ -347,6 +349,11 @@ void editModbusData()
         mbParam.write_data.f = rdoc["value"];
         totalSend = 2;
         break;
+    case CHAR_TYPE:
+        strcpy(cstr, rdoc["value"].as<String>().c_str());
+        mbParam.c_to_u16(cstr, ustr);
+        totalSend = 20;
+        break;
     default:
         break;
     }
@@ -354,7 +361,7 @@ void editModbusData()
     {
         Serial.println("Write slave RTU");
         while (modbusRTU.write_Multiple_Data(mbParam.slave[node].ID.toInt(),
-                                             (uint16_t *)&mbParam.write_data.w,
+                                             (type == CHAR_TYPE) ? (uint16_t *)&ustr :(uint16_t *)&mbParam.write_data.w,
                                              address,
                                              totalSend) != true)
             ;
@@ -372,7 +379,13 @@ void editModbusData()
     xQueueSend(mbParam.qUpdateTable, (void *)&IsSetTable, 1 / portTICK_PERIOD_MS);
     IsSetTable = false;
 }
-// {"Command":"app","Application":[{"app":"0,0,0,1,0,test1,0,1,2,0,4,5"},{"app":"0,0,1,1,0,test2,10,12,13,0,15,16"},{"app":"0,0,2,1,0,test3,3,6,9,0,15,18"},{"app":"0,0,3,1,0,test4,2,4,6,0,10,12"}]}
+void SetProductParameter()
+{
+    for (int i = 0; i < mbParam.numSlave; i++)
+    {
+        String node = rdoc["Data"][i]["ID"].as<String>();
+    }
+}
 void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
 {
     bool IsSetTable = true;
@@ -432,16 +445,12 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
             xQueueSend(mbParam.qUpdateTable, (void *)&IsSetTable, 1 / portTICK_PERIOD_MS);
             IsSetTable = false;
         }
-        else if (command == "App")
+        else if (command == "App") // Request application card information
         {
             filesystem.writefile("/application.json", DataStr, 0);
             bool IsLoadApp = true;
             xQueueSend(mbParam.qApp, (void *)&IsLoadApp, 1 / portTICK_PERIOD_MS);
             IsLoadApp = false;
-        }
-        else if (command == "product")
-        {
-            
         }
     }
 }

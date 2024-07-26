@@ -8,31 +8,13 @@
 #define RTU_MAX_RW 30
 #define TCP_MAX_RW 99
 
-#define PLC_MAX_CHAR 20
+#define PLC_MAX_CHAR 40
 
 ModbusRTU mbRTU;
 ModbusIP mbTCP;
 
 bool loadApp = false;
 
-void c_to_u16 (char* c_arr, uint16_t* u_arr) {
-    int length = strlen(c_arr);
-    for(int i = 0; i < PLC_MAX_CHAR/2; i++){
-        u_arr[i] |= c_arr[2*i];
-        u_arr[i] = u_arr[i]<<8;
-        u_arr[i] |= c_arr[2*i+1];
-        printf("Data %d = %d\n", i, u_arr[i]);
-    }
-}
-void u16_to_c (char* c_arr, uint16_t* u_arr) {
-    int length = strlen(c_arr);
-    for(int i = 0; i < PLC_MAX_CHAR/2; i++){
-        c_arr[2*i] |= u_arr[i]>>8;
-        c_arr[2*i+1] |= u_arr[i];
-        printf("Data %d = %c\n", 2*i, c_arr[2*i]);
-        printf("Data %d = %c\n", 2*i+1, c_arr[2*i+1]);
-    }
-}
 int getIpBlock(int index, String str)
 {
     char separator = '.';
@@ -253,11 +235,28 @@ void MODBUS_PARAMETER::loadSlave()
 
     mbParam.writeSlave();
 }
+void MODBUS_PARAMETER::c_to_u16(char *c_arr, uint16_t *u_arr)
+{
+    for (int i = 0; i < 10; i++)
+    {
+        u_arr[i] |= c_arr[2 * i + 1];
+        u_arr[i] = u_arr[i] << 8;
+        u_arr[i] |= c_arr[2 * i];
+    }
+}
+void MODBUS_PARAMETER::u16_to_c(char *c_arr, uint16_t *u_arr)
+{
+    for (int i = 0; i < 10; i++)
+    {
+        c_arr[2 * i + 1] |= u_arr[i] >> 8;
+        c_arr[2 * i] |= u_arr[i];
+    }
+}
 /**********************************************END MBPARAM PART**************************************************************/
 
 /*********************************************START RTU PART**************************************************************/
-bool cb(Modbus::ResultCode event, uint16_t transactionId, void *data)
-{ // Callback to monitor errors
+bool cb(Modbus::ResultCode event, uint16_t transactionId, void *data) // Callback to monitor errors
+{
     if (event != Modbus::EX_SUCCESS)
     {
         // Serial.print("Request result: 0x");
@@ -631,50 +630,8 @@ void MODBUS_TCP::writeSetting()
 /*********************************************END TCP PART****************************************************************/
 
 /*********************************************START MODBUS TASK***********************************************************/
-void char_to_uint16()
-{
-}
-void write_Test_Char()
-{
-    String txstr;
-    String rxstr;
-    for (size_t i = 0; i < 2; i++)
-    {
-        if (i == 0)
-        {
-            txstr = "Hello";
-        }
-        else
-        {
-            txstr = "NamDHay";
-        }
-        if ((modbusTCP.client == 1) && (mbParam.slave[0].ID.length() > 5))
-        {
-            if (mbTCP.isConnected(modbusTCP.str2IP(mbParam.slave[0].ID)))
-            {
-                while (modbusTCP.write_Multiple_Data(modbusTCP.str2IP(mbParam.slave[0].ID),
-                                                     (uint16_t *)&txstr,
-                                                     0,
-                                                     10) != true)
-                    ;
-                while (modbusTCP.read_Multiple_Data(modbusTCP.str2IP(mbParam.slave[0].ID),
-                                                    (uint16_t *)&rxstr,
-                                                    0,
-                                                    10) != true)
-                    ;
-
-                Serial.println();
-            }
-            else
-            {
-                mbTCP.task();
-                mbTCP.connect(modbusTCP.str2IP(mbParam.slave[0].ID));
-            }
-            mbTCP.task();
-        }
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-    }
-}
+char test_string[40];
+uint16_t test_u16[20];
 void TaskModbus(void *pvParameter)
 {
     modbusRTU.loadSetting();
@@ -701,12 +658,30 @@ void TaskModbus(void *pvParameter)
     modbusRTU.MasterInit(modbusRTU.config.port, modbusRTU.config.baud);
     modbusTCP.ClientInit();
 
+    memset(test_string, 0, 40);
+    memset(test_u16, 0, 20);
+    strcpy(test_string, "sp2811");
+    mbParam.c_to_u16(test_string, test_u16);
+
     for (;;)
     {
         if ((millis() - startUpdateIntervalTime >= UPDATE_INTERVAL_MS))
         {
             update_ModbusData_Interval();
-            // write_Test_Char();
+            // while (modbusRTU.write_Multiple_Data(1,
+            //                                      (uint16_t *)&test_u16,
+            //                                      6139,
+            //                                      20) != true)
+            //     ;
+            // mbRTU.task();
+            // while (modbusRTU.read_Multiple_Data(1,
+            //                                     (uint16_t *)&test_u16,
+            //                                     6139,
+            //                                     20) != true)
+            //     ;
+            // mbRTU.task();
+            // mbParam.u16_to_c(test_string, test_u16);
+            // Serial.println(String(test_string));
             startUpdateIntervalTime = millis();
         }
         if (xQueueReceive(mbParam.qUpdateTable, (void *)&setTable, 1 / portTICK_PERIOD_MS) == pdTRUE)
@@ -722,6 +697,7 @@ void TaskModbus(void *pvParameter)
             String dataRead = "";
             JsonDocument doc;
             dataRead = filesystem.readfile("/application.json");
+            Serial.println(dataRead);
             online.notifyClients(dataRead);
             loadApp = false;
         }
