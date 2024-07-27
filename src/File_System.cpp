@@ -10,7 +10,7 @@ void FFS::Init(){
 
 void FFS::writefile(String filename, String content, uint8_t mode) {
     File file = SPIFFS.open(filename, (mode == 1 ? "a" : "w"));
-    Serial.println("File Write: ");
+    // Serial.println("File Write: ");
     file.print(content);
     Serial.println(content);
     file.close();
@@ -22,7 +22,7 @@ String FFS::readfile(String filename) {
     if(!file){
         content = "Failed to open file for reading";
     }else{
-        Serial.println("File Open: ");
+        // Serial.println("File Open: ");
         while(file.available()){
             content += (char)file.read();
         }

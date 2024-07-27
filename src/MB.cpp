@@ -36,7 +36,51 @@ IPAddress MODBUS_TCP::str2IP(String str)
     IPAddress ret(getIpBlock(0, str), getIpBlock(1, str), getIpBlock(2, str), getIpBlock(3, str));
     return ret;
 }
-void update_WebTable()
+void load_WebTable()
+{
+    String dataRead = "";
+    JsonDocument doc;
+    dataRead = filesystem.readfile("/mbSlaveAddressMap.json");
+
+    deserializeJson(doc, dataRead);
+    size_t lenght;
+    long count = 0;
+    for (byte i = 0; i < mbParam.numSlave; i++)
+    {
+        lenght = mbParam.slave[i].ReadAddress.endAddress - mbParam.slave[i].ReadAddress.startAddress + 1;
+        count = mbParam.slave[i].ReadAddress.startAddress;
+        for (byte j = 0; j < lenght; j++)
+        {
+            if (count > mbParam.slave[i].ReadAddress.endAddress)
+            {
+                Serial.println("Out of range");
+                break;
+            }
+            mbParam.slave[i].typeData[j] = doc[i]["Data"][j][1];
+            switch (mbParam.slave[i].typeData[j])
+            {
+            case COIL_TYPE:
+                count++;
+                break;
+            case WORD_TYPE:
+                count += 1;
+                break;
+            case DWORDS_TYPE:
+                count += 2;
+                break;
+            case FLOAT_TYPE:
+                count += 2;
+                break;
+            case CHAR_TYPE:
+                count += 20;
+                break;
+            default:
+                break;
+            }
+        }
+    }
+}
+void MODBUS_PARAMETER::update_WebTable()
 {
     JsonDocument Doc;
     String fbDataString = "";
@@ -44,7 +88,6 @@ void update_WebTable()
     long count = 0;
     if (online.isConnected == true)
     {
-        Doc["Command"] = "TableID";
         for (byte i = 0; i < mbParam.numSlave; i++)
         {
             lenght = mbParam.slave[i].ReadAddress.endAddress - mbParam.slave[i].ReadAddress.startAddress + 1;
@@ -82,8 +125,7 @@ void update_WebTable()
             }
         }
         serializeJson(Doc, fbDataString);
-        Serial.println(fbDataString);
-        online.notifyClients(fbDataString);
+        filesystem.writefile("/mbSlaveAddressMap.json", Doc["Data"].as<String>(), 0);
     }
 }
 void update_ModbusData_Interval()
@@ -124,6 +166,7 @@ void update_ModbusData_Interval()
                 else
                 {
                     Doc["Data"][i]["connect"] = 0;
+                    continue;
                 }
             }
             else
@@ -187,6 +230,7 @@ void update_ModbusData_Interval()
                 case CHAR_TYPE:
                     memset(readChar, 0, 40);
                     mbParam.u16_to_c(readChar, &mbParam.slave[i].Data[count]);
+                    Serial.println(String(readChar));
                     Doc["Data"][i]["Data"][j] = String(readChar);
                     count += 20;
                     break;
@@ -198,7 +242,7 @@ void update_ModbusData_Interval()
         }
     }
     serializeJson(Doc, fbDataString);
-    Serial.println(fbDataString);
+    // Serial.println(fbDataString);
     if (mbParam.loadTable == true)
         online.notifyClients(fbDataString);
 }
@@ -227,6 +271,7 @@ void MODBUS_PARAMETER::loadSlave()
     String dataRead = "";
     JsonDocument doc;
     dataRead = filesystem.readfile("/mbSlave.json");
+    // Serial.println(dataRead);
     deserializeJson(doc, dataRead);
 
     mbParam.numSlave = doc["numSlave"];
@@ -249,7 +294,9 @@ void MODBUS_PARAMETER::c_to_u16(char *c_arr, uint16_t *u_arr)
         u_arr[i] |= c_arr[2 * i + 1];
         u_arr[i] = u_arr[i] << 8;
         u_arr[i] |= c_arr[2 * i];
+        Serial.print(String(u_arr[i]) + "|");
     }
+    Serial.println();
 }
 void MODBUS_PARAMETER::u16_to_c(char *c_arr, uint16_t *u_arr)
 {
@@ -257,7 +304,9 @@ void MODBUS_PARAMETER::u16_to_c(char *c_arr, uint16_t *u_arr)
     {
         c_arr[2 * i + 1] |= u_arr[i] >> 8;
         c_arr[2 * i] |= u_arr[i];
+        Serial.print(String(c_arr[2 * i + 1]) + "|" + String(c_arr[2 * i]) + "|");
     }
+    Serial.println();
 }
 /**********************************************END MBPARAM PART**************************************************************/
 
@@ -298,6 +347,7 @@ void MODBUS_RTU::loadSetting()
     String dataRead = "";
     JsonDocument doc;
     dataRead = filesystem.readfile("/mbrtusetting.json");
+    // Serial.println(dataRead);
     deserializeJson(doc, dataRead);
 
     String modbustype = doc["modbustype"].as<String>();
@@ -310,7 +360,7 @@ void MODBUS_RTU::loadSetting()
     modbusRTU.config.baud = baud.toInt();
     modbusRTU.config.port = (serial == "0") ? &Serial1 : &Serial2;
 
-    modbusRTU.writeSetting();
+    // modbusRTU.writeSetting();
 }
 void MODBUS_RTU::writeSetting()
 {
@@ -598,6 +648,7 @@ void MODBUS_TCP::loadSetting()
     String dataRead = "";
     JsonDocument doc;
     dataRead = filesystem.readfile("/mbtcpsetting.json");
+    // Serial.println(dataRead);
     deserializeJson(doc, dataRead);
 
     String modbustype = doc["modbustype"].as<String>();
@@ -614,7 +665,7 @@ void MODBUS_TCP::loadSetting()
     modbusTCP.ethernet.subnet = sn;
     modbusTCP.ethernet.primaryDNS = dns;
 
-    modbusTCP.writeSetting();
+    // modbusTCP.writeSetting();
 }
 void MODBUS_TCP::writeSetting()
 {
@@ -642,16 +693,14 @@ void TaskModbus(void *pvParameter)
     String dataRead = "";
     JsonDocument doc;
 
-    bool setTable = false;
-    modbusRTU.loadTable = true;
-
+    mbParam.loadTable = false;
     modbusRTU.loadSetting();
     modbusTCP.loadSetting();
     mbParam.loadSlave();
+    load_WebTable();
 
     modbusRTU.qUpdateTable = xQueueCreate(1, sizeof(bool));
     modbusTCP.qUpdateTable = xQueueCreate(1, sizeof(bool));
-    mbParam.qUpdateTable = xQueueCreate(1, sizeof(bool));
 
     modbusTCP.EthernetInit();
 
@@ -668,35 +717,6 @@ void TaskModbus(void *pvParameter)
             update_ModbusData_Interval();
             startUpdateIntervalTime = millis();
         }
-        if (xQueueReceive(mbParam.qUpdateTable, (void *)&setTable, 1 / portTICK_PERIOD_MS) == pdTRUE)
-        {
-            Serial.println("Update table");
-            update_WebTable();
-            setTable = false;
-            mbParam.loadTable = true;
-            dataRead = filesystem.readfile("/application.json");
-            Serial.println(dataRead);
-            online.notifyClients(dataRead);
-            dataRead = filesystem.readfile("/dataProduct.json");
-            Serial.println(dataRead);
-            online.notifyClients(dataRead);
-        }
     }
 }
 /*********************************************END MODBUS TASK*************************************************************/
-
-// Serial.println("Master Read Data");
-// for (long i = 0; i < (modbusRTU.slave[RTUSlaveCount].ReadAddress.endAddress - modbusRTU.slave[RTUSlaveCount].ReadAddress.startAddress + 1); i++)
-// {
-//     Serial.print(Master_ReadData[i]);
-//     Serial.print("|");
-// }
-// Serial.println();
-
-// Serial.println("Client Read Data");
-// for (long i = 0; i < (modbusTCP.slave[TCPSlaveCount].ReadAddress.endAddress - modbusTCP.slave[TCPSlaveCount].ReadAddress.startAddress + 1); i++)
-// {
-//     Serial.print(Client_ReadData[i]);
-//     Serial.print("|");
-// }
-// Serial.println();

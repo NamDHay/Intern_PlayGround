@@ -3,13 +3,14 @@
 #include <HTML.h>
 #include <File_System.h>
 #include <time.h>
+#include <string.h>
 
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
 
 Website mywebsite;
 
-const IPAddress local_IP(192, 168, 1, 128);
+const IPAddress local_IP(192, 168, 1, 254);
 const IPAddress gateway(192, 168, 1, 1);
 const IPAddress subnet(255, 255, 0, 0);
 
@@ -25,12 +26,12 @@ void OnlineManage::Init()
     Serial.print("Connecting to ");
     Serial.println(online.wifi_setting.ssid);
     online.AP_STA_Mode();
-    if (!WiFi.config(local_IP, gateway, subnet))
-    {
-        Serial.println("STA Failed to configure");
-    }
     if (online.CheckConnect(500))
     {
+        if (!WiFi.config(local_IP, gateway, subnet))
+        {
+            Serial.println("STA Failed to configure");
+        }
         Serial.print("Connected!\n");
         online.Get_STA_IP();
     }
@@ -68,9 +69,12 @@ void OnlineManage::Get_AP_IP()
 }
 void OnlineManage::AP_STA_Mode()
 {
+    String ssid = "Bamos Coffee 2G";
+    String pwk = "bamosxinchao";
     WiFi.mode(WIFI_AP_STA);
     WiFi.softAP(soft_ap_ssid, soft_ap_password);
-    WiFi.begin(online.wifi_setting.ssid, online.wifi_setting.pass);
+    // WiFi.begin(online.wifi_setting.ssid, online.wifi_setting.pass);
+    WiFi.begin(ssid, pwk);
 }
 bool OnlineManage::CheckConnect(uint32_t timeout)
 {
@@ -89,7 +93,6 @@ bool OnlineManage::CheckConnect(uint32_t timeout)
     }
     return true;
 }
-
 void OnlineManage::loadSetting()
 {
     String dataRead = "";
@@ -161,17 +164,6 @@ JsonDocument rdoc;
 JsonDocument wDoc;
 String DataStr = "";
 String fbDataString = "";
-void getIOHandler()
-{
-    int DataArr[10];
-    int size = sizeof(DataArr);
-    for (int i = 0; i < 10; i++)
-    {
-        DataArr[i] = rdoc["Data"][i];
-    }
-    Serial.flush();
-}
-// {"Command":"SlaveArray","SlaveArray":[{"slaveType":"1","ID":"undefined","writeStart":"9120","writeEnd":"9129","readStart":"6096","readEnd":"9119"}]}
 void mbSlavehandler()
 {
     mbParam.numSlave++;
@@ -190,14 +182,10 @@ void mbSlavehandler()
     Serial.println("WriteEnd: " + String(mbParam.slave[(mbParam.numSlave - 1)].WriteAddress.endAddress));
 
     mbParam.writeSlave();
-    wDoc["Command"] = "SlaveArray";
-    wDoc["Data"] = "AddDone";
-    serializeJson(wDoc, fbDataString);
-    online.notifyClients(fbDataString);
 }
 void mbSendSlavehandler()
 {
-    wDoc["Command"] = "getTotalSlave";
+    wDoc["Command"] = "TotalSlave";
     for (byte i = 0; i < mbParam.numSlave; i++)
     {
         wDoc["SlaveArray"][i]["ID"] = mbParam.slave[i].ID;
@@ -322,15 +310,15 @@ void editModbusData()
 {
     // {"Command":"editModbusData","slaveID":"0","address":"6105","type":"0","value":"1"}
     uint8_t totalSend = 0;
-    char *cstr;
-    uint16_t *ustr;
+    char cstr[40];
+    uint16_t ustr[20];
     uint8_t node = rdoc["slaveID"];
     long address = rdoc["address"];
     uint8_t type = rdoc["type"];
     Serial.println("node: " + String(node) + " address: " + String(address) + " type: " + String(type));
     uint8_t stt = address - mbParam.slave[node].ReadAddress.startAddress;
     Serial.println("STT: " + String(stt));
-    mbParam.slave->typeData[stt] = type;
+    mbParam.slave[node].typeData[stt] = type;
     switch (type)
     {
     case COIL_TYPE:
@@ -351,17 +339,14 @@ void editModbusData()
         break;
     case CHAR_TYPE:
         memset(cstr, 0, 40);
-        memset(ustr, 0, 20);
-        strcpy(cstr, rdoc["value"].as<String>().c_str());
+        memset(ustr, 0, 40);
+        String c = rdoc["value"].as<String>();
+        strcpy(cstr, c.c_str());
         mbParam.c_to_u16(cstr, ustr);
         totalSend = 20;
-        break;
-    default:
-        break;
     }
     if ((modbusRTU.master == 1) && (mbParam.slave[node].ID.length() < 5))
     {
-        Serial.println("Write slave RTU");
         while (modbusRTU.write_Multiple_Data(mbParam.slave[node].ID.toInt(),
                                              (type == CHAR_TYPE) ? (uint16_t *)&ustr : (uint16_t *)&mbParam.write_data.w,
                                              address,
@@ -370,16 +355,12 @@ void editModbusData()
     }
     else if ((modbusTCP.client == 1) && (mbParam.slave[node].ID.length() > 5))
     {
-        Serial.println("Write slave TCP");
         while (modbusTCP.write_Multiple_Data(modbusTCP.str2IP(mbParam.slave[node].ID),
-                                             (uint16_t *)&mbParam.write_data.w,
+                                             (type == CHAR_TYPE) ? (uint16_t *)&ustr : (uint16_t *)&mbParam.write_data.w,
                                              address,
                                              totalSend) != true)
             ;
     }
-    bool IsSetTable = true;
-    xQueueSend(mbParam.qUpdateTable, (void *)&IsSetTable, 1 / portTICK_PERIOD_MS);
-    IsSetTable = false;
 }
 void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
 {
@@ -398,32 +379,24 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         String command = rdoc["Command"].as<String>();
         if (command == "settingModbus")
         {
-            // filesystem.writefile("/mbsetting.json", DataStr, 0);
             setModbusHandler();
         }
         else if (command == "settingWifi")
         {
             setWifiHandler();
         }
-        else if (command == "SlaveArray") // Get from WebSocket and write to filesystem
+        else if (command == "SlaveArray") // Add slave from WebSocket and write to filesystem
         {
             mbSlavehandler();
         }
-        else if (command == "getTotalSlave") // Request get total slave
+        else if (command == "TotalSlave") // Request get total slave
         {
             mbSendSlavehandler();
         }
         else if (command == "clearSlave") // Clear slave in filesystem
         {
             filesystem.deletefile("/mbSlave.json");
-            mbParam.loadSlave();
-            mbSendSlavehandler();
-        }
-        else if (command == "loadSlaveTable") // Request load all slave tables to web server
-        {
-            IsSetTable = true;
-            xQueueSend(mbParam.qUpdateTable, (void *)&IsSetTable, 1 / portTICK_PERIOD_MS);
-            IsSetTable = false;
+            filesystem.deletefile("/mbSlaveAddressMap.json");
         }
         else if (command == "editModbusData") // Request change data from web server
         {
@@ -435,20 +408,51 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
             long address = rdoc["address"];
             uint8_t type = rdoc["type"];
             uint8_t stt = address - mbParam.slave[node].ReadAddress.startAddress;
-            mbParam.slave->typeData[stt] = type;
-            IsSetTable = true;
-            xQueueSend(mbParam.qUpdateTable, (void *)&IsSetTable, 1 / portTICK_PERIOD_MS);
-            IsSetTable = false;
+            mbParam.slave[node].typeData[stt] = type;
+            mbParam.update_WebTable();
         }
-        else if (command == "App") // Request application card information
+        else if (command == "SaveFile") // Request Save file
         {
-            filesystem.writefile("/application.json", DataStr, 0);
+            String filename = rdoc["Filename"].as<String>();
+            String data = rdoc["Data"].as<String>();
+            filesystem.writefile("/" + filename + ".json", data, 0);
         }
-        else if (command == "dataProduct") // Request product data
+        else if (command == "LoadFile") // Request Load file
         {
-            filesystem.writefile("/dataProduct.json", DataStr, 0);
+            String filename = rdoc["Filename"].as<String>();
+            String data = rdoc["Data"].as<String>();
+            String file = filesystem.readfile("/" + filename + ".json");
+        }
+        else if (command == "DeleteFile") // Request Delete file
+        {
+            String filename = rdoc["Filename"].as<String>();
+            String data = rdoc["Data"].as<String>();
+            filesystem.deletefile("/" + filename + ".json");
+        }
+        else if (command == "ListFile") // Request List file
+        {
         }
     }
+}
+void firstwebload()
+{
+    String file;
+    // load slave card
+    mbSendSlavehandler();
+    // load slave table
+    file = filesystem.readfile("/mbSlaveAddressMap.json");
+    Serial.println("{\"Command\":\"TableID\",\"Data\":" + file + "}");
+    online.notifyClients("{\"Command\":\"TableID\",\"Data\":" + file + "}");
+    // enable load database
+    mbParam.loadTable = true;
+    // load card application
+    file = filesystem.readfile("/application.json");
+    Serial.println(file);
+    online.notifyClients(file);
+    // load card product
+    file = filesystem.readfile("/dataProduct.json");
+    Serial.println(file);
+    online.notifyClients(file);
 }
 void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,
              void *arg, uint8_t *data, size_t len)
@@ -458,6 +462,7 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
     case WS_EVT_CONNECT:
         Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
         online.isConnected = true;
+        firstwebload();
         break;
     case WS_EVT_DISCONNECT:
         Serial.printf("WebSocket client #%u disconnected\n", client->id());
@@ -500,7 +505,7 @@ void OnlineManage::WebHandle()
 
     server.on("/", HTTP_ANY, [](AsyncWebServerRequest *request)
               {
-        AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/index.html", "text/html");
+        AsyncWebServerResponse *response = request->beginResponse(200, "text/html", filesystem.readfile("/data/index.html"));
         request->send(response);
         Serial.println("Served Wifi Config Page"); });
     server.on("/get", HTTP_GET, [](AsyncWebServerRequest *request)
@@ -540,16 +545,23 @@ void TaskOnlineManager(void *pvParameter)
             WiFi.begin(online.wifi_setting.ssid, online.wifi_setting.pass);
             online.writeSetting();
             setWifi = false;
-            Serial.print("Im in queue Portal Send seting\n");
         }
         if (xQueueReceive(online.qWifiSetting, (void *)&isMessageReceived, 1 / portTICK_PERIOD_MS) == pdTRUE)
         {
             WiFi.begin(online.wifi_setting.ssid, online.wifi_setting.pass);
             isMessageReceived = false;
         }
-        if (millis() - startCheckWifiTime > 0)
+        if (millis() - startCheckWifiTime > 1000)
         {
             startCheckWifiTime = millis();
+            if (online.CheckConnect(10) == false)
+            {
+                online.AP_STA_Mode();
+            }
+            else
+            {
+                online.AP_Mode();
+            }
         }
         dnsServer.processNextRequest();
         ws.cleanupClients();

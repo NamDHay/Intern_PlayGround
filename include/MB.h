@@ -23,7 +23,6 @@ public:
     uint8_t typeTable;
     byte slaveTable;
     uint8_t numSlave;
-    QueueHandle_t qUpdateTable;
     struct Address_t
     {
         long startAddress;
@@ -55,6 +54,7 @@ public:
     void writeSlave();
     void u16_to_c(char *c_arr, uint16_t *u_arr);
     void c_to_u16(char *c_arr, uint16_t *u_arr);
+    void update_WebTable();
 };
 extern MODBUS_PARAMETER mbParam;
 class MODBUS_RTU
