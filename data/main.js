@@ -108,20 +108,6 @@ function onMessage(event) {
   else if (message.Command == "settingModbus") {
     alert("Completed setting!!!");
   }
-  // else if (message.Command == "Data") {
-  //   if(daload == 0){
-  //     loadtable(event.data);
-  //     changeRegOptions();
-  //     daload = 1;
-  //     loadcard = 1;
-  //   }
-  //   loadDataTable(event.data);
-  //   addvaluecard(event.data);
-  //   if(daloadvcard) updatevalue();
-  //   jsontable = event.data;
-  //   if(loadcard == 1) {buildCardJson ();loadcard = 0; }
-
-  // }
   else if (message.Command == "ShowFile") {
     tablefile(event.data);
   }
@@ -130,6 +116,7 @@ function onMessage(event) {
     websocket.send("{'Command':'loadSlaveTable'}");
   }
   else if (message.Command == "TableID") {
+    document.getElementById("datatableid").value = event.data;
     console.log(event.data);
     firstload = 1;
     loading = 0;
@@ -142,7 +129,6 @@ function onMessage(event) {
     console.log(event.data);
     if (loading == 1) {
       loaddata(event.data);
-      
       jsontableData = event.data;
       addvaluecard(event.data);
     }
@@ -157,12 +143,15 @@ function onMessage(event) {
   else if (message.Command == "App") {
     document.getElementById("jsonApp").value = event.data;
   }
+  else if(message.Command == "dataProduct"){
+    document.getElementById("dataProduct").value =preferenceslist = event.data;
+  }
 }
 function onLoad(event) {
   initWebSocket();
   initButton();
   // document.getElementById("dataProduct").value = preferenceslist = "{\"data\":[{\"id\":0,\"product\":[\"San_Pham_2\",\"sp2\",\"SanPhamMoi1\"],\"cycletime\":[\"150\",\"150\",\"653\"],\"productset\":[\"4\",\"2\",\"5\"]},{\"id\":1,\"product\":[\"sp4567\",\"sp44\"],\"cycletime\":[\"250\",\"250\"],\"productset\":[\"2\",\"4\"]},{\"id\":2,\"product\":[\"sp5\",\"sp6\"],\"cycletime\":[\"300\",\"350\"],\"productset\":[\"5\",\"6\"]},{\"id\":3,\"product\":[\"sp7\",\"sp8\"],\"cycletime\":[\"400\",\"450\"],\"productset\":[\"7\",\"8\"]}]}"; 
-  document.getElementById("dataProduct").value = preferenceslist = "{\"Command\":\"dataProduct\",\"data\":[]}";
+  // document.getElementById("dataProduct").value = preferenceslist = "{\"Command\":\"dataProduct\",\"data\":[]}";
 
   // document.getElementById("jsonApp").value = "{\"Command\":\"App\",\"Application\":[{\"app\":\"0,0,0,1,0,test1,0,1,2,0,4,5\"},{\"app\":\"0,0,1,1,0,test2,10,12,13,0,15,16\"},{\"app\":\"0,0,2,1,0,test3,3,6,9,0,15,18\"},{\"app\":\"0,0,3,1,0,test4,2,4,6,0,10,12\"}]}";
 }
@@ -178,6 +167,7 @@ function io_ChangeState3() {
 function io_ChangeState4() {
   io_array[7] = !io_array[7];
 }
+
 function initButton() {
   document.getElementById('addslave').addEventListener('click', openAddCardSlave);
   document.getElementById('buttonaddslave').addEventListener('click', addSlave);
@@ -196,7 +186,8 @@ function initButton() {
   document.getElementById('bntLoadcard').addEventListener('click', buildCardJson);
   document.getElementById('buttonsavecard').addEventListener('click', SaveCard);
   document.getElementById('buttonlog').addEventListener('click', showlogin);
-  document.getElementById('buttonlog').addEventListener('click', showlogin);
+  document.getElementById('bntLoadtableid').addEventListener('click', loadtableid);
+  document.getElementById('bntLoadproduct').addEventListener('click', loaddataproduct);
   // Gắn sự kiện click cho các nút mở modal
   document.getElementById('settingBtnNV').addEventListener('click', openSettingModalNV);
   document.getElementById('buttonadd').addEventListener('click', openAddCard);
@@ -209,7 +200,16 @@ function initButton() {
   document.getElementById('bntReloadcard').addEventListener('click', ReloadJsonCard);
 
 }
-
+function loadtableid(){
+  var table = document.getElementById("datatableid").value;
+  // loadTable(table);
+  console.log("Loading table: " + table);
+  websocket.send(table);
+}
+function loaddataproduct(){
+  var data = preferenceslist = document.getElementById("dataProduct").value;
+  websocket.send(data);
+}
 function closeModalUnlock() {
   var modalElement = document.getElementById('passwordModal');
   var modal = bootstrap.Modal.getInstance(modalElement);
@@ -432,9 +432,11 @@ function ChangeSuccess() {
   modal.show();
   setTimeout(function () { modal.hide(); }, 1000);
 }
+
 function showlogin() {
   var modal = new bootstrap.Modal(document.getElementById('passwordModal'));
   document.getElementById("passwordInput").value = "";
+  document.getElementById("passwordInput").focus();
   modal.show();
 }
 function buttontoggle() {
@@ -970,7 +972,7 @@ function buildcard(jsoninput) {
   document.getElementById("addcard").innerHTML = html;
 
   for (var i = 0; i < appLen; i++) {
-    document.getElementById("namecard" + i).innerHTML = jsonObj.Application[i].app.split(",")[5];
+    document.getElementById("namecard" + i).innerHTML = arrayData[5];
   }
   daloadvcard = 1;
   updatevalue();
@@ -983,7 +985,7 @@ function updatevalue() {
   for (var i = 0; i < appLen; i++) {
     var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = jsonObj.Application[i].app.split(",");
     var chooseSlave = document.getElementById("selectreg").value;
-    if(chooseSlave == "") chooseSlave = jsonObj.Application[i].app.split(",")[0];
+    if(chooseSlave == "") chooseSlave = arrayData[0];
     var jsontabledata = JSON.parse(jsontableData);
     for(var j = 0; j < jsontableid.Data[chooseSlave].Data.length; j++){
       if (value1 == jsontableid.Data[chooseSlave].Data[j][0]) {
@@ -1155,7 +1157,7 @@ function SaveCard() {
 function buildCardJson() {
   jsonAppInput = document.getElementById("jsonApp").value;
   jsonApp = jsonAppInput;
-
+  
   app = JSON.parse(jsonAppInput).Application.length;
   for (var i = 0; i < (app); i++) {
     AppID = JSON.parse(jsonAppInput).Application[i].app.split(",")[0];
@@ -1376,7 +1378,7 @@ function loaddatasetting(id) {
   var UpdateDataApp = JSON.parse(jsonAppInput);
   var jsontableid = JSON.parse(jsontableID);
   var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = UpdateDataApp.Application[id].app.split(",");
-  document.getElementById("doiten").value = UpdateDataApp.Application[id].app.split(",")[5];
+  document.getElementById("doiten").value = arrayData[5];
 
   var chooseSlave = document.getElementById("selectreg").value;
   if(chooseSlave == "") chooseSlave = UpdateDataApp.Application[id].app.split(",")[0];
@@ -1440,82 +1442,12 @@ function loaddatasetting(id) {
 
     var ProductSet = productJSON.data[cardid].productset[productID];
     document.getElementById("planSetInput").value = ProductSet;
-    var jsonSelectProduct = "{\"Command\":\"selectProduct\",\"slaveID\":\"" + id + "\",\"address\":\"" + slaveAddress + "\",\"type\":\"" + type + "\"}";
   }
   else {
     document.getElementById("ProductDataSaveSelect").innerHTML = '';
   }
 }
-// function saveSettings(id) {
-//   // writeRegModbus(id);
-//   console.log("app id= " + id);
-  // var UpdateDataApp = JSON.parse(jsonApp);
-  // var jsonTasbleObj = JSON.parse(jsontable);
-  // var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = UpdateDataApp.Application[id].app.split(",");
-  // // Retrieve values from modal input fields
-  // var planValue = document.getElementById("planInput").value;
-  // var resultValue = document.getElementById("resultInput").value;
-  // var planSetValue = document.getElementById("planSetInput").value;
-  // // var resultSetValue = document.getElementById("resultSetInput").value;
-  // var TimeIncValue = document.getElementById("TimeIncInput").value;
-  // var PCSValue = document.getElementById("PCSInput").value;
-
-  // // Retrieve original values
-  // var originalPlanValue = jsonTasbleObj.Data[value1].value;;
-  // var originalResultValue = jsonTasbleObj.Data[value2].value;;
-  // var originalPlanSetValue = jsonTasbleObj.Data[value3].value;;
-  // // var originalResultSetValue = regsvalue[r4];
-  // var originalTimeIncValue = jsonTasbleObj.Data[value5].value;;
-  // var originalPCSValue = jsonTasbleObj.Data[value6].value;;
-
-  // // Convert values to the same type (in this case, to numbers)
-  // var planValueNum = parseFloat(planValue);
-  // var resultValueNum = parseFloat(resultValue);
-  // var planSetValueNum = parseFloat(planSetValue);
-  // // var resultSetValueNum = parseFloat(resultSetValue);
-  // var TimeIncValueNum = parseFloat(TimeIncValue);
-  // var PCSValueNum = parseFloat(PCSValue);
-
-  // // Convert original values to the same type
-  // var originalPlanValueNum = parseFloat(originalPlanValue);
-  // var originalResultValueNum = parseFloat(originalResultValue);
-  // var originalPlanSetValueNum = parseFloat(originalPlanSetValue);
-  // // var originalResultSetValueNum = parseFloat(originalResultSetValue);
-  // var originalTimeIncValueNum = parseFloat(originalTimeIncValue);
-  // var originalPCSValueNum = parseFloat(originalPCSValue);
-
-  // Check for changes and log/send only if values are different
-  // if (planValueNum !== originalPlanValueNum) {
-  //   console.log("Plan (" + value1 + ") value changed: " + originalPlanValue + " to " + planValue);
-  //   SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + value1 + " value=" + planValue), getLooklineCmdSuccess, getLooklineCmdfailed);
-  // }
-
-  // if (resultValueNum !== originalResultValueNum) {
-  //   console.log("Result (" + value2 + ") value changed: " + originalResultValue + " to " + resultValue);
-  //   SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + value2 + " value=" + resultValue), getLooklineCmdSuccess, getLooklineCmdfailed);
-  // }
-
-  // if (planSetValueNum !== originalPlanSetValueNum) {
-  //   console.log("Plan Set (" + value3 + ") value changed: " + originalPlanSetValue + " to " + planSetValue);
-  //   SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + value3 + " value=" + planSetValue), getLooklineCmdSuccess, getLooklineCmdfailed);
-  // }
-
-  // if (resultSetValueNum !== originalResultSetValueNum) {
-  //     console.log("Result Set ("+value4+") value changed: " + originalResultSetValue + " to " + resultSetValue);
-  //     SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + value4 + " value=" + resultSetValue), getLooklineCmdSuccess, getLooklineCmdfailed);
-  // }
-
-  // if (TimeIncValueNum !== originalTimeIncValueNum) {
-  //   console.log("Cycle Time (" + value5 + ") value changed: " + originalTimeIncValue + " to " + TimeIncValue);
-  //   SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + value5 + " value=" + TimeIncValue), getLooklineCmdSuccess, getLooklineCmdfailed);
-  // }
-
-  // if (PCSValueNum !== originalPCSValueNum) {
-  //   console.log("PCS (" + value6 + ") value changed: " + originalPCSValue + " to " + PCSValue);
-  //   SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + value6 + " value=" + PCSValue), getLooklineCmdSuccess, getLooklineCmdfailed);
-  // }
-// }
-
+//add product
 function addProduct() {
   var productName = document.getElementById("newProductName").value.trim();
   if (productName === "") {
@@ -1618,6 +1550,11 @@ function displaySelectedProduct() {
     console.log("độ dài lẻ");
     sp = sp + " ";
   }
+  
+  saveSettings(cardID,document.getElementById("planSetInput").value,3);
+  setTimeout(function () { saveSettings(cardID,productJSON.data[cardid].product[productID],4); }, 1000);
+  setTimeout(function () { saveSettings(cardID,document.getElementById("TimeIncInput").value,5); }, 1000);
+  
 }
 // change name card  
 function changeName() {
@@ -1633,16 +1570,16 @@ function changeName() {
 
   for (var i = 0; i < (app); i++) {
     if (i == id) {
-      AppID = JSON.parse(jsonAppInput).Application[i].app.split(",")[0];
-      poss = JSON.parse(jsonAppInput).Application[i].app.split(",")[1];
-      nodeID = JSON.parse(jsonAppInput).Application[i].app.split(",")[3];
-      netID = JSON.parse(jsonAppInput).Application[i].app.split(",")[4];
-      selectvalue1 = JSON.parse(jsonAppInput).Application[i].app.split(",")[6];
-      selectvalue2 = JSON.parse(jsonAppInput).Application[i].app.split(",")[7];
-      selectvalue3 = JSON.parse(jsonAppInput).Application[i].app.split(",")[8];
-      selectvalue4 = JSON.parse(jsonAppInput).Application[i].app.split(",")[9];
-      selectvalue5 = JSON.parse(jsonAppInput).Application[i].app.split(",")[10];
-      selectvalue6 = JSON.parse(jsonAppInput).Application[i].app.split(",")[11];
+      AppID = arrayData[0];
+      poss = arrayData[1];
+      nodeID = arrayData[3];
+      netID = arrayData[4];
+      selectvalue1 = arrayData[6];
+      selectvalue2 = arrayData[7];
+      selectvalue3 = arrayData[8];
+      selectvalue4 = arrayData[9];
+      selectvalue5 = arrayData[10];
+      selectvalue6 = arrayData[11];
       appData[i] = AppID + "," + poss + "," + i + "," + nodeID + "," + netID + "," + namecard + "," + selectvalue1 + "," + selectvalue2 + "," + selectvalue3 + "," + selectvalue4 + "," + selectvalue5 + "," + selectvalue6;
       jsonApp = "{\"Command\":\"App\",\"Application\":[{\"app\":\"" + appData[0] + "\"}";
       if (app > 0) {
@@ -1695,10 +1632,10 @@ document.getElementById("planSetInput").onblur = function () {
   console.log("planSetInput: " + document.getElementById("planSetInput").value);
   saveSettings(cardID,document.getElementById("planSetInput").value,3);
 };
-// document.getElementById("resultSetInput").onblur = function() {
-//   console.log("resultSetInput: "+document.getElementById("resultSetInput").value);
-//   saveSettings(cardID);
-// };
+document.getElementById("ProductDataSaveSelect").onblur = function() {
+  console.log("ProductDataSaveSelect: "+document.getElementById("ProductDataSaveSelect").value);
+  // saveSettings(cardID,document.getElementById("ProductDataSaveSelect").value,4);
+};
 document.getElementById("TimeIncInput").onblur = function () {
   console.log("TimeIncInput: " + document.getElementById("TimeIncInput").value);
   saveSettings(cardID,document.getElementById("TimeIncInput").value,5);
@@ -1806,83 +1743,9 @@ function saveSettings(id ,value, Address) {
   var jsonObj = JSON.parse(jsontableData);
   var slaveID = jsonObj.Data[id].ID;
   var jsonObjRegs = JSON.parse(jsonAppInput);
-  var vals = [BappID, Bposs, Bapp, BnodeID, BnetID, name, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, b1, b2, addRSSI, addTimetamp] = jsonObjRegs.Application[id].app.split(',');
+  var vals = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = jsonObjRegs.Application[id].app.split(',');
   var RegsAddress = vals[Address+5];
-  // var jsontabledata = JSON.parse(jsontableData);
-  // var jsontableid = JSOtableDataN.parse(jsontableID);
-  // var chooseSlave = document.getElementById("selectreg").value;
-  //   if(chooseSlave == "") chooseSlave = UpdateDataApp.Application[id].app.split(",")[0];
-  // var newPlanInput = document.getElementById("planInput").value;
-  // var newResultInput = document.getElementById("resultInput").value;
-  // var newPlanSetInput = document.getElementById("planSetInput").value;
-  // var newProductDataSaveSelect = document.getElementById("ProductDataSaveSelect").value;
-  // var newTimeIncInput = document.getElementById("TimeIncInput").value;
-  // var newPCSInput = document.getElementById("PCSInput").value;
 
-  // var address1 = UpdateDataApp.Application[id].app.split(",")[6];
-  // var address2 = UpdateDataApp.Application[id].app.split(",")[7];
-  // var address3 = UpdateDataApp.Application[id].app.split(",")[8]; 
-  // var address4 = UpdateDataApp.Application[id].app.split(",")[9];
-  // var address5 = UpdateDataApp.Application[id].app.split(",")[10];
-  // var address6 = UpdateDataApp.Application[id].app.split(",")[11];
-  // console.log("address1: " + address1);
-  // console.log("address2: " + address2);
-  // console.log("address3: " + address3);
-  // console.log("address4: " + address4);
-  // console.log("address5: " + address5);
-  // console.log("address6: " + address6);
-  // var slaveID;
-  // var addresswrite;
-  // var type;
-  // var value; 
-
-  // if ((newPlanInput != document.getElementById("card" + id + "value1").value) && (newPlanInput != "")) {
-  //   addresswrite = address1;
-  //   slaveID = jsontableid.Data[id].ID;
-  //   value = newPlanInput;
-  //   for(var j = 0; j < jsontableid.Data[chooseSlave].Data.length; j++)
-  //   type = jsontableid.Data[chooseSlave].Data[j][1];
-
-  // }
-  // else if ((newResultInput != document.getElementById("card" + id + "value2").value) && (newResultInput != "")) {
-  //   addresswrite = address2;
-  //   slaveID = jsontableid.Data[id].ID;
-  //   value = newResultInput;
-  //   for(var j = 0; j < jsontableid.Data[chooseSlave].Data.length; j++)
-  //   type = jsontableid.Data[chooseSlave].Data[j][1];
-
-  // }
-  // else if ((newPlanSetInput != document.getElementById("card" + id + "value3").value) && (newPlanSetInput != "")) {
-  //   addresswrite = address3;
-  //   slaveID = jsontableid.Data[id].ID;
-  //   value = newPlanSetInput;
-  //   for(var j = 0; j < jsontableid.Data[chooseSlave].Data.length; j++)
-  //   type = jsontableid.Data[chooseSlave].Data[j][1];
-
-  // }
-  // else if((newProductDataSaveSelect != document.getElementById("card" + id + "value4").value)&&(newProductDataSaveSelect != "")){
-  //   addresswrite = address4;
-  //   slaveID = jsontableid.Data[id].ID;
-  //   value = newTimeIncInput;
-  //   for(var j = 0; j < jsontableid.Data[chooseSlave].Data.length; j++)
-  //   type = jsontableid.Data[chooseSlave].Data[j][1];
-  // }
-  // else if ((newTimeIncInput != document.getElementById("card" + id + "value5").value) && (newTimeIncInput != "")) {
-  //   addresswrite = address5;
-  //   slaveID = jsontableid.Data[id].ID;
-  //   value = newTimeIncInput;
-  //   for(var j = 0; j < jsontableid.Data[chooseSlave].Data.length; j++)
-  //   type = jsontableid.Data[chooseSlave].Data[j][1];
-
-  // }
-  // else if ((newPCSInput != document.getElementById("card" + id + "value6").value) && (newPCSInput != "")) {
-  //   addresswrite = address6;
-  //   slaveID = jsontableid.Data[id].ID;
-  //   value = newPCSInput;
-  //   for(var j = 0; j < jsontableid.Data[chooseSlave].Data.length; j++)
-  //   type = jsontableid.Data[chooseSlave].Data[j][1];
-
-  // }
   var json_send = "{\"Command\":\"editModbusData\",\"slaveID\":\"" + slaveID + "\",\"address\":\"" + RegsAddress + "\",\"value\":\"" + value + "\"}";
   console.log(json_send);
 
