@@ -692,7 +692,6 @@ void TaskModbus(void *pvParameter)
 {
     String dataRead = "";
     JsonDocument doc;
-
     mbParam.loadTable = false;
     modbusRTU.loadSetting();
     modbusTCP.loadSetting();

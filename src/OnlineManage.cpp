@@ -420,8 +420,9 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         else if (command == "LoadFile") // Request Load file
         {
             String filename = rdoc["Filename"].as<String>();
-            String data = rdoc["Data"].as<String>();
             String file = filesystem.readfile("/" + filename + ".json");
+            fbDataString = "{\"Command\":\"LoadFile\",\"Filename\":\"" + filename + "\",\"Data\":\"" + file + "}";
+            online.notifyClients(fbDataString);
         }
         else if (command == "DeleteFile") // Request Delete file
         {
@@ -441,18 +442,18 @@ void firstwebload()
     mbSendSlavehandler();
     // load slave table
     file = filesystem.readfile("/mbSlaveAddressMap.json");
-    Serial.println("{\"Command\":\"TableID\",\"Data\":" + file + "}");
+    // Serial.println("{\"Command\":\"TableID\",\"Data\":" + file + "}");
     online.notifyClients("{\"Command\":\"TableID\",\"Data\":" + file + "}");
     // enable load database
     mbParam.loadTable = true;
     // load card application
-    file = filesystem.readfile("/application.json");
-    Serial.println(file);
-    online.notifyClients(file);
+    file = filesystem.readfile("/Application.json");
+    // Serial.println(file);
+    online.notifyClients("{\"Command\":\"LoadFile\",\"Filename\":\"Application\",\"Data\":\"" + file + "}");
     // load card product
-    file = filesystem.readfile("/dataProduct.json");
-    Serial.println(file);
-    online.notifyClients(file);
+    file = filesystem.readfile("/DataProduct.json");
+    // Serial.println(file);
+    online.notifyClients("{\"Command\":\"LoadFile\",\"Filename\":\"DataProduct\",\"Data\":\"" + file + "}");
 }
 void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,
              void *arg, uint8_t *data, size_t len)

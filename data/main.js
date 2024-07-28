@@ -2,7 +2,7 @@
 //global variables
 var gateway = `ws://192.168.4.1/ws`;
 // var gateway = `ws://192.168.1.254/ws`;
-var loadcard = 0  ;
+var loadcard = 0;
 var loading = 0;
 var websocket;
 var IsConnect;
@@ -119,15 +119,15 @@ function onMessage(event) {
       loaddata(event.data);
       jsontableData = event.data;
       addvaluecard(event.data);
-    }      
-    if(daloadvcard) updatevalue();
-    if(loadcard == 1) {buildCardJson();loadcard = 0; }
+    }
+    if (daloadvcard) updatevalue();
+    if (loadcard == 1) { buildCardJson(); loadcard = 0; }
   }
   else if (message.Command == "App") {
     document.getElementById("jsonApp").value = event.data;
   }
-  else if(message.Command == "dataProduct"){
-    document.getElementById("dataProduct").value =preferenceslist = event.data;
+  else if (message.Command == "dataProduct") {
+    document.getElementById("dataProduct").value = preferenceslist = event.data;
   }
 }
 function onLoad(event) {
@@ -183,13 +183,13 @@ function initButton() {
   document.getElementById('bntReloadcard').addEventListener('click', ReloadJsonCard);
 
 }
-function loadtableid(){
+function loadtableid() {
   var table = document.getElementById("datatableid").value;
   // loadTable(table);
   console.log("Loading table: " + table);
   websocket.send(table);
 }
-function loaddataproduct(){
+function loaddataproduct() {
   var data = preferenceslist = document.getElementById("dataProduct").value;
   websocket.send(data);
 }
@@ -428,8 +428,18 @@ function buttontoggle() {
 function intervalHandle() {
   var json_output;
   if (IsConnect == true) {
-
   }
+  // console.log("This is example of save file command");
+  // json_output = "{\"Command\":\"SaveFile\",\"Filename\":\"Application\",\"Data\":[{\"app\":\"1,0,0,1,0,test2,6123,6123,6122,6128,6127,6120\"},{\"app\":\"1,0,1,1,0,test3,6123,6125,6127,6127,6126,6126\"}]}";
+  // console.log(json_output);
+  // console.log("This is example of request file data");
+  // json_output = "{\"Command\":\"Loadfile\",\"Filename\":\"Application\"}";
+  // console.log(json_output);
+  // console.log("This is example of feedback file data");
+  // console.log("{\"Command\":\"LoadFile\",\"Filename\":\"Application\",\"Data\":[{\"app\":\"1,0,0,1,0,test2,6123,6123,6122,6128,6127,6120\"},{\"app\":\"1,0,1,1,0,test3,6123,6125,6127,6127,6126,6126\"}]}");
+  // console.log("This is example of delete file data");
+  // json_output = "{\"Command\":\"Loadfile\",\"Filename\":\"Application\"}";
+  // console.log(json_output);
 }
 
 function settingmodbus() {
@@ -946,9 +956,9 @@ function updatevalue() {
   for (var i = 0; i < appLen; i++) {
     var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = jsonObj.Application[i].app.split(",");
     var chooseSlave = document.getElementById("selectreg").value;
-    if(chooseSlave == "") chooseSlave = arrayData[0];
+    if (chooseSlave == "") chooseSlave = arrayData[0];
     var jsontabledata = JSON.parse(jsontableData);
-    for(var j = 0; j < jsontableid.Data[chooseSlave].Data.length; j++){
+    for (var j = 0; j < jsontableid.Data[chooseSlave].Data.length; j++) {
       if (value1 == jsontableid.Data[chooseSlave].Data[j][0]) {
         document.getElementById("card" + i + "value1").innerHTML = jsontabledata.Data[chooseSlave].Data[j];
       }
@@ -1068,8 +1078,8 @@ function addvaluecard(jsonValue) {
   var jsontableid = JSON.parse(jsontableID);// id
 
   var chooseSlave = document.getElementById("selectreg").value;
-  if(chooseSlave != "") {
-    for(var j = 0; j < jsontableid.Data[chooseSlave].Data.length; j++){
+  if (chooseSlave != "") {
+    for (var j = 0; j < jsontableid.Data[chooseSlave].Data.length; j++) {
       if (selectvalue1 == jsontableid.Data[chooseSlave].Data[j][0]) {
         document.getElementById("value1").innerHTML = jsontabledata.Data[chooseSlave].Data[j];
       }
@@ -1093,7 +1103,7 @@ function addvaluecard(jsonValue) {
 }
 //Save add card
 function SaveCard() {
-  
+
   var jsontableid = JSON.parse(jsontableID);
   AppID = document.getElementById("selectreg").value;
   nodeID = jsontableid.Data[document.getElementById("selectreg").value].ID;
@@ -1118,7 +1128,7 @@ function SaveCard() {
 function buildCardJson() {
   jsonAppInput = document.getElementById("jsonApp").value;
   jsonApp = jsonAppInput;
-  
+
   app = JSON.parse(jsonAppInput).Application.length;
   for (var i = 0; i < (app); i++) {
     AppID = JSON.parse(jsonAppInput).Application[i].app.split(",")[0];
@@ -1342,9 +1352,9 @@ function loaddatasetting(id) {
   document.getElementById("doiten").value = arrayData[5];
 
   var chooseSlave = document.getElementById("selectreg").value;
-  if(chooseSlave == "") chooseSlave = UpdateDataApp.Application[id].app.split(",")[0];
+  if (chooseSlave == "") chooseSlave = UpdateDataApp.Application[id].app.split(",")[0];
   var jsontabledata = JSON.parse(jsontableData);
-  for(var j = 0; j < jsontableid.Data[chooseSlave].Data.length; j++){
+  for (var j = 0; j < jsontableid.Data[chooseSlave].Data.length; j++) {
     if (value1 == jsontableid.Data[chooseSlave].Data[j][0]) {
       document.getElementById("planInput").value = jsontabledata.Data[chooseSlave].Data[j];
     }
@@ -1511,11 +1521,11 @@ function displaySelectedProduct() {
     console.log("độ dài lẻ");
     sp = sp + " ";
   }
-  
-  saveSettings(cardID,document.getElementById("planSetInput").value,3);
-  setTimeout(function () { saveSettings(cardID,productJSON.data[cardid].product[productID],4); }, 1000);
-  setTimeout(function () { saveSettings(cardID,document.getElementById("TimeIncInput").value,5); }, 1000);
-  
+
+  saveSettings(cardID, document.getElementById("planSetInput").value, 3);
+  setTimeout(function () { saveSettings(cardID, productJSON.data[cardid].product[productID], 4); }, 1000);
+  setTimeout(function () { saveSettings(cardID, document.getElementById("TimeIncInput").value, 5); }, 1000);
+
 }
 // change name card  
 function changeName() {
@@ -1583,27 +1593,27 @@ function changeReset(id) {
 document.getElementById("planInput").onblur = function () {
   console.log("planInput: " + document.getElementById("planInput").value);
 
-  saveSettings(cardID,document.getElementById("planInput").value,1);
+  saveSettings(cardID, document.getElementById("planInput").value, 1);
 };
 document.getElementById("resultInput").onblur = function () {
   console.log("resultInput: " + document.getElementById("resultInput").value);
-  saveSettings(cardID,document.getElementById("resultInput").value,2);
+  saveSettings(cardID, document.getElementById("resultInput").value, 2);
 };
 document.getElementById("planSetInput").onblur = function () {
   console.log("planSetInput: " + document.getElementById("planSetInput").value);
-  saveSettings(cardID,document.getElementById("planSetInput").value,3);
+  saveSettings(cardID, document.getElementById("planSetInput").value, 3);
 };
-document.getElementById("ProductDataSaveSelect").onblur = function() {
-  console.log("ProductDataSaveSelect: "+document.getElementById("ProductDataSaveSelect").value);
+document.getElementById("ProductDataSaveSelect").onblur = function () {
+  console.log("ProductDataSaveSelect: " + document.getElementById("ProductDataSaveSelect").value);
   // saveSettings(cardID,document.getElementById("ProductDataSaveSelect").value,4);
 };
 document.getElementById("TimeIncInput").onblur = function () {
   console.log("TimeIncInput: " + document.getElementById("TimeIncInput").value);
-  saveSettings(cardID,document.getElementById("TimeIncInput").value,5);
+  saveSettings(cardID, document.getElementById("TimeIncInput").value, 5);
 };
 document.getElementById("PCSInput").onblur = function () {
   console.log("PCSInput: " + document.getElementById("PCSInput").value);
-  saveSettings(cardID,document.getElementById("PCSInput").value,6);
+  saveSettings(cardID, document.getElementById("PCSInput").value, 6);
 };
 
 function loadTable(jsonValue) {
@@ -1700,12 +1710,12 @@ function updateDataBox(a) {
   websocket.send(json_send);
 }
 
-function saveSettings(id ,value, Address) {
+function saveSettings(id, value, Address) {
   var jsonObj = JSON.parse(jsontableData);
   var slaveID = jsonObj.Data[id].ID;
   var jsonObjRegs = JSON.parse(jsonAppInput);
   var vals = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = jsonObjRegs.Application[id].app.split(',');
-  var RegsAddress = vals[Address+5];
+  var RegsAddress = vals[Address + 5];
 
   var json_send = "{\"Command\":\"editModbusData\",\"slaveID\":\"" + slaveID + "\",\"address\":\"" + RegsAddress + "\",\"value\":\"" + value + "\"}";
   console.log(json_send);
