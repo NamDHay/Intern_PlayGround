@@ -697,6 +697,9 @@ void TaskModbus(void *pvParameter)
     modbusTCP.loadSetting();
     mbParam.loadSlave();
     load_WebTable();
+    filesystem.deletefile("/tcpslave.json");
+    filesystem.deletefile("/rtuslave.json");
+    filesystem.deletefile("/mbsetting.json");
 
     modbusRTU.qUpdateTable = xQueueCreate(1, sizeof(bool));
     modbusTCP.qUpdateTable = xQueueCreate(1, sizeof(bool));
@@ -715,6 +718,7 @@ void TaskModbus(void *pvParameter)
         {
             update_ModbusData_Interval();
             startUpdateIntervalTime = millis();
+            filesystem.ListFile();
         }
     }
 }

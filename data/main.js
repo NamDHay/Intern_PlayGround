@@ -114,7 +114,6 @@ function onMessage(event) {
     changeRegOptions(event.data);
   }
   else if (message.Command == "tableData") {
-    console.log(event.data);
     if (loading == 1) {
       loaddata(event.data);
       jsontableData = event.data;
@@ -429,17 +428,6 @@ function intervalHandle() {
   var json_output;
   if (IsConnect == true) {
   }
-  // console.log("This is example of save file command");
-  // json_output = "{\"Command\":\"SaveFile\",\"Filename\":\"Application\",\"Data\":[{\"app\":\"1,0,0,1,0,test2,6123,6123,6122,6128,6127,6120\"},{\"app\":\"1,0,1,1,0,test3,6123,6125,6127,6127,6126,6126\"}]}";
-  // console.log(json_output);
-  // console.log("This is example of request file data");
-  // json_output = "{\"Command\":\"Loadfile\",\"Filename\":\"Application\"}";
-  // console.log(json_output);
-  // console.log("This is example of feedback file data");
-  // console.log("{\"Command\":\"LoadFile\",\"Filename\":\"Application\",\"Data\":[{\"app\":\"1,0,0,1,0,test2,6123,6123,6122,6128,6127,6120\"},{\"app\":\"1,0,1,1,0,test3,6123,6125,6127,6127,6126,6126\"}]}");
-  // console.log("This is example of delete file data");
-  // json_output = "{\"Command\":\"Loadfile\",\"Filename\":\"Application\"}";
-  // console.log(json_output);
 }
 
 function settingmodbus() {

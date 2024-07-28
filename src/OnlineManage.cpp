@@ -69,8 +69,8 @@ void OnlineManage::Get_AP_IP()
 }
 void OnlineManage::AP_STA_Mode()
 {
-    String ssid = "Bamos Coffee 2G";
-    String pwk = "bamosxinchao";
+    String ssid = "Giangnam Coffee";
+    String pwk = "";
     WiFi.mode(WIFI_AP_STA);
     WiFi.softAP(soft_ap_ssid, soft_ap_password);
     // WiFi.begin(online.wifi_setting.ssid, online.wifi_setting.pass);
@@ -432,28 +432,38 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         }
         else if (command == "ListFile") // Request List file
         {
+            filesystem.ListFile();
         }
     }
 }
 void firstwebload()
 {
     String file;
+    // load List file system
+    filesystem.ListFile();
+
     // load slave card
     mbSendSlavehandler();
+
     // load slave table
     file = filesystem.readfile("/mbSlaveAddressMap.json");
-    // Serial.println("{\"Command\":\"TableID\",\"Data\":" + file + "}");
+    Serial.println("{\"Command\":\"TableID\",\"Data\":" + file + "}");
     online.notifyClients("{\"Command\":\"TableID\",\"Data\":" + file + "}");
+
     // enable load database
     mbParam.loadTable = true;
+
     // load card application
     file = filesystem.readfile("/Application.json");
-    // Serial.println(file);
-    online.notifyClients("{\"Command\":\"LoadFile\",\"Filename\":\"Application\",\"Data\":\"" + file + "}");
+    Serial.println(file);
+    Serial.println("{\"Command\":\"LoadFile\",\"Filename\":\"Application\",\"Data\":\"" + file + "}");
+    // online.notifyClients("{\"Command\":\"LoadFile\",\"Filename\":\"Application\",\"Data\":\"" + file + "}");
+
     // load card product
     file = filesystem.readfile("/DataProduct.json");
-    // Serial.println(file);
-    online.notifyClients("{\"Command\":\"LoadFile\",\"Filename\":\"DataProduct\",\"Data\":\"" + file + "}");
+    Serial.println(file);
+    Serial.println("{\"Command\":\"LoadFile\",\"Filename\":\"DataProduct\",\"Data\":\"" + file + "}");
+    // online.notifyClients("{\"Command\":\"LoadFile\",\"Filename\":\"DataProduct\",\"Data\":\"" + file + "}");
 }
 void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,
              void *arg, uint8_t *data, size_t len)

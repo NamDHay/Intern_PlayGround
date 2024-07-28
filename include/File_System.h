@@ -3,12 +3,14 @@
 
 #include <SPIFFS.h>
 
-class FFS { 
+class FFS
+{
 public:
     void Init();
     void writefile(String filename, String content, uint8_t mode);
     String readfile(String filename);
     bool deletefile(String filename);
+    void ListFile();
 };
 
 extern FFS filesystem;
