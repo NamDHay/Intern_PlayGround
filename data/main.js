@@ -103,7 +103,7 @@ function onMessage(event) {
   else if (message.Command == "settingModbus") {
     alert("Completed setting!!!");
   }
-  else if (message.Command == "ShowFile") {
+  else if (message.Command == "ListFile") {
     tablefile(event.data);
   }
   // else if (message.Command == "getTotalSlave") {
@@ -120,7 +120,7 @@ function onMessage(event) {
     loadcard = 1;
     changeRegOptions(jsontableID);
   }
-  else if (message.Command == "tableData") {
+  else if (message.Command == "tableData") { 
     console.log(event.data);
     if (loading == 1) {
       jsontableData = event.data;
@@ -146,10 +146,12 @@ function onLoad(event) {
   initWebSocket();
   initButton();
   jsontableData = document.getElementById("datatabledata").value = "{\"Command\":\"tableData\",\"Data\":[{\"ID\":\"192.168.1.100\",\"connect\":1,\"Data\":[3411,1,0,0,10,0,1,0,47186,16856,0,0,0,0,0,5,0,0,300,999,9999,2,123,1]},{\"ID\":\"1\",\"connect\":1,\"Data\":[5000,2500,1,10001,3,0,0,200,999,1]}]}";
-  document.getElementById("dataProduct").value = preferenceslist = "{\"Command\":\"dataProduct\",\"data\":[{\"id\":0,\"product\":[\"San_Pham_2\",\"sp2\",\"SanPhamMoi1\"],\"cycletime\":[\"150\",\"150\",\"653\"],\"productset\":[\"4\",\"2\",\"5\"]},{\"id\":1,\"product\":[\"sp4567\",\"sp44\"],\"cycletime\":[\"250\",\"250\"],\"productset\":[\"2\",\"4\"]},{\"id\":2,\"product\":[\"sp5\",\"sp6\"],\"cycletime\":[\"300\",\"350\"],\"productset\":[\"5\",\"6\"]},{\"id\":3,\"product\":[\"sp7\",\"sp8\"],\"cycletime\":[\"400\",\"450\"],\"productset\":[\"7\",\"8\"]}]}"; 
+  document.getElementById("dataProduct").value = preferenceslist = "{\"Command\":\"dataProduct\",\"Data\":[{\"id\":0,\"product\":[\"San_Pham_2\",\"sp2\",\"SanPhamMoi1\"],\"cycletime\":[\"150\",\"150\",\"653\"],\"productset\":[\"4\",\"2\",\"5\"]},{\"id\":1,\"product\":[\"sp4567\",\"sp44\"],\"cycletime\":[\"250\",\"250\"],\"productset\":[\"2\",\"4\"]},{\"id\":2,\"product\":[\"sp5\",\"sp6\"],\"cycletime\":[\"300\",\"350\"],\"productset\":[\"5\",\"6\"]},{\"id\":3,\"product\":[\"sp7\",\"sp8\"],\"cycletime\":[\"400\",\"450\"],\"productset\":[\"7\",\"8\"]}]}"; 
   document.getElementById("datatableid").value = jsontableID = "{\"Command\":\"TableID\",\"Data\":[{\"ID\":\"192.168.1.100\",\"Data\":[[6096,0],[6097,0],[6098,0],[6099,0],[6100,0],[6101,0],[6102,0],[6103,0],[6104,0],[6105,0],[6106,0],[6107,0],[6108,0],[6109,0],[6110,0],[6111,0],[6112,0],[6113,0],[6114,0],[6115,0],[6116,0],[6117,0],[6118,0],[6119,0]]},{\"ID\":\"1\",\"Data\":[[6120,0],[6121,0],[6122,0],[6123,0],[6124,0],[6125,0],[6126,0],[6127,0],[6128,0],[6129,0]]},{\"ID\":\"192.168.1.100\",\"Data\":[[6139,0],[6140,0],[6141,0],[6142,0],[6143,0],[6144,0],[6145,0],[6146,0],[6147,0],[6148,0],[6149,0],[6150,0],[6151,0],[6152,0],[6153,0],[6154,0],[6155,0],[6156,0],[6157,0],[6158,0]]},{\"ID\":\"1\",\"Data\":[[0,0]]}]}";
 
-  jsonAppInput = document.getElementById("jsonApp").value = "{\"Command\":\"App\",\"Application\":[{\"app\":\"0,0,0,1,0,test1,0,1,2,0,4,5\"},{\"app\":\"0,0,1,1,0,test2,10,12,13,0,15,16\"},{\"app\":\"0,0,2,1,0,test3,3,6,9,0,15,18\"},{\"app\":\"0,0,3,1,0,test4,2,4,6,0,10,12\"}]}";
+  jsonAppInput = document.getElementById("jsonApp").value = "{\"Command\":\"App\",\"Data\":[{\"app\":\"0,0,0,1,0,test1,0,1,2,0,4,5\"},{\"app\":\"0,0,1,1,0,test2,10,12,13,0,15,16\"},{\"app\":\"0,0,2,1,0,test3,3,6,9,0,15,18\"},{\"app\":\"0,0,3,1,0,test4,2,4,6,0,10,12\"}]}";
+  // var jsonListFile = "{\"Command\":\"ListFile\",\"ListFile\":[{\"name\":\"mbrtusetting.json\",\"space\":56,\"total\":1318001},{\"name\":\"wfsetting.json\",\"space\":138,\"total\":1318001},{\"name\":\"mbtcpsetting.json\",\"space\":109,\"total\":1318001},{\"name\":\"mbSlaveAddressMap.json\",\"space\":597,\"total\":1318001},{\"name\":\"mbSlave.json\",\"space\":252,\"total\":1318001}]}";
+  // tablefile(jsonListFile);
 }
 function io_ChangeState1() {
   io_array[4] = !io_array[4];
@@ -211,33 +213,32 @@ function initButton() {
 function loadtableid(){
   firstload = 1;
   loading = 0;
-  LoadJson(document.getElementById('datatableid').value);
-  loadTable(document.getElementById('datatableid').value);
+  LoadJson("TableID");
+  // loadTable(document.getElementById('datatableid').value);
 }
 function loaddataproduct(){
-  LoadJson(document.getElementById('dataProduct').value);
-  preferenceslist = document.getElementById('dataProduct').value;
+  LoadJson("dataProduct");
+  // preferenceslist = document.getElementById('dataProduct').value;
 }
 function loadtabledata(){
-  LoadJson(document.getElementById('datatabledata').value);
-  loaddata(document.getElementById('datatabledata').value);
+  LoadJson("datatabledata");
 }
 function loadCard(){
-  LoadJson(document.getElementById('jsonApp').value);
+  LoadJson("Application");
   buildCardJson();
 }
 // save json
 function saveCard(){
-  SaveJson(document.getElementById('jsonApp').value);
+  SaveJson(document.getElementById('jsonApp').value, "Application");
 }
 function saveTableID(){
-  SaveJson(document.getElementById('datatableid').value);
+  SaveJson(document.getElementById('datatableid').value,"tableID");
 }
 function savedataproduct(){
-  SaveJson(document.getElementById('dataProduct').value);
+  SaveJson(document.getElementById('dataProduct').value,"dataProduct");
 }
 function saveTableData(){
-  SaveJson(document.getElementById('datatabledata').value);
+  SaveJson(document.getElementById('datatabledata').value,"tableData");
 }
 //reload json 
 function ReloadJsonCard() {
@@ -477,8 +478,10 @@ function ChangeSuccess() {
 
 function showlogin() {
   var modal = new bootstrap.Modal(document.getElementById('passwordModal'));
+  document.getElementById('passwordModal').addEventListener('shown.bs.modal', function () {
+    document.getElementById("passwordInput").focus();
+  });
   document.getElementById("passwordInput").value = "";
-  document.getElementById("passwordInput").focus();
   modal.show();
 }
 function buttontoggle() {
@@ -971,27 +974,23 @@ if (!!window.EventSource) {
 //table file
 function tablefile(jsonValue) {
   var TableHTML = "";
-  TableHTML = "<table class=\"table table-borderless \"><thead class=\"thead-dark\"><th>STT</th><th>ID</th><th>Time</th><th>File Name</th><th>Use Space</th><th>Type Memory</th></thead><tbody>";
+  TableHTML = "<table class=\"table table-borderless \"><thead class=\"thead-dark\"><th>STT</th><th>Time</th><th>File Name</th><th>Use Space</th></thead><tbody>";
   var file = JSON.parse(jsonValue);
   var stt = 0;
   var total;
   var use = 0;
   var free = 0;
-  for (var i = 0; i < file.ShowFile.length; i++) {
+  for (var i = 0; i < file.ListFile.length; i++) {
     stt++;
-    var id = file.ShowFile[i].slaveID;
-    var type = file.ShowFile[i].type;
-    if (type == '0') type = "Memory";
-    else if (type == '1') type = "SD Card";
     var h = new Date().getHours();
     var m = new Date().getMinutes();
     var s = new Date().getSeconds();
-    const space = file.ShowFile[i].space;
+    const space = file.ListFile[i].space;
     var thoigian = h + ":" + m + ":" + s;
-    var name = file.ShowFile[i].name;
-    total = file.ShowFile[i].total;
-    TableHTML += "<tr><td>" + stt + "</td><td>" + id + "</td><td>" + thoigian + "</td><td>" + name + "</td><td>" + (space / 1024).toFixed(2) + "KB" + "</td><td>" + type + "</td></tr>";
-    use += Number(file.ShowFile[i].space);
+    var name = file.ListFile[i].name;
+    total = file.ListFile[i].total;
+    TableHTML += "<tr><td>" + stt + "</td><td>" + thoigian + "</td><td>" + name + "</td><td>" + (space / 1024).toFixed(2) + "KB" + "</td></tr>";
+    use += Number(file.ListFile[i].space);
     free = total - use;
   }
   TableHTML += "</tbody></table>";
@@ -1006,9 +1005,9 @@ function buildcard(jsoninput) {
   jsonAppInput = jsoninput;
   var jsonObj = JSON.parse(jsoninput);
 
-  var appLen = jsonObj.Application.length;
+  var appLen = jsonObj.Data.length;
   for (var i = 0; i < appLen; i++) {
-    var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = jsonObj.Application[i].app.split(",");
+    var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = jsonObj.Data[i].app.split(",");
     AddCardBody();
   }
   document.getElementById("addcard").innerHTML = html;
@@ -1022,10 +1021,10 @@ function buildcard(jsoninput) {
 //update value card
 function updatevalue() {
   var jsonObj = JSON.parse(jsonAppInput);
-  var appLen = jsonObj.Application.length;
+  var appLen = jsonObj.Data.length;
   var jsontableid = JSON.parse(jsontableID);
   for (var i = 0; i < appLen; i++) {
-    var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = jsonObj.Application[i].app.split(",");
+    var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = jsonObj.Data[i].app.split(",");
     var chooseSlave = document.getElementById("selectreg").value;
     if(chooseSlave == "") chooseSlave = arrayData[0];
     var jsontabledata = JSON.parse(jsontableData);
@@ -1180,7 +1179,7 @@ function SaveCard() {
   nodeID = jsontableid.Data[document.getElementById("selectreg").value].ID;
   namecard = document.getElementById("input_namecard").value;
   appData[app] = AppID + "," + poss + "," + app + "," + nodeID + "," + netID + "," + namecard + "," + selectvalue1 + "," + selectvalue2 + "," + selectvalue3 + "," + selectvalue4 + "," + selectvalue5 + "," + selectvalue6;
-  jsonApp = "{\"Command\":\"App\",\"Application\":[{\"app\":\"" + appData[0] + "\"}";
+  jsonApp = "{\"Command\":\"App\",\"Data\":[{\"app\":\"" + appData[0] + "\"}";
   if (app > 0) {
     for (var k = 1; k < (app + 1); k++) {
       jsonApp += ",{\"app\":\"" + appData[k] + "\"}";
@@ -1200,21 +1199,21 @@ function buildCardJson() {
   jsonAppInput = document.getElementById("jsonApp").value;
   jsonApp = jsonAppInput;
   
-  app = JSON.parse(jsonAppInput).Application.length;
+  app = JSON.parse(jsonAppInput).Data.length;
   for (var i = 0; i < (app); i++) {
-    AppID = JSON.parse(jsonAppInput).Application[i].app.split(",")[0];
-    poss = JSON.parse(jsonAppInput).Application[i].app.split(",")[1];
-    nodeID = JSON.parse(jsonAppInput).Application[i].app.split(",")[3];
-    netID = JSON.parse(jsonAppInput).Application[i].app.split(",")[4];
-    namecard = JSON.parse(jsonAppInput).Application[i].app.split(",")[5];
-    selectvalue1 = JSON.parse(jsonAppInput).Application[i].app.split(",")[6];
-    selectvalue2 = JSON.parse(jsonAppInput).Application[i].app.split(",")[7];
-    selectvalue3 = JSON.parse(jsonAppInput).Application[i].app.split(",")[8];
-    selectvalue4 = JSON.parse(jsonAppInput).Application[i].app.split(",")[9];
-    selectvalue5 = JSON.parse(jsonAppInput).Application[i].app.split(",")[10];
-    selectvalue6 = JSON.parse(jsonAppInput).Application[i].app.split(",")[11];
+    AppID = JSON.parse(jsonAppInput).Data[i].app.split(",")[0];
+    poss = JSON.parse(jsonAppInput).Data[i].app.split(",")[1];
+    nodeID = JSON.parse(jsonAppInput).Data[i].app.split(",")[3];
+    netID = JSON.parse(jsonAppInput).Data[i].app.split(",")[4];
+    namecard = JSON.parse(jsonAppInput).Data[i].app.split(",")[5];
+    selectvalue1 = JSON.parse(jsonAppInput).Data[i].app.split(",")[6];
+    selectvalue2 = JSON.parse(jsonAppInput).Data[i].app.split(",")[7];
+    selectvalue3 = JSON.parse(jsonAppInput).Data[i].app.split(",")[8];
+    selectvalue4 = JSON.parse(jsonAppInput).Data[i].app.split(",")[9];
+    selectvalue5 = JSON.parse(jsonAppInput).Data[i].app.split(",")[10];
+    selectvalue6 = JSON.parse(jsonAppInput).Data[i].app.split(",")[11];
     appData[i] = AppID + "," + poss + "," + i + "," + nodeID + "," + netID + "," + namecard + "," + selectvalue1 + "," + selectvalue2 + "," + selectvalue3 + "," + selectvalue4 + "," + selectvalue5 + "," + selectvalue6;
-    jsonApp = "{\"Command\":\"App\",\"Application\":[{\"app\":\"" + appData[0] + "\"}";
+    jsonApp = "{\"Command\":\"App\",\"Data\":[{\"app\":\"" + appData[0] + "\"}";
     if (i > 0) {
       for (var k = 1; k < (app); k++) {
         jsonApp += ",{\"app\":\"" + appData[k] + "\"}";
@@ -1289,7 +1288,7 @@ function displayDeleteProductList() {
   var id = document.getElementById("cardID").innerHTML;
 
   // Hiển thị danh sách sản phẩm của card
-  productJSON.data[id].product.forEach(function (product, index) {
+  productJSON.Data[id].product.forEach(function (product, index) {
     var row = document.createElement("tr");
 
     // Tạo cột hiển thị tên sản phẩm
@@ -1332,9 +1331,9 @@ function displayDeleteProductList() {
 
 function editProduct(cardID, index) {
   var productJSON = JSON.parse(document.getElementById("dataProduct").value);
-  var product = productJSON.data[cardID].product[index];
-  var cycleTime = productJSON.data[cardID].cycletime[index];
-  var productSet = productJSON.data[cardID].productset[index];
+  var product = productJSON.Data[cardID].product[index];
+  var cycleTime = productJSON.Data[cardID].cycletime[index];
+  var productSet = productJSON.Data[cardID].productset[index];
 
   // Ẩn bảng hiển thị sản phẩm
   document.getElementById("productTable").style.display = "none";
@@ -1371,9 +1370,9 @@ function saveProduct() {
   var index = parseInt(document.getElementById("editForm").dataset.index);
 
   // Cập nhật thông tin sản phẩm vào đối tượng JSON
-  productJSON.data[id].product[index] = editedProductName;
-  productJSON.data[id].cycletime[index] = editedCycleTime;
-  productJSON.data[id].productset[index] = editedProductSet;
+  productJSON.Data[id].product[index] = editedProductName;
+  productJSON.Data[id].cycletime[index] = editedCycleTime;
+  productJSON.Data[id].productset[index] = editedProductSet;
 
   // Chuyển đối tượng JSON thành chuỗi JSON và lưu vào phần tử HTML
   document.getElementById("dataProduct").value = JSON.stringify(productJSON);
@@ -1400,9 +1399,9 @@ function deleteProduct(cardID, index) {
   var productJSON = JSON.parse(document.getElementById("dataProduct").value);
 
   // Xóa sản phẩm khỏi danh sách của card
-  productJSON.data[cardID].product.splice(index, 1);
-  productJSON.data[cardID].cycletime.splice(index, 1);
-  productJSON.data[cardID].productset.splice(index, 1);
+  productJSON.Data[cardID].product.splice(index, 1);
+  productJSON.Data[cardID].cycletime.splice(index, 1);
+  productJSON.Data[cardID].productset.splice(index, 1);
 
   // Cập nhật lại chuỗi JSON chứa danh sách sản phẩm
   document.getElementById("dataProduct").value = JSON.stringify(productJSON);
@@ -1416,11 +1415,11 @@ function loaddatasetting(id) {
   console.log("loaddatasetting" + id);
   var UpdateDataApp = JSON.parse(jsonAppInput);
   var jsontableid = JSON.parse(jsontableID);
-  var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = UpdateDataApp.Application[id].app.split(",");
+  var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = UpdateDataApp.Data[id].app.split(",");
   document.getElementById("doiten").value = arrayData[5];
 
   var chooseSlave = document.getElementById("selectreg").value;
-  if(chooseSlave == "") chooseSlave = UpdateDataApp.Application[id].app.split(",")[0];
+  if(chooseSlave == "") chooseSlave = UpdateDataApp.Data[id].app.split(",")[0];
   var jsontabledata = JSON.parse(jsontableData);
   for(var j = 0; j < jsontableid.Data[chooseSlave].Data.length; j++){
     if (value1 == jsontableid.Data[chooseSlave].Data[j][0]) {
@@ -1447,8 +1446,8 @@ function loaddatasetting(id) {
   var productParse = document.getElementById("dataProduct").value;
   productJSON = JSON.parse(productParse);
 
-  if (productJSON.data[id] != null) {
-    productData = productJSON.data[id].product;
+  if (productJSON.Data[id] != null) {
+    productData = productJSON.Data[id].product;
 
     // Đặt giá trị vào select
     var selectElement = document.getElementById("ProductDataSaveSelect");
@@ -1476,10 +1475,10 @@ function loaddatasetting(id) {
     console.log("Select id:" + productID);
     var cardid = document.getElementById("cardID").innerHTML;
     console.log("card ID:" + cardid);
-    var CyleTime = productJSON.data[cardid].cycletime[productID];
+    var CyleTime = productJSON.Data[cardid].cycletime[productID];
     document.getElementById("TimeIncInput").value = CyleTime;
 
-    var ProductSet = productJSON.data[cardid].productset[productID];
+    var ProductSet = productJSON.Data[cardid].productset[productID];
     document.getElementById("planSetInput").value = ProductSet;
   }
   else {
@@ -1499,10 +1498,10 @@ function addProduct() {
   var selectElement = document.getElementById("ProductDataSaveSelect");
   var id = document.getElementById("cardID").innerHTML;
   var UpdateDataApp = JSON.parse(jsonApp);
-  var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = UpdateDataApp.Application[id].app.split(",");
+  var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = UpdateDataApp.Data[id].app.split(",");
   productJSON = JSON.parse(document.getElementById("dataProduct").value);
-  var idEnd = productJSON.data.length;
-  if (productJSON.data[id] == null) {
+  var idEnd = productJSON.daDatata.length;
+  if (productJSON.Data[id] == null) {
     console.log("tao moi");
     var dataproduct = [];
     var datacycletime = [];
@@ -1510,7 +1509,7 @@ function addProduct() {
     dataproduct.push(newProductName);
     datacycletime.push(newCycleTime);
     dataproductset.push(newProductSet);
-    productJSON.data.push({ id: idEnd, product: dataproduct, cycletime: datacycletime, productset: dataproductset });
+    productJSON.Data.push({ id: idEnd, product: dataproduct, cycletime: datacycletime, productset: dataproductset });
 
     dataProduct = productJSON;
     console.log("newData: " + JSON.stringify(dataProduct));
@@ -1533,12 +1532,12 @@ function addProduct() {
     // Lấy danh sách sản phẩm từ chuỗi JSON
     var productJSON = JSON.parse(document.getElementById("dataProduct").value);
     // Lấy số lượng sản phẩm hiện có
-    var newID = productJSON.data[id].product.length;
+    var newID = productJSON.Data[id].product.length;
     // Thêm tên sản phẩm mới vào mảng product
-    productJSON.data[id].product.push(newProductName);
+    productJSON.Data[id].product.push(newProductName);
     // Thêm giá trị mới của cycletime và productset cho sản phẩm mới
-    productJSON.data[id].cycletime.push(newCycleTime);
-    productJSON.data[id].productset.push(newProductSet);
+    productJSON.Data[id].cycletime.push(newCycleTime);
+    productJSON.Data[id].productset.push(newProductSet);
     // Cập nhật lại chuỗi JSON chứa danh sách sản phẩm
     document.getElementById("dataProduct").value = JSON.stringify(productJSON);
     // In ra chuỗi JSON đã được cập nhật
@@ -1565,19 +1564,19 @@ function displaySelectedProduct() {
 
   var id = document.getElementById("cardID").innerHTML;
   var UpdateDataApp = JSON.parse(jsonApp);
-  var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = UpdateDataApp.Application[id].app.split(",");
+  var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = UpdateDataApp.Data[id].app.split(",");
 
   var productID = document.getElementById("ProductDataSaveSelect").value;
   console.log("Select id:" + productID);
   var cardid = document.getElementById("cardID").innerHTML;
   console.log("card ID:" + cardid);
-  var CyleTime = productJSON.data[cardid].cycletime[productID];
+  var CyleTime = productJSON.Data[cardid].cycletime[productID];
   document.getElementById("TimeIncInput").value = CyleTime;
 
-  var ProductSet = productJSON.data[cardid].productset[productID];
+  var ProductSet = productJSON.Data[cardid].productset[productID];
   document.getElementById("planSetInput").value = ProductSet;
 
-  var sp = productJSON.data[cardid].product[productID];
+  var sp = productJSON.Data[cardid].product[productID];
   // Hiển thị giá trị vừa chọn ra thẻ h3 có cùng ID với cardID
   console.log("id:" + id);
   console.log("ProductSet:" + ProductSet);
@@ -1591,7 +1590,7 @@ function displaySelectedProduct() {
   }
   
   saveSettings(cardID,document.getElementById("planSetInput").value,3);
-  setTimeout(function () { saveSettings(cardID,productJSON.data[cardid].product[productID],4); }, 1000);
+  setTimeout(function () { saveSettings(cardID,productJSON.Data[cardid].product[productID],4); }, 1000);
   setTimeout(function () { saveSettings(cardID,document.getElementById("TimeIncInput").value,5); }, 1000);
   
 }
@@ -1600,7 +1599,7 @@ function changeName() {
   var id = document.getElementById("cardID").innerHTML;
   console.log("id:" + id);
   var UpdateDataApp = JSON.parse(jsonApp);
-  var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = UpdateDataApp.Application[id].app.split(",");
+  var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = UpdateDataApp.Data[id].app.split(",");
   var newName = document.getElementById("doiten").value;
   console.log("new name:" + newName);
 
@@ -1620,7 +1619,7 @@ function changeName() {
       selectvalue5 = arrayData[10];
       selectvalue6 = arrayData[11];
       appData[i] = AppID + "," + poss + "," + i + "," + nodeID + "," + netID + "," + namecard + "," + selectvalue1 + "," + selectvalue2 + "," + selectvalue3 + "," + selectvalue4 + "," + selectvalue5 + "," + selectvalue6;
-      jsonApp = "{\"Command\":\"App\",\"Application\":[{\"app\":\"" + appData[0] + "\"}";
+      jsonApp = "{\"Command\":\"App\",\"Data\":[{\"app\":\"" + appData[0] + "\"}";
       if (app > 0) {
         for (var k = 1; k < (app); k++) {
           jsonApp += ",{\"app\":\"" + appData[k] + "\"}";
@@ -1637,7 +1636,7 @@ function changeName() {
 function changeState(id) {
   console.log("state id= " + id);
   var UpdateDataApp = JSON.parse(jsonApp);
-  var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = UpdateDataApp.Application[id].app.split(",");
+  var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = UpdateDataApp.Data[id].app.split(",");
 
   if (lock[id] == 0) { stateID[id] = 2; }
   if (lock[id] == 1) { stateID[id] = 1; }
@@ -1648,7 +1647,7 @@ function changeState(id) {
 function changeReset(id) {
   console.log("reset id= " + id);
   var UpdateDataApp = JSON.parse(jsonApp);
-  var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = UpdateDataApp.Application[id].app.split(",");
+  var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = UpdateDataApp.Data[id].app.split(",");
   // console.log("Resetting Plan (" + value1 + ") and Result (" + value2 + ") values to 0");
   // SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + value1 + " value=0"), getLooklineCmdSuccess, getLooklineCmdfailed);
   // var savedR2 = value2;
@@ -1782,7 +1781,7 @@ function saveSettings(id ,value, Address) {
   var jsonObj = JSON.parse(jsontableData);
   var slaveID = jsonObj.Data[id].ID;
   var jsonObjRegs = JSON.parse(jsonAppInput);
-  var vals = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = jsonObjRegs.Application[id].app.split(',');
+  var vals = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = jsonObjRegs.Data[id].app.split(',');
   var RegsAddress = vals[Address+5];
 
   var json_send = "{\"Command\":\"editModbusData\",\"slaveID\":\"" + slaveID + "\",\"address\":\"" + RegsAddress + "\",\"value\":\"" + value + "\"}";
@@ -1793,23 +1792,22 @@ function saveSettings(id ,value, Address) {
   websocket.send(json_send);
   json_send = "";
 }
-function SaveJson(jsonValue){
+function SaveJson(jsonValue, name){
   var json = JSON.parse(jsonValue);
-  json.Command = "save";
+  json.Command = "SaveFile";
   var newJsonObj = {
     Command: json.Command,
+    FileName: name,
     ...json
   };
   var jsonSave = JSON.stringify(newJsonObj);
   console.log(jsonSave);
   websocket.send(jsonSave);
 }
-function LoadJson(jsonValue){
-  var json = JSON.parse(jsonValue);
-  json.Command = "load";
+function LoadJson(name){
   var newJsonObj = {
-    Command: json.Command,
-    ...json
+    Command: "LoadFile",
+    FileName: name
   };
   var jsonSave = JSON.stringify(newJsonObj);
   console.log(jsonSave);
