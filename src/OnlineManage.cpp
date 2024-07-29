@@ -69,8 +69,8 @@ void OnlineManage::Get_AP_IP()
 }
 void OnlineManage::AP_STA_Mode()
 {
-    String ssid = "Giangnam Coffee";
-    String pwk = "";
+    String ssid = "I-Soft";
+    String pwk = "i-soft@2023";
     WiFi.mode(WIFI_AP_STA);
     WiFi.softAP(soft_ap_ssid, soft_ap_password);
     // WiFi.begin(online.wifi_setting.ssid, online.wifi_setting.pass);
@@ -188,11 +188,11 @@ void mbSendSlavehandler()
     wDoc["Command"] = "TotalSlave";
     for (byte i = 0; i < mbParam.numSlave; i++)
     {
-        wDoc["SlaveArray"][i]["ID"] = mbParam.slave[i].ID;
-        wDoc["SlaveArray"][i]["readStart"] = mbParam.slave[i].ReadAddress.startAddress;
-        wDoc["SlaveArray"][i]["readEnd"] = mbParam.slave[i].ReadAddress.endAddress;
-        wDoc["SlaveArray"][i]["writeStart"] = mbParam.slave[i].WriteAddress.startAddress;
-        wDoc["SlaveArray"][i]["writeEnd"] = mbParam.slave[i].WriteAddress.endAddress;
+        wDoc["Slave"][i]["ID"] = mbParam.slave[i].ID;
+        wDoc["Slave"][i]["readStart"] = mbParam.slave[i].ReadAddress.startAddress;
+        wDoc["Slave"][i]["readEnd"] = mbParam.slave[i].ReadAddress.endAddress;
+        wDoc["Slave"][i]["writeStart"] = mbParam.slave[i].WriteAddress.startAddress;
+        wDoc["Slave"][i]["writeEnd"] = mbParam.slave[i].WriteAddress.endAddress;
     }
 
     serializeJson(wDoc, fbDataString);
@@ -393,16 +393,11 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         {
             mbSendSlavehandler();
         }
-        else if (command == "clearSlave") // Clear slave in filesystem
-        {
-            filesystem.deletefile("/mbSlave.json");
-            filesystem.deletefile("/mbSlaveAddressMap.json");
-        }
         else if (command == "editModbusData") // Request change data from web server
         {
             editModbusData();
         }
-        else if (command == "editModbusDataType") // Request change data from web server
+        else if (command == "editModbusDataType") // Request change data type from web server
         {
             uint8_t node = rdoc["slaveID"];
             long address = rdoc["address"];
@@ -410,24 +405,27 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
             uint8_t stt = address - mbParam.slave[node].ReadAddress.startAddress;
             mbParam.slave[node].typeData[stt] = type;
             mbParam.update_WebTable();
+            fbDataString = filesystem.readfile("/mbSlaveAddressMap.json");
+            online.notifyClients("{\"Command\":\"TableID\",\"Data\":" + fbDataString + "}");
         }
         else if (command == "SaveFile") // Request Save file
         {
             String filename = rdoc["Filename"].as<String>();
             String data = rdoc["Data"].as<String>();
+            Serial.println(data);
             filesystem.writefile("/" + filename + ".json", data, 0);
         }
         else if (command == "LoadFile") // Request Load file
         {
             String filename = rdoc["Filename"].as<String>();
             String file = filesystem.readfile("/" + filename + ".json");
-            fbDataString = "{\"Command\":\"LoadFile\",\"Filename\":\"" + filename + "\",\"Data\":\"" + file + "}";
+            fbDataString = "{\"Command\":\"LoadFile\",\"Filename\":\"" + filename + "\",\"Data\":" + file + "}";
+            Serial.println(fbDataString);
             online.notifyClients(fbDataString);
         }
         else if (command == "DeleteFile") // Request Delete file
         {
             String filename = rdoc["Filename"].as<String>();
-            String data = rdoc["Data"].as<String>();
             filesystem.deletefile("/" + filename + ".json");
         }
         else if (command == "ListFile") // Request List file
@@ -443,27 +441,27 @@ void firstwebload()
     filesystem.ListFile();
 
     // load slave card
-    mbSendSlavehandler();
+    file = filesystem.readfile("/mbSlave.json");
+    Serial.println("{\"Command\":\"LoadFile\",\"Filename\":\"mbSlave\",\"Data\":\"" + file + "}");
+    online.notifyClients("{\"Command\":\"LoadFile\",\"Filename\":\"mbSlave\",\"Data\":" + file + "}");
 
     // load slave table
-    file = filesystem.readfile("/mbSlaveAddressMap.json");
-    Serial.println("{\"Command\":\"TableID\",\"Data\":" + file + "}");
-    online.notifyClients("{\"Command\":\"TableID\",\"Data\":" + file + "}");
+    file = filesystem.readfile("/TableID.json");
+    Serial.println("{\"Command\":\"LoadFile\",\"Filename\":\"TableID\",\"Data\":\"" + file + "}");
+    online.notifyClients("{\"Command\":\"LoadFile\",\"Filename\":\"TableID\",\"Data\":" + file + "}");
 
     // enable load database
     mbParam.loadTable = true;
 
     // load card application
     file = filesystem.readfile("/Application.json");
-    Serial.println(file);
     Serial.println("{\"Command\":\"LoadFile\",\"Filename\":\"Application\",\"Data\":\"" + file + "}");
-    // online.notifyClients("{\"Command\":\"LoadFile\",\"Filename\":\"Application\",\"Data\":\"" + file + "}");
+    online.notifyClients("{\"Command\":\"LoadFile\",\"Filename\":\"Application\",\"Data\":" + file + "}");
 
     // load card product
     file = filesystem.readfile("/DataProduct.json");
-    Serial.println(file);
     Serial.println("{\"Command\":\"LoadFile\",\"Filename\":\"DataProduct\",\"Data\":\"" + file + "}");
-    // online.notifyClients("{\"Command\":\"LoadFile\",\"Filename\":\"DataProduct\",\"Data\":\"" + file + "}");
+    online.notifyClients("{\"Command\":\"LoadFile\",\"Filename\":\"DataProduct\",\"Data\":" + file + "}");
 }
 void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,
              void *arg, uint8_t *data, size_t len)
@@ -478,6 +476,7 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
     case WS_EVT_DISCONNECT:
         Serial.printf("WebSocket client #%u disconnected\n", client->id());
         online.isConnected = false;
+        mbParam.loadTable = true;
         break;
     case WS_EVT_DATA:
         handleWebSocketMessage(arg, data, len);

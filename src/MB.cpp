@@ -36,11 +36,11 @@ IPAddress MODBUS_TCP::str2IP(String str)
     IPAddress ret(getIpBlock(0, str), getIpBlock(1, str), getIpBlock(2, str), getIpBlock(3, str));
     return ret;
 }
-void load_WebTable()
+void MODBUS_PARAMETER::load_WebTable()
 {
     String dataRead = "";
     JsonDocument doc;
-    dataRead = filesystem.readfile("/mbSlaveAddressMap.json");
+    dataRead = filesystem.readfile("/TableID.json");
 
     deserializeJson(doc, dataRead);
     size_t lenght;
@@ -86,47 +86,46 @@ void MODBUS_PARAMETER::update_WebTable()
     String fbDataString = "";
     size_t lenght;
     long count = 0;
-    if (online.isConnected == true)
+    for (byte i = 0; i < mbParam.numSlave; i++)
     {
-        for (byte i = 0; i < mbParam.numSlave; i++)
+        lenght = mbParam.slave[i].ReadAddress.endAddress - mbParam.slave[i].ReadAddress.startAddress + 1;
+        count = mbParam.slave[i].ReadAddress.startAddress;
+        Doc["Data"][i]["ID"] = mbParam.slave[i].ID;
+        for (byte j = 0; j < lenght; j++)
         {
-            lenght = mbParam.slave[i].ReadAddress.endAddress - mbParam.slave[i].ReadAddress.startAddress + 1;
-            count = mbParam.slave[i].ReadAddress.startAddress;
-            Doc["Data"][i]["ID"] = mbParam.slave[i].ID;
-            for (byte j = 0; j < lenght; j++)
+            if (count > mbParam.slave[i].ReadAddress.endAddress)
             {
-                if (count > mbParam.slave[i].ReadAddress.endAddress)
-                {
-                    Serial.println("Out of range");
-                    break;
-                }
-                Doc["Data"][i]["Data"][j][0] = count; // address of register
-                Doc["Data"][i]["Data"][j][1] = mbParam.slave[i].typeData[j];
-                switch (mbParam.slave[i].typeData[j])
-                {
-                case COIL_TYPE:
-                    count++;
-                    break;
-                case WORD_TYPE:
-                    count += 1;
-                    break;
-                case DWORDS_TYPE:
-                    count += 2;
-                    break;
-                case FLOAT_TYPE:
-                    count += 2;
-                    break;
-                case CHAR_TYPE:
-                    count += 20;
-                    break;
-                default:
-                    break;
-                }
+                Serial.println("Out of range");
+                break;
+            }
+            Doc["Data"][i]["Data"][j][0] = count; // address of register
+            Doc["Data"][i]["Data"][j][1] = mbParam.slave[i].typeData[j];
+            switch (mbParam.slave[i].typeData[j])
+            {
+            case COIL_TYPE:
+                count++;
+                break;
+            case WORD_TYPE:
+                count += 1;
+                break;
+            case DWORDS_TYPE:
+                count += 2;
+                break;
+            case FLOAT_TYPE:
+                count += 2;
+                break;
+            case CHAR_TYPE:
+                count += 20;
+                break;
+            default:
+                break;
             }
         }
-        serializeJson(Doc, fbDataString);
-        filesystem.writefile("/mbSlaveAddressMap.json", Doc["Data"].as<String>(), 0);
     }
+    serializeJson(Doc, fbDataString);
+    Serial.println(fbDataString);
+    // filesystem.writefile("/TableID.json", Doc["Data"].as<String>(), 0);
+    filesystem.writefile("/TableID.json", fbDataString, 0);
 }
 void update_ModbusData_Interval()
 {
@@ -230,7 +229,6 @@ void update_ModbusData_Interval()
                 case CHAR_TYPE:
                     memset(readChar, 0, 40);
                     mbParam.u16_to_c(readChar, &mbParam.slave[i].Data[count]);
-                    Serial.println(String(readChar));
                     Doc["Data"][i]["Data"][j] = String(readChar);
                     count += 20;
                     break;
@@ -241,10 +239,12 @@ void update_ModbusData_Interval()
             count = 0;
         }
     }
-    serializeJson(Doc, fbDataString);
-    // Serial.println(fbDataString);
     if (mbParam.loadTable == true)
+    {
+        serializeJson(Doc, fbDataString);
+        Serial.println(fbDataString);
         online.notifyClients(fbDataString);
+    }
 }
 /*********************************************START MBPARAM PART**************************************************************/
 void MODBUS_PARAMETER::writeSlave()
@@ -263,7 +263,6 @@ void MODBUS_PARAMETER::writeSlave()
     }
 
     serializeJson(writeDoc, setting);
-    Serial.println("JSON: " + setting);
     filesystem.writefile("/mbSlave.json", setting, 0);
 }
 void MODBUS_PARAMETER::loadSlave()
@@ -271,7 +270,7 @@ void MODBUS_PARAMETER::loadSlave()
     String dataRead = "";
     JsonDocument doc;
     dataRead = filesystem.readfile("/mbSlave.json");
-    // Serial.println(dataRead);
+    Serial.println(dataRead);
     deserializeJson(doc, dataRead);
 
     mbParam.numSlave = doc["numSlave"];
@@ -294,9 +293,7 @@ void MODBUS_PARAMETER::c_to_u16(char *c_arr, uint16_t *u_arr)
         u_arr[i] |= c_arr[2 * i + 1];
         u_arr[i] = u_arr[i] << 8;
         u_arr[i] |= c_arr[2 * i];
-        Serial.print(String(u_arr[i]) + "|");
     }
-    Serial.println();
 }
 void MODBUS_PARAMETER::u16_to_c(char *c_arr, uint16_t *u_arr)
 {
@@ -304,9 +301,7 @@ void MODBUS_PARAMETER::u16_to_c(char *c_arr, uint16_t *u_arr)
     {
         c_arr[2 * i + 1] |= u_arr[i] >> 8;
         c_arr[2 * i] |= u_arr[i];
-        Serial.print(String(c_arr[2 * i + 1]) + "|" + String(c_arr[2 * i]) + "|");
     }
-    Serial.println();
 }
 /**********************************************END MBPARAM PART**************************************************************/
 
@@ -696,13 +691,7 @@ void TaskModbus(void *pvParameter)
     modbusRTU.loadSetting();
     modbusTCP.loadSetting();
     mbParam.loadSlave();
-    load_WebTable();
-    filesystem.deletefile("/tcpslave.json");
-    filesystem.deletefile("/rtuslave.json");
-    filesystem.deletefile("/mbsetting.json");
-
-    modbusRTU.qUpdateTable = xQueueCreate(1, sizeof(bool));
-    modbusTCP.qUpdateTable = xQueueCreate(1, sizeof(bool));
+    mbParam.load_WebTable();
 
     modbusTCP.EthernetInit();
 
@@ -718,7 +707,6 @@ void TaskModbus(void *pvParameter)
         {
             update_ModbusData_Interval();
             startUpdateIntervalTime = millis();
-            filesystem.ListFile();
         }
     }
 }

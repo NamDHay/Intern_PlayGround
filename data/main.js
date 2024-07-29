@@ -64,7 +64,7 @@ selectwifimode.addEventListener('change', function handChange(event) {
     document.getElementById("wifimode").innerHTML = Enable;
   }
 });
-const intervalId = setInterval(intervalHandle, 1000);
+const intervalId = setInterval(intervalHandle, 2000);
 window.addEventListener('beforeunload', () => clearInterval(intervalId));
 window.addEventListener('load', onLoad);
 function getReadings() {
@@ -82,11 +82,12 @@ function initWebSocket() {
 }
 function onOpen(event) {
   console.log('Connection opened');
-  // IsConnect = true;
+  IsConnect = true;
   Flagfile = true;
 }
 function onClose(event) {
   console.log('Connection closed');
+  IsConnect = false;
   setTimeout(initWebSocket, 100);
 }
 function onMessage(event) {
@@ -120,7 +121,7 @@ function onMessage(event) {
       addvaluecard(event.data);
     }
     if (daloadvcard) updatevalue();
-    if (loadcard == 1) { buildCardJson(); loadcard = 0; }
+    // if (loadcard == 1) { buildCardJson(); loadcard = 0; }
   }
   else if (message.Command == "App") {
     document.getElementById("jsonApp").value = event.data;
@@ -427,6 +428,14 @@ function buttontoggle() {
 function intervalHandle() {
   var json_output;
   if (IsConnect == true) {
+    // json_output = ("{\"Command\":\"SaveFile\",\"Filename\":\"DataProduct\",\"Data\":[{\"id\":0,\"product\":[\"test1\",\"test2\",\"test3\"],\"cycletime\":[\"200\",\"100\",\"300\"],\"productset\":[\"32\",\"35\",\"3\"]}]}");
+    // websocket.send(json_output);
+    // json_output = ("{\"Command\":\"LoadFile\",\"Filename\":\"Application\"}");
+    // websocket.send(json_output);
+    // json_output = ("{\"Command\":\"DeleteFile\",\"Filename\":\"Application\"}");
+    // websocket.send(json_output);
+    // json_output = ("{\"Command\":\"SaveFile\",\"Filename\":\"Application\",\"Data\":[{\"app\":\"1,0,0,1,0,test2,6123,6123,6122,6128,6127,6120\"},{\"app\":\"1,0,1,1,0,test3,6123,6125,6127,6127,6126,6126\"}]}");
+    // websocket.send(json_output);
   }
 }
 

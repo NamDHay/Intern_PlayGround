@@ -55,6 +55,7 @@ public:
     void u16_to_c(char *c_arr, uint16_t *u_arr);
     void c_to_u16(char *c_arr, uint16_t *u_arr);
     void update_WebTable();
+    void load_WebTable();
 };
 extern MODBUS_PARAMETER mbParam;
 class MODBUS_RTU
@@ -66,7 +67,6 @@ public:
     byte slaveTable;
     uint8_t numSlave;
     uint8_t master;
-    QueueHandle_t qUpdateTable;
     struct Config_t
     {
         unsigned long baud;
@@ -90,7 +90,6 @@ public:
     byte slaveTable;
     uint8_t numSlave;
     uint8_t client;
-    QueueHandle_t qUpdateTable;
     struct ethernet_t
     {
         String ipAdress;

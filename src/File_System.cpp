@@ -67,5 +67,5 @@ void FFS::ListFile()
     }
     serializeJson(fileDoc, showfile);
     Serial.println(showfile);
-    // online.notifyClients(showfile);
+    online.notifyClients(showfile);
 }
