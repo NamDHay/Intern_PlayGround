@@ -28,6 +28,7 @@ var selectvalue3;
 var selectvalue4;
 var selectvalue5;
 var selectvalue6;
+var selectvalue7;
 var firstload = 0;
 var value1 = 0;
 var value2 = 0;
@@ -35,6 +36,7 @@ var value3 = 0;
 var value4 = 0;
 var value5 = 0;
 var value6 = 0;
+var value7 = 0;
 var id_card = 1;
 var html = "";
 var dataProduct;
@@ -45,6 +47,7 @@ var modalCardSet = new Object;
 modalCardSet.active = null
 modalCardSet.closefn = null;
 var onUpdate = 0;
+var jsonSlave = "";
 var staffPass = "abc", adminPass = "123", AutoStopPass = "";
 const selectwifimode = document.getElementById("staticip");
 // select mode wifi
@@ -88,6 +91,7 @@ function onClose(event) {
 }
 function onMessage(event) {
   var state;
+  try {
   var message = JSON.parse(event.data);
   if (message.Command == "toggleLed") {
     if (message.Data == "0")
@@ -151,10 +155,12 @@ function onMessage(event) {
     }
     else if(message.Filename == "mbSlave"){
       console.log(event.data);
-      document.getElementById("datatabledata").value = event.data;
+      jsonSlave = document.getElementById("datatabledata").value = event.data;
       loadBoardSlave(event.data);
     }
   }
+  }
+  catch(e){console.log("onmessage:  " + event.data)}
 }
 function onLoad(event) {
   initWebSocket();
@@ -288,7 +294,7 @@ function ReloadJsonTableID() {
   document.getElementById("datatableid").value = jsontableID;
 }
 function ReloadJsonTableData() {
-  document.getElementById("datatabledata").value = jsontableData;
+  document.getElementById("datatabledata").value = jsonSlave;
 }//reload json
 function closeModalUnlock() {
   var modalElement = document.getElementById('passwordModal');
@@ -863,11 +869,11 @@ function addSlave() {
   else {
     var slave_object = "";
     if (slave_type == "0") {
-      slave_object = "{\"Command\":\"SlaveArray\",\"SlaveArray\":[{\"slaveType\":\"" + (slave_type) + "\",\"ID\":\"" + id_address + "\",\"writeStart\":\"" + wsaddres_input + "\",\"writeEnd\":\"" + weaddres_input + "\",\"readStart\":\"" + rsaddres_input + "\",\"readEnd\":\"" + readdres_input + "\"}]}";
+      slave_object = "{\"Command\":\"SlaveArray\",\"Slave\":[{\"slaveType\":\"" + (slave_type) + "\",\"ID\":\"" + id_address + "\",\"writeStart\":\"" + wsaddres_input + "\",\"writeEnd\":\"" + weaddres_input + "\",\"readStart\":\"" + rsaddres_input + "\",\"readEnd\":\"" + readdres_input + "\"}]}";
       numSlaveRTU++;
     }
     else if (slave_type == "1") {
-      slave_object = "{\"Command\":\"SlaveArray\",\"SlaveArray\":[{\"slaveType\":\"" + (slave_type) + "\",\"ID\":\"" + ip_address + "\",\"writeStart\":\"" + wsaddres_input + "\",\"writeEnd\":\"" + weaddres_input + "\",\"readStart\":\"" + rsaddres_input + "\",\"readEnd\":\"" + readdres_input + "\"}]}";
+      slave_object = "{\"Command\":\"SlaveArray\",\"Slave\":[{\"slaveType\":\"" + (slave_type) + "\",\"ID\":\"" + ip_address + "\",\"writeStart\":\"" + wsaddres_input + "\",\"writeEnd\":\"" + weaddres_input + "\",\"readStart\":\"" + rsaddres_input + "\",\"readEnd\":\"" + readdres_input + "\"}]}";
       numSlaveTCP++;
     }
     numSlave = numSlaveRTU + numSlaveTCP;
@@ -1051,7 +1057,7 @@ function buildcard(jsoninput) {
 
   var appLen = jsonObj.Data.length;
   for (var i = 0; i < appLen; i++) {
-    var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = jsonObj.Data[i].app.split(",");
+    var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6, value7] = jsonObj.Data[i].app.split(",");
     AddCardBody();
   }
   document.getElementById("addcard").innerHTML = html;
@@ -1068,7 +1074,7 @@ function updatevalue() {
   var appLen = jsonObj.Data.length;
   var jsontableid = JSON.parse(jsontableID);
   for (var i = 0; i < appLen; i++) {
-    var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = jsonObj.Data[i].app.split(",");
+    var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6, value7] = jsonObj.Data[i].app.split(",");
     var chooseSlave = document.getElementById("selectreg").value;
     if(chooseSlave == "") chooseSlave = arrayData[0];
     var jsontabledata = JSON.parse(jsontableData);
@@ -1111,7 +1117,7 @@ function changeRegOptions(jsonValue) {
   const selectnodeID = document.getElementById('selectreg');
   selectnodeID.addEventListener('change', function handleChange(event) {
     var chooseSlave = document.getElementById("selectreg").value;
-    for (var k = 1; k < 7; k++) {
+    for (var k = 1; k < 8; k++) {
       if (chooseSlave == "") {
         htmlcard += "<option value=\"\"> </option>";
         htmlcard = "";
@@ -1155,7 +1161,7 @@ function AddCardBody() {
                 <div class=\"statecard\" id=\"card"+ id_card + "value3\"></div>\
               </div>\
               <div class=\"col-5\">\
-                <div class=\"statecard\">Result set:</div>\
+                <div class=\"statecard\">Name Product:</div>\
               </div>\
               <div class=\"col-6\">\
                 <div class=\"statecard\" id=\"card"+ id_card + "value4\"></div>\
@@ -1188,6 +1194,7 @@ function addvaluecard(jsonValue) {
   selectvalue4 = document.getElementById('selectvalue4').value;
   selectvalue5 = document.getElementById('selectvalue5').value;
   selectvalue6 = document.getElementById('selectvalue6').value;
+  selectvalue7 = document.getElementById('selectvalue7').value;
   var jsontabledata = JSON.parse(jsonValue);// data
   var jsontableid = JSON.parse(jsontableID);// id
 
@@ -1212,6 +1219,9 @@ function addvaluecard(jsonValue) {
       if (selectvalue6 == jsontableid.Data[chooseSlave].Data[j][0]) {
         document.getElementById("value6").innerHTML = jsontabledata.Data[chooseSlave].Data[j];
       }
+      if (selectvalue7 == jsontableid.Data[chooseSlave].Data[j][0]) {
+        document.getElementById("value7").innerHTML = jsontabledata.Data[chooseSlave].Data[j];
+      }
     }
   }
 }
@@ -1221,7 +1231,7 @@ function SaveCard() {
   AppID = document.getElementById("selectreg").value;
   nodeID = jsontableid.Data[document.getElementById("selectreg").value].ID;
   namecard = document.getElementById("input_namecard").value;
-  appData[app] = AppID + "," + poss + "," + app + "," + nodeID + "," + netID + "," + namecard + "," + selectvalue1 + "," + selectvalue2 + "," + selectvalue3 + "," + selectvalue4 + "," + selectvalue5 + "," + selectvalue6;
+  appData[app] = AppID + "," + poss + "," + app + "," + nodeID + "," + netID + "," + namecard + "," + selectvalue1 + "," + selectvalue2 + "," + selectvalue3 + "," + selectvalue4 + "," + selectvalue5 + "," + selectvalue6 + "," + selectvalue7;
   jsonApp = "{\"Command\":\"App\",\"Data\":[{\"app\":\"" + appData[0] + "\"}";
   if (app > 0) {
     for (var k = 1; k < (app + 1); k++) {
@@ -1254,7 +1264,8 @@ function buildCardJson() {
     selectvalue4 = JSON.parse(jsonAppInput).Data[i].app.split(",")[9];
     selectvalue5 = JSON.parse(jsonAppInput).Data[i].app.split(",")[10];
     selectvalue6 = JSON.parse(jsonAppInput).Data[i].app.split(",")[11];
-    appData[i] = AppID + "," + poss + "," + i + "," + nodeID + "," + netID + "," + namecard + "," + selectvalue1 + "," + selectvalue2 + "," + selectvalue3 + "," + selectvalue4 + "," + selectvalue5 + "," + selectvalue6;
+    selectvalue7 = JSON.parse(jsonAppInput).Data[i].app.split(",")[12];
+    appData[i] = AppID + "," + poss + "," + i + "," + nodeID + "," + netID + "," + namecard + "," + selectvalue1 + "," + selectvalue2 + "," + selectvalue3 + "," + selectvalue4 + "," + selectvalue5 + "," + selectvalue6 + "," + selectvalue7;
     jsonApp = "{\"Command\":\"App\",\"Data\":[{\"app\":\"" + appData[0] + "\"}";
     if (i > 0) {
       for (var k = 1; k < (app); k++) {
@@ -1457,7 +1468,7 @@ function loaddatasetting(id) {
   console.log("loaddatasetting" + id);
   var UpdateDataApp = JSON.parse(jsonAppInput);
   var jsontableid = JSON.parse(jsontableID);
-  var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = UpdateDataApp.Data[id].app.split(",");
+  var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6, value7] = UpdateDataApp.Data[id].app.split(",");
   document.getElementById("doiten").value = arrayData[5];
 
   var chooseSlave = document.getElementById("selectreg").value;
@@ -1540,7 +1551,7 @@ function addProduct() {
   var selectElement = document.getElementById("ProductDataSaveSelect");
   var id = document.getElementById("cardID").innerHTML;
   var UpdateDataApp = JSON.parse(jsonApp);
-  var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = UpdateDataApp.Data[id].app.split(",");
+  var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6,value7] = UpdateDataApp.Data[id].app.split(",");
   productJSON = JSON.parse(document.getElementById("dataProduct").value);
   var idEnd = productJSON.Data.length;
   if (productJSON.Data[id] == null) {
@@ -1604,7 +1615,7 @@ function displaySelectedProduct() {
 
   var id = document.getElementById("cardID").innerHTML;
   var UpdateDataApp = JSON.parse(jsonApp);
-  var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = UpdateDataApp.Data[id].app.split(",");
+  var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6,value7] = UpdateDataApp.Data[id].app.split(",");
 
   var productID = document.getElementById("ProductDataSaveSelect").value;
   console.log("Select id:" + productID);
@@ -1639,7 +1650,7 @@ function changeName() {
   var id = document.getElementById("cardID").innerHTML;
   console.log("id:" + id);
   var UpdateDataApp = JSON.parse(jsonApp);
-  var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = UpdateDataApp.Data[id].app.split(",");
+  var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6,value7] = UpdateDataApp.Data[id].app.split(",");
   var newName = document.getElementById("doiten").value;
   console.log("new name:" + newName);
 
@@ -1658,7 +1669,8 @@ function changeName() {
       selectvalue4 = arrayData[9];
       selectvalue5 = arrayData[10];
       selectvalue6 = arrayData[11];
-      appData[i] = AppID + "," + poss + "," + i + "," + nodeID + "," + netID + "," + namecard + "," + selectvalue1 + "," + selectvalue2 + "," + selectvalue3 + "," + selectvalue4 + "," + selectvalue5 + "," + selectvalue6;
+      selectvalue7 = arrayData[12];
+      appData[i] = AppID + "," + poss + "," + i + "," + nodeID + "," + netID + "," + namecard + "," + selectvalue1 + "," + selectvalue2 + "," + selectvalue3 + "," + selectvalue4 + "," + selectvalue5 + "," + selectvalue6 + "," + selectvalue7;
       jsonApp = "{\"Command\":\"App\",\"Data\":[{\"app\":\"" + appData[0] + "\"}";
       if (app > 0) {
         for (var k = 1; k < (app); k++) {
@@ -1676,24 +1688,21 @@ function changeName() {
 function changeState(id) {
   console.log("state id= " + id);
   var UpdateDataApp = JSON.parse(jsonApp);
-  var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = UpdateDataApp.Data[id].app.split(",");
+  var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6, value7] = UpdateDataApp.Data[id].app.split(",");
 
-  if (lock[id] == 0) { stateID[id] = 2; }
-  if (lock[id] == 1) { stateID[id] = 1; }
-
+  if (lock[id] == 0) { stateID[id] = 2;saveSettings(id, 1, 7); document.getElementById('RunButton1'.innerHTML = "Run"); }
+  if (lock[id] == 1) { stateID[id] = 1;saveSettings(id, 0, 7);document.getElementById('RunButton1'.innerHTML = "Stop");}
   lock[id] = !lock[id];
+  console.log("lock[id] = " + lock[id]);
+
 }
 // change reset
 function changeReset(id) {
   console.log("reset id= " + id);
   var UpdateDataApp = JSON.parse(jsonApp);
-  var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = UpdateDataApp.Data[id].app.split(",");
-  // console.log("Resetting Plan (" + value1 + ") and Result (" + value2 + ") values to 0");
-  // SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + value1 + " value=0"), getLooklineCmdSuccess, getLooklineCmdfailed);
-  // var savedR2 = value2;
-  // setTimeout(function () {
-  //   SendGetHttp("/command?plain=" + encodeURIComponent("[ESP403]cmd=write id=" + savedR2 + " value=0"), getLooklineCmdSuccess, getLooklineCmdfailed);
-  // }, 500);
+  var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6, value7] = UpdateDataApp.Data[id].app.split(",");
+  saveSettings(id,0,1);
+  setTimeout(function () { saveSettings(id,0,2); }, 500);
 }
 //bỏ nút save, nhập vào thì lưu
 // Gán sự kiện onblur cho từng trường input trong modal
@@ -1749,8 +1758,9 @@ function loadTable(jsonValue) {
         if (key.Data[i].Data[j][1] == "1") { type = type.replace("%1%", "selected"); type = type.replace("%0%", ""); type = type.replace("%2%", ""); type = type.replace("%3%", ""); type = type.replace("%4%", ""); }
         if (key.Data[i].Data[j][1] == "2") { type = type.replace("%2%", "selected"); type = type.replace("%1%", ""); type = type.replace("%0%", ""); type = type.replace("%3%", ""); type = type.replace("%4%", ""); }
         if (key.Data[i].Data[j][1] == "3") { type = type.replace("%3%", "selected"); type = type.replace("%1%", ""); type = type.replace("%2%", ""); type = type.replace("%0%", ""); type = type.replace("%4%", ""); }
+        // if((key.Data[i].length >= 20) && ((key.Data[i].length - j) > 20)) {
           if (key.Data[i].Data[j][1] == "4") { type = type.replace("%4%", "selected"); type = type.replace("%1%", ""); type = type.replace("%2%", ""); type = type.replace("%0%", ""); type = type.replace("%3%", ""); }
-        
+        // }
         card_table_html += "<tr><td>" + stt + "</td><td><div id=\"address" + i + "_" + j + "\">NULL</div></td><td>" + type + "</td><td><div id=\"value" + i + "_" + j + "\">NULL</div></td><td><button class=\"buttoncuatao\" onclick=\"editModbusData('" + i + '_' + j + "')\">EDIT</button></td></tr>";
       }
       card_table_html += "</tbody></table></div>";
@@ -1824,7 +1834,7 @@ function saveSettings(id ,value, Address) {
   var jsonObj = JSON.parse(jsontableData);
   var slaveID = jsonObj.Data[id].ID;
   var jsonObjRegs = JSON.parse(jsonAppInput);
-  var vals = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6] = jsonObjRegs.Data[id].app.split(',');
+  var vals = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6, value7] = jsonObjRegs.Data[id].app.split(',');
   var RegsAddress = vals[Address+5];
 
   var json_send = "{\"Command\":\"editModbusData\",\"slaveID\":\"" + slaveID + "\",\"address\":\"" + RegsAddress + "\",\"value\":\"" + value + "\"}";
@@ -1854,3 +1864,9 @@ function LoadJson(name){
   console.log(jsonSave);
   websocket.send(jsonSave);
 }
+
+{"Command":"tableData","Data":[
+  {"ID":"1","connect":1,"Data":
+    [2864,1,65536,10,10,1,2885,1,0,0,10,0,1,0,5,0,0,300,999,9999,2,123,1,0,0,15,0,800,0,250,300,15,0,10000,5,0,0,10,0,999,"",0,0,28672,3584,61440,64768,32768,64512,39680,16384,512,0,0,0,0,0,0,0,0,0,0,0,28787,53,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+  }
+  ]}
