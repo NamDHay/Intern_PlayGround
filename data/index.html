@@ -436,7 +436,7 @@
             <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               <svg class="bi" width="24" height="24"><use xlink:href="#gear_fill_icon"></use></svg>
             </a>
-            <a class="navbar-nav" id="buttonadd" style="position: absolute; right: 70px;top: 9px;" role="button" data-bs-toggle="modal" aria-expanded="false">
+            <a class="navbar-nav" id="buttonadd" style="position: absolute; right: 70px;top: 9px; display:none;" role="button" data-bs-toggle="modal" aria-expanded="false">
               <svg class="bi" width="30" height="30"><use xlink:href="#icon-add"></use></svg>
             </a>
             <a class="navbar-nav" id="buttonlog" style="position: absolute; right: 120px;top: 9px;" role="button" data-bs-toggle="modal" aria-expanded="false">
@@ -481,12 +481,14 @@
   </div>
 
   <!-- Tab Home -->
-  <div id="cardhome" class="contentcard" style="display: block;">
-    <div class="row gy-3">
-      <div class="col-500">
+  <div id="cardhome" class="contentcuataosss" style="display: block;">
+    <Center>
+   
+   
         <div id="addcard"></div>
-      </div>
-    </div>
+
+
+  </Center>
   </div>
 
   <!-- Tab IO Config -->
@@ -615,35 +617,39 @@
   <div id="cardshowdata" class="contentcuatao" style="display: none;">
     <div class="cardcuatao" style="width:100%">
 
-      <textarea id="jsonApp" cols="30" rows="5" style="width: 100%; height: fit-content; border-radius: 0.25rem;"></textarea></textarea>
-      <button id="bntLoadcard" class="buttoncuatao_output">Load Card</button>
-      <button id="bntReloadcard" class="buttoncuatao_output">Reload Card</button>
-      <button id="bntsavecard" class="buttoncuatao_output">Save Card</button>
-
-    </div><br>
-    <div class="cardcuatao" style="width:100%">
-
-        <textarea  id="dataProduct" cols="30" rows="5" style="width: 100%; height: fit-content; border-radius: 0.25rem;"></textarea>
-        <button id="bntLoadproduct" class="buttoncuatao_output">Load Product</button>
-      <button id="bntReloadproduct" class="buttoncuatao_output">Reload Product</button>
-      <button id="bntsaveproduct" class="buttoncuatao_output">Save Product</button>
-    </div><br>
-
     <div class="cardcuatao" style="width:100%">
 
       <textarea  id="datatableid" cols="30" rows="5" style="width: 100%; height: fit-content; border-radius: 0.25rem;"></textarea>
       <button id="bntLoadtableid" class="buttoncuatao_output">Load TableID</button>
       <button id="bntReloadtableid" class="buttoncuatao_output">Reload TableID</button>
       <button id="bntsavetableid" class="buttoncuatao_output">Save TableID</button>
+      <button id="bnttesttableid" class="buttoncuatao_output">Test TableID</button>
     </div><br>
 
     <div class="cardcuatao" style="width:100%">
 
       <textarea  id="datatabledata" cols="30" rows="5" style="width: 100%; height: fit-content; border-radius: 0.25rem;"></textarea>
-      <button id="bntLoadtabledata" class="buttoncuatao_output">Load TableData</button>
-      <button id="bntReloadtabledata" class="buttoncuatao_output">Reload TableData</button>
-      <button id="bntsavetabledata" class="buttoncuatao_output">Save TableData</button>
+      <button id="bntLoadtabledata" class="buttoncuatao_output">Load Slave</button>
+      <button id="bntReloadtabledata" class="buttoncuatao_output">Reload Slave</button>
+      <button id="bntsavetabledata" class="buttoncuatao_output">Save Slave</button>
+      <button id="bnttesttabledata" class="buttoncuatao_output" >Test Slave</button>
     </div><br>
+
+    <textarea id="jsonApp" cols="30" rows="5" style="width: 100%; height: fit-content; border-radius: 0.25rem;"></textarea></textarea>
+    <button id="bntLoadcard" class="buttoncuatao_output">Load Card</button>
+    <button id="bntReloadcard" class="buttoncuatao_output">Reload Card</button>
+    <button id="bntsavecard" class="buttoncuatao_output">Save Card</button>
+    <button id="bnttestcard" class="buttoncuatao_output" >Test Card</button>
+
+  </div><br>
+  <div class="cardcuatao" style="width:100%">
+
+      <textarea  id="dataProduct" cols="30" rows="5" style="width: 100%; height: fit-content; border-radius: 0.25rem;"></textarea>
+      <button id="bntLoadproduct" class="buttoncuatao_output">Load Product</button>
+    <button id="bntReloadproduct" class="buttoncuatao_output">Reload Product</button>
+    <button id="bntsaveproduct" class="buttoncuatao_output">Save Product</button>
+    <button id="bnttestproduct" class="buttoncuatao_output">Test Product</button>
+  </div><br>
     <!-- <div id="waitData" class="loader"></div> -->
     
     
