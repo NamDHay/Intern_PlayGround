@@ -262,6 +262,8 @@ function ShowModalCardSet(closefunc) {
     else {
       document.getElementById("ProductDataSaveSelect").innerHTML = '';
     }
+    lock[id] = 1;
+    stateID[id] = 1;
   }
   //add product
   function addProduct() {
@@ -411,12 +413,29 @@ function ShowModalCardSet(closefunc) {
   }
   // change state
   function changeState(id) {
-    console.log("state id= " + id);
+    console.log("state id = " + stateID[id]);
     var UpdateDataApp = JSON.parse(jsonApp);
     var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6, value7] = UpdateDataApp.Data[id].app.split(",");
-  
-    if (lock[id] == 0) { stateID[id] = 2;saveSettings(id, 1, 7); document.getElementById('RunButton1'.innerHTML = "Run"); }
-    if (lock[id] == 1) { stateID[id] = 1;saveSettings(id, 0, 7);document.getElementById('RunButton1'.innerHTML = "Stop");}
+    
+    if (lock[id] == 0) { stateID[id] = 2; }
+    if (lock[id] == 1) { stateID[id] = 1; }
+    if(stateID[id]== 0){
+      stateID[id] = 1;
+      ocument.getElementById('buttonrun'+id).innerHTML = "Null";
+      document.getElementById('State0_'+ id).innerHTML = "state:Null";
+    }
+    if(stateID[id]== 1 && lock[id] == 1){
+      saveSettings(id, 0, 7);
+      // stateID[id] = 2;
+      document.getElementById('buttonrun'+id).innerHTML = "Run";
+      document.getElementById('State0_'+ id).innerHTML = "state:Stop";
+    }
+    if(stateID[id] == 2 && lock[id] == 0){
+      saveSettings(id, 1, 7);
+      // stateID[id] = 1; 
+      document.getElementById('State0_'+ id).innerHTML = "state:Run";
+      document.getElementById('buttonrun'+id).innerHTML = "Stop";   
+    }
     lock[id] = !lock[id];
     console.log("lock[id] = " + lock[id]);
   
@@ -458,13 +477,22 @@ function ShowModalCardSet(closefunc) {
   };
     
   function saveSettings(id ,value, Address) {
-    var jsonObj = JSON.parse(jsontableData);
+    var jsonObj = JSON.parse(jsontableData); 
+    
     var slaveID = jsonObj.Data[id].ID;
     var jsonObjRegs = JSON.parse(jsonAppInput);
     var vals = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6, value7] = jsonObjRegs.Data[id].app.split(',');
     var RegsAddress = vals[Address+5];
-  
-    var json_send = "{\"Command\":\"editModbusData\",\"slaveID\":\"" + slaveID + "\",\"address\":\"" + RegsAddress + "\",\"value\":\"" + value + "\"}";
+    var rs = document.getElementById('rs' + vals[0]).innerText;
+    type = document.getElementById("Type" + vals[0] + "_" + (RegsAddress - rs)).value;
+    // }
+    if (type == "0") length = 1;
+    if (type == "1") length = 1;
+    if (type == "2") length = 2;
+    if (type == "3") length = 2;
+    if (type == "4") length = 20;
+
+    var json_send = "{\"Command\":\"editModbusData\",\"slaveID\":\"" + slaveID + "\",\"address\":\"" + RegsAddress + "\",\"length\":\"" + length + "\",\"value\":\"" + value + "\"}";
     console.log(json_send);
   
     websocket.send(json_send);

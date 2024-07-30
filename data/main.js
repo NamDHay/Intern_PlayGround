@@ -44,7 +44,7 @@ var dataProduct;
 var preferenceslist = [];
 var onUpdate = 0;
 var jsonSlave = "";
-
+var loadDone = false;
 const selectwifimode = document.getElementById("staticip");
 // select mode wifi
 selectwifimode.addEventListener('change', function handChange(event) {
@@ -144,11 +144,12 @@ function onMessage(event) {
     console.log(event.data);
     document.getElementById("dataProduct").value =preferenceslist = event.data;
   }
-  else if(message.Filename == "mbSlave"){
+  else if (message.Filename == "mbSlave" && loadDone == false) {
     console.log(event.data);
     jsonSlave = document.getElementById("datatabledata").value = event.data;
-    loadBoardSlave(jsonSlave);
+    loadBoardSlave(event.data);
     genTable();
+    loadDone = true;
   }
 
 }
