@@ -16,7 +16,7 @@ void FFS::writefile(String filename, String content, uint8_t mode)
     File file = SPIFFS.open(filename, (mode == 1 ? "a" : "w"));
     // Serial.println("File Write: ");
     file.print(content);
-    Serial.println(content);
+    // Serial.println(content);
     file.close();
 }
 

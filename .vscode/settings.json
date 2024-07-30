@@ -68,7 +68,13 @@
     "utility": "cpp",
     "memory_resource": "cpp",
     "string": "cpp",
-    "string_view": "cpp"
+    "string_view": "cpp",
+    "bitset": "cpp",
+    "algorithm": "cpp",
+    "*.tcc": "cpp",
+    "optional": "cpp",
+    "system_error": "cpp",
+    "regex": "cpp"
   },
   "cmake.sourceDirectory": "D:/Workspace/Intern_PlayGround/lib/ArduinoJson"
 }

@@ -31,19 +31,12 @@ public:
     struct Slave_t
     {
         uint16_t Data[200];
-        uint8_t typeData[200];
         Address_t WriteAddress;
         Address_t ReadAddress;
         String ID;
         bool IsConnected;
     };
-    struct Device_Parameters_t {
-        char product[40];
-        long cycletime;
-        long productset;
-    };
-    Device_Parameters_t device[10];
-    Slave_t slave[10];
+    Slave_t slave[5];
     union data_t
     {
         float f;
@@ -54,8 +47,6 @@ public:
     void writeSlave();
     void u16_to_c(char *c_arr, uint16_t *u_arr);
     void c_to_u16(char *c_arr, uint16_t *u_arr);
-    void update_WebTable();
-    void load_WebTable();
 };
 extern MODBUS_PARAMETER mbParam;
 class MODBUS_RTU

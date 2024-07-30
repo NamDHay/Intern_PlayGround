@@ -164,15 +164,15 @@ JsonDocument rdoc;
 JsonDocument wDoc;
 String DataStr = "";
 String fbDataString = "";
-void mbSlavehandler()
+void mbAddSlavehandler()
 {
     mbParam.numSlave++;
 
-    mbParam.slave[(mbParam.numSlave - 1)].ID = rdoc["SlaveArray"][0]["ID"].as<String>();
-    mbParam.slave[(mbParam.numSlave - 1)].ReadAddress.startAddress = rdoc["SlaveArray"][0]["readStart"];
-    mbParam.slave[(mbParam.numSlave - 1)].ReadAddress.endAddress = rdoc["SlaveArray"][0]["readEnd"];
-    mbParam.slave[(mbParam.numSlave - 1)].WriteAddress.startAddress = rdoc["SlaveArray"][0]["writeStart"];
-    mbParam.slave[(mbParam.numSlave - 1)].WriteAddress.endAddress = rdoc["SlaveArray"][0]["writeEnd"];
+    mbParam.slave[(mbParam.numSlave - 1)].ID = rdoc["Slave"][0]["ID"].as<String>();
+    mbParam.slave[(mbParam.numSlave - 1)].ReadAddress.startAddress = rdoc["Slave"][0]["readStart"];
+    mbParam.slave[(mbParam.numSlave - 1)].ReadAddress.endAddress = rdoc["Slave"][0]["readEnd"];
+    mbParam.slave[(mbParam.numSlave - 1)].WriteAddress.startAddress = rdoc["Slave"][0]["writeStart"];
+    mbParam.slave[(mbParam.numSlave - 1)].WriteAddress.endAddress = rdoc["Slave"][0]["writeEnd"];
 
     Serial.println("Node: " + String((mbParam.numSlave - 1)));
     Serial.println("ID: " + String(mbParam.slave[(mbParam.numSlave - 1)].ID));
@@ -308,57 +308,31 @@ void setWifiHandler()
 }
 void editModbusData()
 {
-    // {"Command":"editModbusData","slaveID":"0","address":"6105","type":"0","value":"1"}
-    uint8_t totalSend = 0;
-    char cstr[40];
-    uint16_t ustr[20];
+    // {"Command":"editModbusData","slaveID":"0","address":"6105","length":"1","value":[1]}
+    //{"Command":"editModbusData","slaveID":"0","address":"6105","length":"5","value":[155,2,3,4,5]}
     uint8_t node = rdoc["slaveID"];
     long address = rdoc["address"];
-    uint8_t type = rdoc["type"];
-    Serial.println("node: " + String(node) + " address: " + String(address) + " type: " + String(type));
-    uint8_t stt = address - mbParam.slave[node].ReadAddress.startAddress;
-    Serial.println("STT: " + String(stt));
-    mbParam.slave[node].typeData[stt] = type;
-    switch (type)
+    long length = rdoc["length"];
+    uint16_t value[20];
+    for (size_t i = 0; i < length; i++)
     {
-    case COIL_TYPE:
-        mbParam.write_data.w[0] = rdoc["value"];
-        totalSend = 1;
-        break;
-    case WORD_TYPE:
-        mbParam.write_data.w[0] = rdoc["value"];
-        totalSend = 1;
-        break;
-    case DWORDS_TYPE:
-        mbParam.write_data.dw = rdoc["value"];
-        totalSend = 2;
-        break;
-    case FLOAT_TYPE:
-        mbParam.write_data.f = rdoc["value"];
-        totalSend = 2;
-        break;
-    case CHAR_TYPE:
-        memset(cstr, 0, 40);
-        memset(ustr, 0, 40);
-        String c = rdoc["value"].as<String>();
-        strcpy(cstr, c.c_str());
-        mbParam.c_to_u16(cstr, ustr);
-        totalSend = 20;
+        value[i] = rdoc["value"][i];
     }
+
     if ((modbusRTU.master == 1) && (mbParam.slave[node].ID.length() < 5))
     {
         while (modbusRTU.write_Multiple_Data(mbParam.slave[node].ID.toInt(),
-                                             (type == CHAR_TYPE) ? (uint16_t *)&ustr : (uint16_t *)&mbParam.write_data.w,
+                                             (uint16_t* )&value,
                                              address,
-                                             totalSend) != true)
+                                             length) != true)
             ;
     }
     else if ((modbusTCP.client == 1) && (mbParam.slave[node].ID.length() > 5))
     {
         while (modbusTCP.write_Multiple_Data(modbusTCP.str2IP(mbParam.slave[node].ID),
-                                             (type == CHAR_TYPE) ? (uint16_t *)&ustr : (uint16_t *)&mbParam.write_data.w,
+                                             (uint16_t* )&value,
                                              address,
-                                             totalSend) != true)
+                                             length) != true)
             ;
     }
 }
@@ -387,26 +361,13 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         }
         else if (command == "SlaveArray") // Add slave from WebSocket and write to filesystem
         {
-            mbSlavehandler();
-        }
-        else if (command == "TotalSlave") // Request get total slave
-        {
-            mbSendSlavehandler();
+            mbAddSlavehandler();
+            fbDataString = filesystem.readfile("/mbSlave.json");
+            online.notifyClients("{\"Command\":\"LoadFile\",\"Filename\":\"mbSlave\",\"Data\":" + fbDataString + "}");
         }
         else if (command == "editModbusData") // Request change data from web server
         {
             editModbusData();
-        }
-        else if (command == "editModbusDataType") // Request change data type from web server
-        {
-            uint8_t node = rdoc["slaveID"];
-            long address = rdoc["address"];
-            uint8_t type = rdoc["type"];
-            uint8_t stt = address - mbParam.slave[node].ReadAddress.startAddress;
-            mbParam.slave[node].typeData[stt] = type;
-            mbParam.update_WebTable();
-            fbDataString = filesystem.readfile("/mbSlaveAddressMap.json");
-            online.notifyClients("{\"Command\":\"TableID\",\"Data\":" + fbDataString + "}");
         }
         else if (command == "SaveFile") // Request Save file
         {
@@ -419,7 +380,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         {
             String filename = rdoc["Filename"].as<String>();
             String file = filesystem.readfile("/" + filename + ".json");
-            fbDataString = "{\"Command\":\"LoadFile\",\"Filename\":\"" + filename + "\",\"Data\":" + file + "}";
+            fbDataString = "{\"Filename\":\"" + filename + "\",\"Data\":" + file + "}";
             Serial.println(fbDataString);
             online.notifyClients(fbDataString);
         }
@@ -442,26 +403,26 @@ void firstwebload()
 
     // load slave card
     file = filesystem.readfile("/mbSlave.json");
-    Serial.println("{\"Command\":\"LoadFile\",\"Filename\":\"mbSlave\",\"Data\":\"" + file + "}");
-    online.notifyClients("{\"Command\":\"LoadFile\",\"Filename\":\"mbSlave\",\"Data\":" + file + "}");
+    Serial.println("{\"Filename\":\"mbSlave\",\"Data\":\"" + file + "}");
+    online.notifyClients("{\"Filename\":\"mbSlave\",\"Data\":" + file + "}");
 
     // load slave table
     file = filesystem.readfile("/TableID.json");
-    Serial.println("{\"Command\":\"LoadFile\",\"Filename\":\"TableID\",\"Data\":\"" + file + "}");
-    online.notifyClients("{\"Command\":\"LoadFile\",\"Filename\":\"TableID\",\"Data\":" + file + "}");
+    Serial.println("{\"Filename\":\"TableID\",\"Data\":\"" + file + "}");
+    online.notifyClients("{\"Filename\":\"TableID\",\"Data\":" + file + "}");
 
     // enable load database
     mbParam.loadTable = true;
 
     // load card application
     file = filesystem.readfile("/Application.json");
-    Serial.println("{\"Command\":\"LoadFile\",\"Filename\":\"Application\",\"Data\":\"" + file + "}");
-    online.notifyClients("{\"Command\":\"LoadFile\",\"Filename\":\"Application\",\"Data\":" + file + "}");
+    Serial.println("{\"Filename\":\"Application\",\"Data\":\"" + file + "}");
+    online.notifyClients("{\"Filename\":\"Application\",\"Data\":" + file + "}");
 
     // load card product
     file = filesystem.readfile("/DataProduct.json");
-    Serial.println("{\"Command\":\"LoadFile\",\"Filename\":\"DataProduct\",\"Data\":\"" + file + "}");
-    online.notifyClients("{\"Command\":\"LoadFile\",\"Filename\":\"DataProduct\",\"Data\":" + file + "}");
+    Serial.println("{\"Filename\":\"DataProduct\",\"Data\":\"" + file + "}");
+    online.notifyClients("{\"Filename\":\"DataProduct\",\"Data\":" + file + "}");
 }
 void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,
              void *arg, uint8_t *data, size_t len)
@@ -564,14 +525,14 @@ void TaskOnlineManager(void *pvParameter)
         if (millis() - startCheckWifiTime > 1000)
         {
             startCheckWifiTime = millis();
-            if (online.CheckConnect(10) == false)
-            {
-                online.AP_STA_Mode();
-            }
-            else
-            {
-                online.AP_Mode();
-            }
+            // if (online.CheckConnect(10) == false)
+            // {
+            //     online.AP_STA_Mode();
+            // }
+            // else
+            // {
+            //     online.AP_Mode();
+            // }
         }
         dnsServer.processNextRequest();
         ws.cleanupClients();
