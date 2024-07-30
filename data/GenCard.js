@@ -76,25 +76,25 @@ function addvaluecard(jsonValue) {
         var length = re - rs + 1;
         for (var j = 0; j < length; j++) {
             if (selectvalue1 == Number(rs) + j) {
-                document.getElementById("value1").innerHTML = jsontabledata.Data[chooseSlave].Data[j];
+                document.getElementById("value1").innerHTML = document.getElementById("value" + chooseSlave + "_" + j).innerText;
             }
             if (selectvalue2 == Number(rs) + j) {
-                document.getElementById("value2").innerHTML = jsontabledata.Data[chooseSlave].Data[j];
+                document.getElementById("value2").innerHTML = document.getElementById("value" + chooseSlave + "_" + j).innerText;
             }
             if (selectvalue3 == Number(rs) + j) {
-                document.getElementById("value3").innerHTML = jsontabledata.Data[chooseSlave].Data[j];
+                document.getElementById("value3").innerHTML = document.getElementById("value" + chooseSlave + "_" + j).innerText;
             }
             if (selectvalue4 == Number(rs) + j) {
-                document.getElementById("value4").innerHTML = jsontabledata.Data[chooseSlave].Data[j];
+                document.getElementById("value4").innerHTML = document.getElementById("value" + chooseSlave + "_" + j).innerText;
             }
             if (selectvalue5 == Number(rs) + j) {
-                document.getElementById("value5").innerHTML = jsontabledata.Data[chooseSlave].Data[j];
+                document.getElementById("value5").innerHTML = document.getElementById("value" + chooseSlave + "_" + j).innerText;
             }
             if (selectvalue6 == Number(rs) + j) {
-                document.getElementById("value6").innerHTML = jsontabledata.Data[chooseSlave].Data[j];
+                document.getElementById("value6").innerHTML = document.getElementById("value" + chooseSlave + "_" + j).innerText;
             }
             if (selectvalue7 == Number(rs) + j) {
-                document.getElementById("value7").innerHTML = jsontabledata.Data[chooseSlave].Data[j];
+                document.getElementById("value7").innerHTML = document.getElementById("value" + chooseSlave + "_" + j).innerText;
             }
         }
     }
@@ -208,22 +208,22 @@ function updatevalue() {
         var jsontabledata = JSON.parse(jsontableData);
         for (var j = 0; j < length; j++) {
             if (value1 == Number(rs) + j) {
-                document.getElementById("card" + i + "value1").innerHTML = jsontabledata.Data[chooseSlave].Data[j];
+                document.getElementById("card" + i + "value1").innerHTML = document.getElementById("value" + chooseSlave + "_" + j).innerText;
             }
             if (value2 == Number(rs) + j) {
-                document.getElementById("card" + i + "value2").innerHTML = jsontabledata.Data[chooseSlave].Data[j];
+                document.getElementById("card" + i + "value2").innerHTML = document.getElementById("value" + chooseSlave + "_" + j).innerText;
             }
             if (value3 == Number(rs) + j) {
-                document.getElementById("card" + i + "value3").innerHTML = jsontabledata.Data[chooseSlave].Data[j];
+                document.getElementById("card" + i + "value3").innerHTML = document.getElementById("value" + chooseSlave + "_" + j).innerText;
             }
             if (value4 == Number(rs) + j) {
-                document.getElementById("card" + i + "value4").innerHTML = jsontabledata.Data[chooseSlave].Data[j];
+                document.getElementById("card" + i + "value4").innerHTML = document.getElementById("value" + chooseSlave + "_" + j).innerText;
             }
             if (value5 == Number(rs) + j) {
-                document.getElementById("card" + i + "value5").innerHTML = jsontabledata.Data[chooseSlave].Data[j];
+                document.getElementById("card" + i + "value5").innerHTML = document.getElementById("value" + chooseSlave + "_" + j).innerText;
             }
             if (value6 == Number(rs) + j) {
-                document.getElementById("card" + i + "value6").innerHTML = jsontabledata.Data[chooseSlave].Data[j];
+                document.getElementById("card" + i + "value6").innerHTML = document.getElementById("value" + chooseSlave + "_" + j).innerText;
             }
         }
     }

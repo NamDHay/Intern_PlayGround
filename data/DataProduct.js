@@ -199,24 +199,27 @@ function ShowModalCardSet(closefunc) {
     var chooseSlave = document.getElementById("selectreg").value;
     if(chooseSlave == "") chooseSlave = UpdateDataApp.Data[id].app.split(",")[0];
     var jsontabledata = JSON.parse(jsontableData);
-    for(var j = 0; j < jsontableid.Data[chooseSlave].Data.length; j++){
-      if (value1 == jsontableid.Data[chooseSlave].Data[j][0]) {
-        document.getElementById("planInput").value = jsontabledata.Data[chooseSlave].Data[j];
+    var re = document.getElementById('re' + chooseSlave).innerText;
+    var rs = document.getElementById('rs' + chooseSlave).innerText;
+    var length = re - rs + 1;
+    for(var j = 0; j < length; j++){
+      if (value1 == Number(rs) + j) {
+        document.getElementById("planInput").value = document.getElementById("value" + chooseSlave + "_" + j).innerText;
       }
-      if (value2 == jsontableid.Data[chooseSlave].Data[j][0]) {
-        document.getElementById("resultInput").value = jsontabledata.Data[chooseSlave].Data[j];
+      if (value2 == Number(rs) + j) {
+        document.getElementById("resultInput").value = document.getElementById("value" + chooseSlave + "_" + j).innerText;
       }
-      if (value3 == jsontableid.Data[chooseSlave].Data[j][0]) {
-        document.getElementById("planSetInput").value = jsontabledata.Data[chooseSlave].Data[j];
+      if (value3 == Number(rs) + j) {
+        document.getElementById("planSetInput").value = document.getElementById("value" + chooseSlave + "_" + j).innerText;
       }
-      if (value4 == jsontableid.Data[chooseSlave].Data[j][0]) {
-        document.getElementById("ProductDataSaveSelect").value = jsontabledata.Data[chooseSlave].Data[j];
+      if (value4 == Number(rs) + j) {
+        document.getElementById("ProductDataSaveSelect").value = document.getElementById("value" + chooseSlave + "_" + j).innerText;
       }
-      if (value5 == jsontableid.Data[chooseSlave].Data[j][0]) {
-        document.getElementById("TimeIncInput").value = jsontabledata.Data[chooseSlave].Data[j];
+      if (value5 == Number(rs) + j) {
+        document.getElementById("TimeIncInput").value = document.getElementById("value" + chooseSlave + "_" + j).innerText;
       }
-      if (value6 == jsontableid.Data[chooseSlave].Data[j][0]) {
-        document.getElementById("PCSInput").value = jsontabledata.Data[chooseSlave].Data[j];
+      if (value6 == Number(rs) + j) {
+        document.getElementById("PCSInput").value = document.getElementById("value" + chooseSlave + "_" + j).innerText;
       }
     }
   
@@ -368,8 +371,8 @@ function ShowModalCardSet(closefunc) {
     }
     
     saveSettings(cardID,document.getElementById("planSetInput").value,3);
-    setTimeout(function () { saveSettings(cardID,productJSON.Data[cardid].product[productID],4); }, 500);
-    setTimeout(function () { saveSettings(cardID,document.getElementById("TimeIncInput").value,5); }, 500);
+    setTimeout(function () { saveSettings(cardID,char_string_to_word(productJSON.Data[cardid].product[productID]) ,4); }, 1000);
+    setTimeout(function () { saveSettings(cardID,document.getElementById("TimeIncInput").value,5); }, 2000);
     updatevalue();
   }
   // change name card  
@@ -492,7 +495,7 @@ function ShowModalCardSet(closefunc) {
     if (type == "3") length = 2;
     if (type == "4") length = 20;
 
-    var json_send = "{\"Command\":\"editModbusData\",\"slaveID\":\"" + slaveID + "\",\"address\":\"" + RegsAddress + "\",\"length\":\"" + length + "\",\"value\":\"" + value + "\"}";
+    var json_send = "{\"Command\":\"editModbusData\",\"slaveID\":\"" + slaveID + "\",\"address\":\"" + RegsAddress + "\",\"length\":\"" + length + "\",\"value\":[" + value + "]}";
     console.log(json_send);
   
     websocket.send(json_send);
