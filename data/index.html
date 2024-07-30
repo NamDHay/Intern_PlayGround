@@ -614,16 +614,9 @@
   </div>
   <!-- Tab Show Data -->
   <div id="cardshowdata" class="contentcuatao" style="display: none;">
-    <div class="cardcuatao" style="width:100%">
+    
 
-    <div class="cardcuatao" style="width:100%">
-
-      <textarea  id="datatableid" cols="30" rows="5" style="width: 100%; height: fit-content; border-radius: 0.25rem;"></textarea>
-      <button id="bntLoadtableid" class="buttoncuatao_output">Load TableID</button>
-      <button id="bntReloadtableid" class="buttoncuatao_output">Reload TableID</button>
-      <button id="bntsavetableid" class="buttoncuatao_output">Save TableID</button>
-      <button id="bnttesttableid" class="buttoncuatao_output">Test TableID</button>
-    </div><br>
+    
 
     <div class="cardcuatao" style="width:100%">
 
@@ -633,7 +626,15 @@
       <button id="bntsavetabledata" class="buttoncuatao_output">Save Slave</button>
       <button id="bnttesttabledata" class="buttoncuatao_output" >Test Slave</button>
     </div><br>
+    <div class="cardcuatao" style="width:100%">
 
+      <textarea  id="datatableid" cols="30" rows="5" style="width: 100%; height: fit-content; border-radius: 0.25rem;"></textarea>
+      <button id="bntLoadtableid" class="buttoncuatao_output">Load TableID</button>
+      <button id="bntReloadtableid" class="buttoncuatao_output">Reload TableID</button>
+      <button id="bntsavetableid" class="buttoncuatao_output">Save TableID</button>
+      <button id="bnttesttableid" class="buttoncuatao_output">Test TableID</button>
+    </div><br>
+    <div class="cardcuatao" style="width:100%">
     <textarea id="jsonApp" cols="30" rows="5" style="width: 100%; height: fit-content; border-radius: 0.25rem;"></textarea></textarea>
     <button id="bntLoadcard" class="buttoncuatao_output">Load Card</button>
     <button id="bntReloadcard" class="buttoncuatao_output">Reload Card</button>
@@ -649,7 +650,9 @@
     <button id="bntsaveproduct" class="buttoncuatao_output">Save Product</button>
     <button id="bnttestproduct" class="buttoncuatao_output">Test Product</button>
   </div><br>
-    <!-- <div id="waitData" class="loader"></div> -->
+
+
+  <!-- <div id="waitData" class="loader"></div> -->
     
     
   </div>
@@ -1007,10 +1010,12 @@
 </div>
 
   <script src="./main.js"></script>
+  <script src="./lib.js"></script>
   <script src="./modbus.js"></script>
   <script src="./GenCard.js"></script>
   <script src="./DataProduct.js"></script>
   <script src="./Log.js"></script>
+  <script src="./HardCode.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </body>
 

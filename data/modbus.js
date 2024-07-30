@@ -255,12 +255,35 @@ function clearSlave() {
   document.getElementById("slavecard").innerHTML = ""
 }
 function loadTable(jsonValue) {
+  var key = JSON.parse(jsonValue);
+  for (var i = 0; i < numSlave; i++) {
+    var slave = key.Data[i].ID;
+    document.getElementById("slave" + i).innerHTML = slave;
+    var rs = document.getElementById('rs' + i).innerText;
+    var re = document.getElementById('re' + i).innerText;
+    var length = re - rs + 1;
+    for (var j = 0; j < length; j++) {
+      if (key.Data[i].Data[j] == null) break;
+      var type = "<select id=\"Type" + i + "_" + j + "\" onchange=\"editModbusDataType('" + i + '_' + j + "')\"><option value=0 %0%>WORD</option><option value=1 %1%>COIL</option><option value=2 %2%>DWORD</option><option value=3 %3%>FLOAT</option><option value=4 %4%>CHAR</option></select>";
+      if (key.Data[i].Data[j] == "0") { type = type.replace("%0%", "selected"); type = type.replace("%1%", ""); type = type.replace("%2%", ""); type = type.replace("%3%", ""); type = type.replace("%4%", ""); }
+      if (key.Data[i].Data[j] == "1") { type = type.replace("%1%", "selected"); type = type.replace("%0%", ""); type = type.replace("%2%", ""); type = type.replace("%3%", ""); type = type.replace("%4%", ""); }
+      if (key.Data[i].Data[j] == "2") { type = type.replace("%2%", "selected"); type = type.replace("%1%", ""); type = type.replace("%0%", ""); type = type.replace("%3%", ""); type = type.replace("%4%", ""); }
+      if (key.Data[i].Data[j] == "3") { type = type.replace("%3%", "selected"); type = type.replace("%1%", ""); type = type.replace("%2%", ""); type = type.replace("%0%", ""); type = type.replace("%4%", ""); }
+      if (key.Data[i].Data[j] == "4") { type = type.replace("%4%", "selected"); type = type.replace("%1%", ""); type = type.replace("%2%", ""); type = type.replace("%0%", ""); type = type.replace("%3%", ""); }
+      document.getElementById("SelectType" + i + "_" + j).innerHTML = type;
+    }
+  }
+  loading = 1;
+}
+function genTable() {
   var card_table_html = "";
-  var stt = 0;
+  var stt = 1;
+  var length;
+  var rs;
+  var re;
   firstload = 1;
   if (firstload == 1) {
     firstload = 0;
-    var key = JSON.parse(jsonValue);
     for (var i = 0; i < numSlave; i++) {
       if (i % 2 == 0) {
         card_table_html += "<div class=\"row justify-content-around\">";
@@ -272,34 +295,29 @@ function loadTable(jsonValue) {
       <CENTER><span class=\"state\">ID: <div class=\"state\" id=\"slave" + i + "\">%ID%</div></span></CENTER>\
       <table class=\"table \"><thead class=\"thead-dark\"><th>STT</th><th>Address</th><th>Type</th><th>Data</th></thead><tbody>\
       ";
-      for (var j = 0; j < key.Data[i].Data.length; j++) {
-        if (key.Data[i].Data[j][0] == null) break;
+      rs = document.getElementById('rs' + i).innerText;
+      re = document.getElementById('re' + i).innerText;
+      length = re - rs + 1;
+      for (var j = 0; j < length; j++) {
         stt++;
-        var type = "<select id=\"SelectType" + i + "_" + j + "\" onchange=\"editModbusDataType('" + i + '_' + j + "')\"><option value=0 %0%>WORD</option><option value=1 %1%>COIL</option><option value=2 %2%>DWORD</option><option value=3 %3%>FLOAT</option><option value=4 %4%>CHAR</option></select>";
-        if (key.Data[i].Data[j][1] == "0") { type = type.replace("%0%", "selected"); type = type.replace("%1%", ""); type = type.replace("%2%", ""); type = type.replace("%3%", ""); type = type.replace("%4%", ""); }
-        if (key.Data[i].Data[j][1] == "1") { type = type.replace("%1%", "selected"); type = type.replace("%0%", ""); type = type.replace("%2%", ""); type = type.replace("%3%", ""); type = type.replace("%4%", ""); }
-        if (key.Data[i].Data[j][1] == "2") { type = type.replace("%2%", "selected"); type = type.replace("%1%", ""); type = type.replace("%0%", ""); type = type.replace("%3%", ""); type = type.replace("%4%", ""); }
-        if (key.Data[i].Data[j][1] == "3") { type = type.replace("%3%", "selected"); type = type.replace("%1%", ""); type = type.replace("%2%", ""); type = type.replace("%0%", ""); type = type.replace("%4%", ""); }
-        // if((key.Data[i].length >= 20) && ((key.Data[i].length - j) > 20)) {
-          if (key.Data[i].Data[j][1] == "4") { type = type.replace("%4%", "selected"); type = type.replace("%1%", ""); type = type.replace("%2%", ""); type = type.replace("%0%", ""); type = type.replace("%3%", ""); }
-        // }
-        card_table_html += "<tr><td>" + stt + "</td><td><div id=\"address" + i + "_" + j + "\">NULL</div></td><td>" + type + "</td><td><div id=\"value" + i + "_" + j + "\">NULL</div></td><td><button class=\"buttoncuatao\" onclick=\"editModbusData('" + i + '_' + j + "')\">EDIT</button></td></tr>";
+        var type = "<div id=\"SelectType" + i + "_" + j + "\"></div>";
+        card_table_html += "<tr><td>" + stt + "</td><td><div id=\"address" + i + "_" + j + "\">NULL</div></td><td>" + type + "</td><td><div id=\"value" + i + "_" + j + "\">NULL</div></td><td><div id=\"editSlaveDataBtn" + i + "_" + j + "\" style=\"display: block;\"><button class=\"buttoncuatao\" onclick=\"editModbusData('" + i + '_' + j + "')\">EDIT</button></div></td></tr>";
       }
       card_table_html += "</tbody></table></div>";
       if (i % 2 == 1) {
         card_table_html += "</div><br>";
       }
+      stt = 1;
     }
-
     document.getElementById("slaveTable").innerHTML = card_table_html;
-    for (var i = 0; i < numSlave; i++) {
-      document.getElementById("slave" + i).innerHTML = key.Data[i].ID;
-      for (var j = 0; j < key.Data[i].Data.length; j++) {
-        if (key.Data[i].Data[j][0] == null) break;
-        document.getElementById("address" + i + "_" + j).innerHTML = key.Data[i].Data[j][0];
+    for (var m = 0; m < numSlave; m++) {
+      rs = document.getElementById('rs' + m).innerText;
+      re = document.getElementById('re' + m).innerText;
+      length = re - rs + 1;
+      for (var n = 0; n < length; n++) {
+        document.getElementById("address" + m + "_" + n).innerHTML = Number(rs) + n;
       }
     }
-    loading = 1;
   }
 }
 function loaddata(jsonValue) {
@@ -313,9 +331,16 @@ function loaddata(jsonValue) {
     else {
       document.getElementById("slaveConnect" + i).style = 'background-color: rgb(0, 255, 0)';
       document.getElementById("table" + i).style = 'display: block;';
-
       for (var j = 0; j < key.Data[i].Data.length; j++) {
-        if (loading == 1) { if (onUpdate == 0) document.getElementById("value" + i + "_" + j).innerHTML = key.Data[i].Data[j]; }
+        if (loading == 1 && onUpdate == 0) {
+          var type = document.getElementById("Type" + i + "_" + j).value;
+          console.log("type: " + type);
+          var value =[key.Data[i].Data[j]];
+          console.log("value: " + value);
+          var processedValue = selectTypeData(type, value);
+          console.log("processedValue: " + processedValue);
+          // document.getElementById("value" + i + "_" + j).innerHTML = processedValue;
+        }
       }
     }
   }
@@ -325,10 +350,11 @@ function editModbusDataType(a) {
   var id = index[0];
   var address = index[1];
   var slaveAddress = document.getElementById("address" + id + "_" + address).innerHTML;
-  var type = document.getElementById("SelectType" + id + "_" + address).value;
-  var json_send = "{\"Command\":\"editModbusDataType\",\"slaveID\":\"" + id + "\",\"address\":\"" + slaveAddress + "\",\"type\":\"" + type + "\"}";
-  console.log(json_send);
-  websocket.send(json_send);
+  var type = document.getElementById("Type" + id + "_" + address).value;
+  var key = JSON.parse(jsontableID);
+  key.Data[id].Data[address] = type;
+  var fbstring = JSON.stringify(key);
+  document.getElementById("datatableid").value = fbstring;
 }
 function editModbusData(a) {
   onUpdate = 1;
@@ -336,18 +362,144 @@ function editModbusData(a) {
   var id = index[0];
   var address = index[1];
   var slaveAddress = document.getElementById("address" + id + "_" + address).innerHTML;
-  var type = document.getElementById("SelectType" + id + "_" + address).value;
+  var type = document.getElementById("Type" + id + "_" + address).value;
   var value = document.getElementById("value" + id + "_" + address).innerHTML;
-  document.getElementById("value" + id + "_" + address).innerHTML = "<div><input type=\"text\" id=\"updateBox\" size=\"20\" placeholder=\"" + value + "\" onblur=\"updateDataBox('" + id + '_' + slaveAddress + '_' + type + "')\"></div><br></br>";
+  document.getElementById("editSlaveDataBtn" + id + "_" + address).style.display = "none";
+  document.getElementById("value" + id + "_" + address).innerHTML = "<div><input type=\"text\" id=\"updateBox\" size=\"20\" placeholder=\"" + value + "\" onblur=\"\"></div><br></br>";
+  document.getElementById("updateBox").focus();
+  document.getElementById("updateBox").addEventListener("keyup", function (event) {
+    if (event.key == "Enter") {
+      updateDataBox(id + '_' + slaveAddress + '_' + type);
+      event.preventDefault();
+      document.getElementById("editSlaveDataBtn" + id + "_" + address).style.display = "block";
+    }
+  });
 }
+
 function updateDataBox(a) {
   onUpdate = 0;
   var index = a.split("_");
   var id = index[0];
   var address = index[1];
   var type = index[2];
+  var length;
+  if (type == "0") length = 1;
+  if (type == "1") length = 1;
+  if (type == "2") length = 2;
+  if (type == "3") length = 2;
+  if (type == "4") length = 20;
   var value = document.getElementById("updateBox").value;
-  var json_send = "{\"Command\":\"editModbusData\",\"slaveID\":\"" + id + "\",\"address\":\"" + address + "\",\"type\":\"" + type + "\",\"value\":\"" + value + "\"}";
+  var json_send = "{\"Command\":\"editModbusData\",\"slaveID\":\"" + id + "\",\"address\":\"" + address + "\",\"length\":\"" + length + "\",\"value\":\"" + value + "\"}";
   console.log(json_send);
-  websocket.send(json_send);
+  // websocket.send(json_send);
+}
+
+function word_to_coil(wordArr, coilArr) {
+  for (let i = 0; i < wordArr.length; i++) {
+    for (let bit = 0; bit < 16; bit++) {
+      coilArr[i * 16 + bit] = (wordArr[i] >> bit) & 1;
+    }
+  }
+}
+function coil_to_word(coilArr, wordArr) {
+  for (let i = 0; i < wordArr.length; i++) {
+    wordArr[i] = 0;
+    for (let bit = 0; bit < 16; bit++) {
+      wordArr[i] |= (coilArr[i * 16 + bit] << bit);
+    }
+  }
+}
+
+
+function word_to_char_string(wordArr, charArr) {
+  for (let i = 0; i < wordArr.length; i++) {
+    let word = wordArr[i];
+    charArr[2 * i] = String.fromCharCode(word & 0xFF);         // Byte thấp
+    charArr[2 * i + 1] = String.fromCharCode((word >> 8) & 0xFF); // Byte cao
+  }
+}
+
+// Hàm chuyển đổi từ chuỗi ký tự thành mảng từ 16 bit
+function char_string_to_word(charArr, wordArr) {
+  for (let i = 0; i < wordArr.length; i++) {
+    let lowByte = charArr[2 * i].charCodeAt(0);  // Byte thấp
+    let highByte = charArr[2 * i + 1].charCodeAt(0); // Byte cao
+    wordArr[i] = (lowByte << 8) | highByte; // Ghép nối hai byte thành một từ 16 bit
+  }
+}
+
+
+function word_to_float(wordArr, floatArr) {
+  for (let i = 0; i < wordArr.length / 2; i++) {
+    let combined = (wordArr[2 * i] | (wordArr[2 * i + 1] << 16));
+    floatArr[i] = int32ToFloat(combined);
+  }
+}
+
+function float_to_word(floatArr, wordArr) {
+  for (let i = 0; i < floatArr.length; i++) {
+    // Chuyển đổi float thành số 32 bit
+    let combined = floatToInt32(floatArr[i]);
+    // Tách số 32 bit thành hai từ 16 bit
+    wordArr[2 * i] = combined & 0xFFFF;            // Byte thấp
+    wordArr[2 * i + 1] = (combined >> 16) & 0xFFFF; // Byte cao
+  }
+}
+
+
+  // Hàm chuyển đổi số 32 bit thành float
+function int32ToFloat(int32) {
+  let buffer = new ArrayBuffer(4);
+  new DataView(buffer).setUint32(0, int32);
+  return new DataView(buffer).getFloat32(0);
+}
+
+  // Hàm chuyển đổi float thành số 32 bit
+function floatToInt32(float) {
+  let buffer = new ArrayBuffer(4);
+  new DataView(buffer).setFloat32(0, float);
+  return new DataView(buffer).getUint32(0);
+}
+
+function word_to_dword(wordArr, dwordArr) {
+  for (let i = 0; i < wordArr.length / 2; i++) {
+    dwordArr[i] = (wordArr[2 * i] | (wordArr[2 * i + 1] << 16));
+  }
+}
+
+
+function dword_to_word(dwordArr, wordArr) {
+  for (let i = 0; i < dwordArr.length; i++) {
+    wordArr[2 * i] = dwordArr[i] & 0xFFFF;            // Byte thấp
+    wordArr[2 * i + 1] = (dwordArr[i] >> 16) & 0xFFFF; // Byte cao
+  }
+}
+
+function selectTypeData(typedata, value) {
+  switch (typedata) {
+    case 0:
+      return value.join(','); // Chuyển đổi giá trị thành chuỗi phân cách bằng dấu phẩy
+    case 1:
+      let coilArr = new Array(value.length * 16).fill(0);
+      word_to_coil(value, coilArr);
+      return coilArr.join(','); // Chuyển đổi mảng thành chuỗi phân cách bằng dấu phẩy
+
+    case 2:
+      let dwordArr = new Array(value.length / 2).fill(0);
+      word_to_dword(value, dwordArr);
+      return dwordArr.join(','); // Chuyển đổi mảng thành chuỗi phân cách bằng dấu phẩy
+
+    case 3:
+      let floatArr = new Array(value.length / 2).fill(0);
+      word_to_float(value, floatArr);
+      return floatArr.join(','); // Chuyển đổi mảng thành chuỗi phân cách bằng dấu phẩy
+
+    case 4:
+      let charArr = new Array(value.length * 2).fill('');
+      word_to_char_string(value, charArr);
+      return charArr.join(''); // Chuyển đổi mảng thành chuỗi không có phân cách
+
+    default:
+      throw new Error("Invalid type data"); // Xử lý trường hợp không hợp lệ
+  }
 }

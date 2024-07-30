@@ -80,7 +80,7 @@ function ShowModalCardSet(closefunc) {
       editButton.className = "btn btn-warning";
       editButton.type = "button";
       editButton.onclick = function () {
-        editProduct(id, index); // Truyền id của card và index của sản phẩm vào hàm chỉnh sửa sản phẩm
+      editProduct(id, index); // Truyền id của card và index của sản phẩm vào hàm chỉnh sửa sản phẩm
       };
       editButtonCell.appendChild(editButton);
   
