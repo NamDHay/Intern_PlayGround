@@ -277,7 +277,7 @@ function loadTable(jsonValue) {
 }
 function genTable() {
   var card_table_html = "";
-  var stt = 0;
+  var stt = 1;
   var length;
   var rs;
   var re;
@@ -307,13 +307,13 @@ function genTable() {
       if (i % 2 == 1) {
         card_table_html += "</div><br>";
       }
-      stt = 0;
+      stt = 1;
     }
     document.getElementById("slaveTable").innerHTML = card_table_html;
     for (var m = 0; m < numSlave; m++) {
       rs = document.getElementById('rs' + m).innerText;
       re = document.getElementById('re' + m).innerText;
-      length = re - rs;
+      length = re - rs + 1;
       for (var n = 0; n < length; n++) {
         document.getElementById("address" + m + "_" + n).innerHTML = Number(rs) + n;
       }
@@ -343,9 +343,10 @@ function editModbusDataType(a) {
   var address = index[1];
   var slaveAddress = document.getElementById("address" + id + "_" + address).innerHTML;
   var type = document.getElementById("Type" + id + "_" + address).value;
-  // var json_send = "{\"Command\":\"editModbusDataType\",\"slaveID\":\"" + id + "\",\"address\":\"" + slaveAddress + "\",\"type\":\"" + type + "\"}";
-  console.log(json_send);
-  websocket.send(json_send);
+  var key = JSON.parse(jsontableID);
+  key.Data[id].Data[address] = type;
+  var fbstring = JSON.stringify(key);
+  document.getElementById("datatableid").value = fbstring;
 }
 function editModbusData(a) {
   onUpdate = 1;
