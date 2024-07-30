@@ -195,7 +195,7 @@ function addSlaveCard() {
       <h5 class=\"state\">\
       <CENTER> No: <span id=\"headerNo" + i + "\">%NO%</span></CENTER>\
       </h5>\
-      <p class=\"state\">ID: <span id=\"slave" + i + "\">%ID%</span></p>\
+      <p class=\"state\">ID: <span id=\"slaveCardID" + i + "\">%ID%</span></p>\
       <p class=\"state\">READ</p>\
       <p class=\"state\">From <span id=\"rs" + i + "\">%S%</span> To <span id=\"re" + i + "\">%E%</span></p>\
       <p class=\"state\">WRITE</p>\
@@ -223,7 +223,7 @@ function initData(jsonValue) {
   var re = slave_obj.Slave[0].readEnd;
 
   document.getElementById('headerNo' + (numSlave - 1)).innerHTML = (numSlave - 1);
-  document.getElementById('slave' + (numSlave - 1)).innerHTML = ID;
+  document.getElementById('slaveCardID' + (numSlave - 1)).innerHTML = ID;
   document.getElementById('rs' + (numSlave - 1)).innerHTML = rs;
   document.getElementById('re' + (numSlave - 1)).innerHTML = re;
   document.getElementById('ws' + (numSlave - 1)).innerHTML = ws;
@@ -241,7 +241,7 @@ function loadBoardSlave(jsonValue) {
     var rs = keys.Data.Slave[i].rs;
     var re = keys.Data.Slave[i].re;
     document.getElementById('headerNo' + i).innerHTML = i;
-    document.getElementById('slave' + i).innerHTML = ID;
+    document.getElementById('slaveCardID' + i).innerHTML = ID;
     document.getElementById('rs' + i).innerHTML = rs;
     document.getElementById('re' + i).innerHTML = re;
     document.getElementById('ws' + i).innerHTML = ws;
@@ -275,6 +275,7 @@ function loadTable(jsonValue) {
   }
   loading = 1;
 }
+var secondload = 0;
 function genTable() {
   var card_table_html = "";
   var stt = 1;
@@ -282,7 +283,8 @@ function genTable() {
   var rs;
   var re;
   firstload = 1;
-  if (firstload == 1) {
+  secondload = 1;
+  if (firstload == 1 && secondload == 1) {
     firstload = 0;
     for (var i = 0; i < numSlave; i++) {
       if (i % 2 == 0) {
@@ -322,6 +324,9 @@ function genTable() {
 }
 function loaddata(jsonValue) {
   var key = JSON.parse(jsonValue);
+  var value;
+  var type;
+  var wArr = new Array(20).fill(0);
   for (var i = 0; i < numSlave; i++) {
     if (key.Data[i].connect == "0") {
       document.getElementById("slaveConnect" + i).style = 'background-color: rgb(255, 0, 0)';
@@ -332,7 +337,38 @@ function loaddata(jsonValue) {
       document.getElementById("slaveConnect" + i).style = 'background-color: rgb(0, 255, 0)';
       document.getElementById("table" + i).style = 'display: block;';
       for (var j = 0; j < key.Data[i].Data.length; j++) {
-        if (loading == 1) { if (onUpdate == 0) document.getElementById("value" + i + "_" + j).innerHTML = key.Data[i].Data[j]; }
+        if (loading == 1) {
+          if (onUpdate == 0) {
+            type = document.getElementById("Type" + i + "_" + j).value;
+            switch (Number(type)) {
+              case 0:
+                value = key.Data[i].Data[j];
+                break;
+              case 1:
+                value = word_to_coil(key.Data[i].Data[j]);
+                break;
+              case 2:
+                value = word_to_dword([key.Data[i].Data[j], key.Data[i].Data[j + 1]]);
+                break;
+              case 3:
+                value = word_to_float([key.Data[i].Data[j], key.Data[i].Data[j + 1]]);
+                break;
+              case 4:
+                wArr.fill(0);
+                value = "";
+                for (var h = 0; h < 20; h++) {
+                  wArr[h] = key.Data[i].Data[j + h];
+                }
+                var array = word_to_char_string(wArr);
+                for (var m = 0; m < array.length; m++) {
+                  value += array[m];
+                  if (array[m] == String.fromCharCode(0) && array[m + 2] == String.fromCharCode(0)) { break; }
+                }
+                break;
+            }
+            document.getElementById("value" + i + "_" + j).innerHTML = value;
+          }
+        }
       }
     }
   }
@@ -375,13 +411,108 @@ function updateDataBox(a) {
   var address = index[1];
   var type = index[2];
   var length;
-  if (type == "0") length = 1;
-  if (type == "1") length = 1;
-  if (type == "2") length = 2;
-  if (type == "3") length = 2;
-  if (type == "4") length = 20;
-  var value = document.getElementById("updateBox").value;
-  var json_send = "{\"Command\":\"editModbusData\",\"slaveID\":\"" + id + "\",\"address\":\"" + address + "\",\"length\":\"" + length + "\",\"value\":\"" + value + "\"}";
+  var value = [];
+  value = document.getElementById("updateBox").value;
+  switch (Number(type)) {
+    case 0:
+      length = 1;
+      break;
+    case 1:
+      value = word_to_coil(value);
+      length = 1;
+      break;
+    case 2:
+      value = dword_to_word(parseInt(value));
+      length = 2;
+      break;
+    case 3:
+      value = float_to_word(parseFloat(value));
+      length = 2;
+      break;
+    case 4:
+      var value = char_string_to_word(value);
+      console.log(value);
+      length = 20;
+      break;
+  }
+  var json_send = "{\"Command\":\"editModbusData\",\"slaveID\":\"" + id + "\",\"address\":\"" + address + "\",\"length\":\"" + length + "\",\"value\":[" + value + "]}";
   console.log(json_send);
   websocket.send(json_send);
+}
+
+function word_to_coil(word) {
+  return (((word) & (1 << 0)) == (1 << 0)) ? 1 : 0;
+}
+
+function word_to_char_string(wordArr) {
+  var charArr = new Array(40).fill(0);
+  for (let i = 0; i < 20; i++) {
+    let word = wordArr[i];
+    charArr[2 * i] = String.fromCharCode(word & 0xFF);         // Byte thấp
+    charArr[2 * i + 1] = String.fromCharCode((word >> 8) & 0xFF); // Byte cao
+  }
+  return charArr;
+}
+
+// Hàm chuyển đổi từ chuỗi ký tự thành mảng từ 16 bit
+function char_string_to_word(str) {
+  if (str.length % 2 == 0) {
+    console.log("độ dài chẵn");
+  }
+  else {
+    console.log("độ dài lẻ");
+    str = str + '\x00';
+  }
+  console.log(str);
+  var charArr = str.split('');
+  console.log(charArr);
+  var wordArr = new Array(20).fill(0);
+  let lowByte;
+  let highByte;
+  for (let i = 0; i < 20; i++) {
+    try {
+      lowByte = charArr[2 * i].charCodeAt(0);  // Byte thấp
+      highByte = charArr[2 * i + 1].charCodeAt(0); // Byte cao
+      wordArr[i] = (highByte << 8) | lowByte; // Ghép nối hai byte thành một từ 16 bit
+    }
+    catch (e) { break; }
+  }
+  return wordArr;
+}
+
+function word_to_float(wordArr) {
+  let combined = (wordArr[0] | (wordArr[1] << 16));
+  return int32ToFloat(combined);
+}
+
+function float_to_word(float) {
+  var wordArr = [];
+  let combined = floatToInt32(float);
+  wordArr[0] |= combined & 0xFFFF;            // Byte thấp
+  wordArr[1] |= (combined >> 16);             // Byte cao
+  return wordArr;
+}
+
+// Hàm chuyển đổi số 32 bit thành float
+function int32ToFloat(int32) {
+  let buffer = new ArrayBuffer(4);
+  new DataView(buffer).setUint32(0, int32);
+  return new DataView(buffer).getFloat32(0);
+}
+
+// Hàm chuyển đổi float thành số 32 bit
+function floatToInt32(float) {
+  let buffer = new ArrayBuffer(4);
+  new DataView(buffer).setFloat32(0, float);
+  return new DataView(buffer).getUint32(0);
+}
+
+function word_to_dword(wordArr) {
+  return (wordArr[0] | (wordArr[1] << 16));
+}
+
+function dword_to_word(dword) {
+  wordArr[0] = dword & 0xFFFF;            // Byte thấp
+  wordArr[1] = (dword >> 16);    // Byte cao
+  return wordArr;
 }

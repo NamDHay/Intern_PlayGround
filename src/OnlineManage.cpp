@@ -183,22 +183,6 @@ void mbAddSlavehandler()
 
     mbParam.writeSlave();
 }
-void mbSendSlavehandler()
-{
-    wDoc["Command"] = "TotalSlave";
-    for (byte i = 0; i < mbParam.numSlave; i++)
-    {
-        wDoc["Slave"][i]["ID"] = mbParam.slave[i].ID;
-        wDoc["Slave"][i]["readStart"] = mbParam.slave[i].ReadAddress.startAddress;
-        wDoc["Slave"][i]["readEnd"] = mbParam.slave[i].ReadAddress.endAddress;
-        wDoc["Slave"][i]["writeStart"] = mbParam.slave[i].WriteAddress.startAddress;
-        wDoc["Slave"][i]["writeEnd"] = mbParam.slave[i].WriteAddress.endAddress;
-    }
-
-    serializeJson(wDoc, fbDataString);
-    Serial.println(fbDataString);
-    online.notifyClients(fbDataString);
-}
 void setModbusHandler()
 {
     String modbustype = rdoc["modbustype"].as<String>();
@@ -265,11 +249,6 @@ void setModbusHandler()
         modbusTCP.ethernet.subnet = sn;
         modbusTCP.ethernet.primaryDNS = dns;
     }
-
-    wDoc["Command"] = "settingModbus";
-    wDoc["Data"] = "SetingDone";
-    serializeJson(wDoc, fbDataString);
-    online.notifyClients(fbDataString);
     modbusRTU.writeSetting();
     modbusTCP.writeSetting();
 }
@@ -299,10 +278,6 @@ void setWifiHandler()
     online.wifi_setting.staip = staip;
     online.wifi_setting.wmode = wmode;
     online.writeSetting();
-    wDoc["Command"] = "settingWifi";
-    wDoc["Data"] = "SetingDone";
-    serializeJson(wDoc, fbDataString);
-    online.notifyClients(fbDataString);
     bool IsMessage = true;
     xQueueSend(online.qWifiSetting, (void *)&IsMessage, 1 / portTICK_PERIOD_MS);
 }
@@ -317,12 +292,12 @@ void editModbusData()
     for (size_t i = 0; i < length; i++)
     {
         value[i] = rdoc["value"][i];
+        Serial.println("value" + String(i) + ": " + String(value[i]));
     }
-
     if ((modbusRTU.master == 1) && (mbParam.slave[node].ID.length() < 5))
     {
         while (modbusRTU.write_Multiple_Data(mbParam.slave[node].ID.toInt(),
-                                             (uint16_t* )&value,
+                                             (uint16_t *)&value,
                                              address,
                                              length) != true)
             ;
@@ -330,7 +305,7 @@ void editModbusData()
     else if ((modbusTCP.client == 1) && (mbParam.slave[node].ID.length() > 5))
     {
         while (modbusTCP.write_Multiple_Data(modbusTCP.str2IP(mbParam.slave[node].ID),
-                                             (uint16_t* )&value,
+                                             (uint16_t *)&value,
                                              address,
                                              length) != true)
             ;

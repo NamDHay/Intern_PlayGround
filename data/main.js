@@ -42,6 +42,7 @@ var dataProduct;
 var preferenceslist = [];
 var onUpdate = 0;
 var jsonSlave = "";
+var loadDone = false;
 
 const selectwifimode = document.getElementById("staticip");
 // select mode wifi
@@ -119,6 +120,7 @@ function onMessage(event) {
       jsontableData = event.data;
       loaddata(jsontableData);
       addvaluecard(jsontableData);
+      
     }
     if (daloadvcard) updatevalue();
     if (loadcard == 1) { buildCardJson(); loadcard = 0; }
@@ -140,17 +142,19 @@ function onMessage(event) {
     console.log(event.data);
     document.getElementById("dataProduct").value = preferenceslist = event.data;
   }
-  else if (message.Filename == "mbSlave") {
+  else if (message.Filename == "mbSlave" && loadDone == false) {
     console.log(event.data);
     jsonSlave = document.getElementById("datatabledata").value = event.data;
     loadBoardSlave(event.data);
     genTable();
+    loadDone = true;
   }
 }
 
 function onLoad(event) {
   initWebSocket();
   initButton();
+  showlogin();
 }
 function io_ChangeState1() {
   io_array[4] = !io_array[4];
@@ -279,7 +283,8 @@ function buttontoggle() {
   IsConnect = !IsConnect;
 }
 function intervalHandle() {
-
+  // var array = char_string_to_word("sp4");
+  // console.log(array);
 }
 
 function settingmodbus() {
