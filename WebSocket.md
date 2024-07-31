@@ -4,14 +4,26 @@
 - `WebSocket` thường được sử dụng để phát triển các ứng dụng web thời gian thực như trò chơi trực tuyến, ứng dụng trò chuyện và các ứng dụng cập nhật dữ liệu trực tiếp. `WebSocket` được thiết kế để thay thế các giải pháp truyền tải dữ liệu trực tiếp khác như Ajax hoặc Comet, vì nó có hiệu suất cao hơn và tiết kiệm năng lượng hơn.
 
 - Cấu trúc của `WebSocket`
+  
+<div style='text-align: center;'>
+
 ![Untitled](/Pictute/WebSocketDiagram.png)
+
+</div>
+
 Giao thức chuẩn thông thường của WebSocket là `ws://` , giao thức secure là `wss://` . Chuẩn giao tiếp là String và hỗ trợ buffered arrays và blobs.
 
 # **II. Phân loại WebSocket**
 
 ## **1. Stream Socket**
 Dựa trên giao thức `TCP( Tranmission Control Protocol)`, stream socket thiết lập giao tiếp 2 chiều theo mô hình `client` và `server`. Được gọi là socket hướng kết nối.
+
+<div style='text-align: center;'>
+
 ![Untitled](/Pictute/StreamSocket.png)
+
+</div>
+
 Giao thức này đảm bảo dữ liệu được truyền đến nơi nhận một cách đáng tin cậy, đúng tuần tự nhờ vào cơ chế quản lý luồng lưu thông trên mạng và cơ chế chống tắc nghẽn.
 
 Đặc điểm :
@@ -23,7 +35,13 @@ Giao thức này đảm bảo dữ liệu được truyền đến nơi nhận m
 
 ## **2. Datagram Socket**
 Dựa trên giao thức `UDP( User Datagram Protocol)` việc truyền dữ liệu không yêu cầu có sự thiết lập kết nối giữa 2 process. Tức là nó cung cấp `connection-less point` cho việc gửi và nhận packets. Gọi là socket không hướng kết nối.
+
+<div style='text-align: center;'>
+
 ![Untitled](/Pictute/DatagramSocket.png)
+
+</div>
+
 Do không yêu cầu thiết lập kết nối, không phải có những cơ chế phức tạp. Nên tốc độ giao thức khá nhanh, thuận tiện cho các ứng dụng truyền dữ liệu nhanh như chat, game online…
 
 Đặc điểm :

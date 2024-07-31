@@ -33,7 +33,11 @@ TCP phải được thiết lập kết nối trước khi truyền dữ liệu,
 
 # **IV. Địa chỉ dữ liệu và thanh ghi theo chuẩn MODBUS**
 
+<div style='text-align: center;'>
+
 ![Untitled](/Pictute/ModbusDataFrame.png)
+
+</div>
 
 Thông tin dữ liệu được lưu trữ trong thiết bị Slave được chia trong 4 khoảng giá trị khác nhau. Hai khoảng lưu trữ các giá trị rời rạc on/off (`coils`) và hai khoảng lưu trữ giá trị số (`register – thanh ghi`). Mỗi coils và register đều có khoảng biến chỉ đọc (`read-only`) và biến đọc và ghi (`read-write`).
 
@@ -75,7 +79,11 @@ Byte thứ hai được `Master` gửi đi là `Function code`. Con số này ch
 - `Độ dài (Length)`: 2 byte xác định số byte trong thông điệp cần theo dõi.
 - `Định dạng đơn vị (UnitlD)`: 1 byte được đặt bởi Client và được Server lặp lại để xác định một Slave từ xa được kết nối trên đường truyền nối tiếp hoặc trên các bus khác.
 
+<div style='text-align: center;'>
+
 ![Untitled](/Pictute/ModbusDataFrame.png)
+
+</div>
 
 **Yêu cầu tương đương với ví dụ về Modbus RTU này:**
 
