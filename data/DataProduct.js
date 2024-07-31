@@ -371,8 +371,8 @@ function ShowModalCardSet(closefunc) {
     }
     
     saveSettings(cardID,document.getElementById("planSetInput").value,3);
-    setTimeout(function () { saveSettings(cardID,char_string_to_word(productJSON.Data[cardid].product[productID]) ,4); }, 1000);
-    setTimeout(function () { saveSettings(cardID,document.getElementById("TimeIncInput").value,5); }, 2000);
+    setTimeout(function () { saveSettings(cardID,char_string_to_word(productJSON.Data[cardid].product[productID]) ,4); }, 2000);
+    setTimeout(function () { saveSettings(cardID,document.getElementById("TimeIncInput").value,5); }, 4000);
     updatevalue();
   }
   // change name card  
@@ -480,15 +480,14 @@ function ShowModalCardSet(closefunc) {
   };
     
   function saveSettings(id ,value, Address) {
-    var jsonObj = JSON.parse(jsontableData); 
-    
-    var slaveID = jsonObj.Data[id].ID;
     var jsonObjRegs = JSON.parse(jsonAppInput);
     var vals = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6, value7] = jsonObjRegs.Data[id].app.split(',');
     var RegsAddress = vals[Address+5];
+    var jsonObj = JSON.parse(jsontableData); 
+    var slaveID = jsonObj.Data[vals[0]].ID;
     var rs = document.getElementById('rs' + vals[0]).innerText;
     type = document.getElementById("Type" + vals[0] + "_" + (RegsAddress - rs)).value;
-    // }
+    
     if (type == "0") length = 1;
     if (type == "1") length = 1;
     if (type == "2") length = 2;

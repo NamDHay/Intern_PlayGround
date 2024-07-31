@@ -112,16 +112,12 @@ slaveslect.addEventListener('change', function handleChange(event) {
 
   var colorIP = "<div>IP:</div>\
                   <CENTER><input type=\"text\" class=\"state\" id=\"input_slaveip\" size=\"15\" placeholder=\"Slave IP\"></CENTER>\
-                  <div>Start Write Address: <CENTER><input type=\"text\" class=\"state\" id=\"input_write_start\" size=\"15\" placeholder=\"Write Start-Address\"></CENTER></div>\
-                  <div>End Write Address: <CENTER><input type=\"text\" class=\"state\" id=\"input_write_end\" size=\"15\" placeholder=\"Write End-Address\"></CENTER></div>\
-                  <div>Start Read Address: <CENTER><input type=\"text\" class=\"state\" id=\"input_read_start\" size=\"15\" placeholder=\"Read Start-Address\"></CENTER></div>\
-                  <div>End Read Address: <CENTER><input type=\"text\" class=\"state\" id=\"input_read_end\" size=\"15\" placeholder=\"Read End-Address\"></CENTER></div>";
+                  <div>Start Address: <CENTER><input type=\"text\" class=\"state\" id=\"input_read_start\" size=\"15\" placeholder=\"Start Address\"></CENTER></div>\
+                  <div>End Address: <CENTER><input type=\"text\" class=\"state\" id=\"input_read_end\" size=\"15\" placeholder=\"End Address\"></CENTER></div>";
   var colorID = "<div>ID:</div>\
                   <CENTER><input type=\"text\" class=\"state\" id=\"input_slaveid\" size=\"15\" placeholder=\"Slave ID\"></CENTER>\
-                  <div>Start Write Address: <CENTER><input type=\"text\" class=\"state\" id=\"input_write_start\" size=\"15\" placeholder=\"Write Start-Address\"></CENTER></div>\
-                  <div>End Write Address: <CENTER><input type=\"text\" class=\"state\" id=\"input_write_end\" size=\"15\" placeholder=\"Write End-Address\"></CENTER></div>\
-                  <div>Start Read Address: <CENTER><input type=\"text\" class=\"state\" id=\"input_read_start\" size=\"15\" placeholder=\"Read Start-Address\"></CENTER></div>\
-                  <div>End Read Address: <CENTER><input type=\"text\" class=\"state\" id=\"input_read_end\" size=\"15\" placeholder=\"Read End-Address\"></CENTER></div>";
+                  <div>Start Address: <CENTER><input type=\"text\" class=\"state\" id=\"input_read_start\" size=\"15\" placeholder=\"Start Address\"></CENTER></div>\
+                  <div>End Address: <CENTER><input type=\"text\" class=\"state\" id=\"input_read_end\" size=\"15\" placeholder=\"End Address\"></CENTER></div>";
   if (document.getElementById('slavetype').value == "0") {
     document.getElementById("colorIPD").innerHTML = colorID;
   }
@@ -151,8 +147,6 @@ function addSlave() {
       alert("chua nhap Dia chi IP");
     }
   }
-  var wsaddres_input = document.getElementById('input_write_start').value;
-  var weaddres_input = document.getElementById('input_write_end').value;
   var rsaddres_input = document.getElementById('input_read_start').value;
   var readdres_input = document.getElementById('input_read_end').value;
   if (rsaddres_input == "") {
@@ -161,20 +155,14 @@ function addSlave() {
   else if (readdres_input == "") {
     alert("chua nhap Dia chi doc ket thuc");
   }
-  else if (wsaddres_input == "") {
-    alert("chua nhap Dia chi ghi dau tien");
-  }
-  else if (weaddres_input == "") {
-    alert("chua nhap Dia chi ghi ket thuc");
-  }
   else {
     var slave_object = "";
     if (slave_type == "0") {
-      slave_object = "{\"Command\":\"SlaveArray\",\"Slave\":[{\"slaveType\":\"" + (slave_type) + "\",\"ID\":\"" + id_address + "\",\"writeStart\":\"" + wsaddres_input + "\",\"writeEnd\":\"" + weaddres_input + "\",\"readStart\":\"" + rsaddres_input + "\",\"readEnd\":\"" + readdres_input + "\"}]}";
+      slave_object = "{\"Command\":\"SlaveArray\",\"Slave\":[{\"slaveType\":\"" + (slave_type) + "\",\"ID\":\"" + id_address + "\",\"readStart\":\"" + rsaddres_input + "\",\"readEnd\":\"" + readdres_input + "\"}]}";
       numSlaveRTU++;
     }
     else if (slave_type == "1") {
-      slave_object = "{\"Command\":\"SlaveArray\",\"Slave\":[{\"slaveType\":\"" + (slave_type) + "\",\"ID\":\"" + ip_address + "\",\"writeStart\":\"" + wsaddres_input + "\",\"writeEnd\":\"" + weaddres_input + "\",\"readStart\":\"" + rsaddres_input + "\",\"readEnd\":\"" + readdres_input + "\"}]}";
+      slave_object = "{\"Command\":\"SlaveArray\",\"Slave\":[{\"slaveType\":\"" + (slave_type) + "\",\"ID\":\"" + ip_address + "\",\"readStart\":\"" + rsaddres_input + "\",\"readEnd\":\"" + readdres_input + "\"}]}";
       numSlaveTCP++;
     }
     numSlave = numSlaveRTU + numSlaveTCP;
@@ -196,10 +184,8 @@ function addSlaveCard() {
       <CENTER> No: <span id=\"headerNo" + i + "\">%NO%</span></CENTER>\
       </h5>\
       <p class=\"state\">ID: <span id=\"slaveCardID" + i + "\">%ID%</span></p>\
-      <p class=\"state\">READ</p>\
+      <p class=\"state\">READ/WRITE</p>\
       <p class=\"state\">From <span id=\"rs" + i + "\">%S%</span> To <span id=\"re" + i + "\">%E%</span></p>\
-      <p class=\"state\">WRITE</p>\
-      <p class=\"state\">From <span id=\"ws" + i + "\">%S%</span> To <span id=\"we" + i + "\">%E%</span></p>\
       <CENTER><svg class=\"bi\" width=\"24\" height=\"24\" id=\"slaveConnect" + i + "\"\
       style = \"color: rgb(255, 0, 0);\" >\
       <use xlink:href=\"#icon-connect\"></use>\
@@ -217,8 +203,6 @@ function initData(jsonValue) {
   console.log(jsonValue);
   var slave_obj = JSON.parse(jsonValue);
   var ID = slave_obj.Slave[0].ID;
-  var ws = slave_obj.Slave[0].writeStart;
-  var we = slave_obj.Slave[0].writeEnd;
   var rs = slave_obj.Slave[0].readStart;
   var re = slave_obj.Slave[0].readEnd;
 
@@ -226,25 +210,20 @@ function initData(jsonValue) {
   document.getElementById('slaveCardID' + (numSlave - 1)).innerHTML = ID;
   document.getElementById('rs' + (numSlave - 1)).innerHTML = rs;
   document.getElementById('re' + (numSlave - 1)).innerHTML = re;
-  document.getElementById('ws' + (numSlave - 1)).innerHTML = ws;
-  document.getElementById('we' + (numSlave - 1)).innerHTML = we;
 }
 function loadBoardSlave(jsonValue) {
+  console.log(jsonValue);
   var keys = JSON.parse(jsonValue);
   numSlave = keys.Data.Slave.length;
   addSlaveCard();
   for (var i = 0; i < numSlave; i++) {
     var ID = keys.Data.Slave[i].id;
-    var ws = keys.Data.Slave[i].ws;
-    var we = keys.Data.Slave[i].we;
     var rs = keys.Data.Slave[i].rs;
     var re = keys.Data.Slave[i].re;
     document.getElementById('headerNo' + i).innerHTML = i;
     document.getElementById('slaveCardID' + i).innerHTML = ID;
     document.getElementById('rs' + i).innerHTML = rs;
     document.getElementById('re' + i).innerHTML = re;
-    document.getElementById('ws' + i).innerHTML = ws;
-    document.getElementById('we' + i).innerHTML = we;
   }
 }
 function clearSlave() {
@@ -455,11 +434,7 @@ function word_to_char_string(wordArr) {
 
 // Hàm chuyển đổi từ chuỗi ký tự thành mảng từ 16 bit
 function char_string_to_word(str) {
-  if (str.length % 2 == 0) {
-    console.log("độ dài chẵn");
-  }
-  else {
-    console.log("độ dài lẻ");
+  if (str.length % 2 != 0) {
     str = str + '\x00';
   }
   console.log(str);

@@ -299,6 +299,12 @@ function settingmodbus() {
   document.getElementById("tabHome").style.display = "none";
   document.getElementById("tabIO").style.display = "none";
   document.getElementById("tabtabledata").style.display = "none";
+  
+  document.getElementById("btnModbus").style.display = "none";
+  document.getElementById("btnHome").style.display = "block";
+  document.getElementById("btnIo").style.display = "block";
+  document.getElementById("btntable").style.display = "block";
+
 
 }
 function settingio() {
@@ -315,6 +321,10 @@ function settingio() {
   document.getElementById("tabIO").style.display = "block";
   document.getElementById("tabtabledata").style.display = "none";
 
+  document.getElementById("btnModbus").style.display = "block";
+  document.getElementById("btnHome").style.display = "block";
+  document.getElementById("btnIo").style.display = "none";
+  document.getElementById("btntable").style.display = "block";
 }
 function Home() {
   document.getElementById("cardmodbus").style.display = "none";
@@ -329,7 +339,12 @@ function Home() {
   document.getElementById("tabHome").style.display = "block";
   document.getElementById("tabIO").style.display = "none";
   document.getElementById("tabtabledata").style.display = "none";
+  document.getElementById("btnHome").style.display = "none";
 
+  document.getElementById("btnModbus").style.display = "block";
+  document.getElementById("btnHome").style.display = "none";
+  document.getElementById("btnIo").style.display = "block";
+  document.getElementById("btntable").style.display = "block";
 }
 function TabTableData() {
   document.getElementById("cardmodbus").style.display = "none";
@@ -344,6 +359,11 @@ function TabTableData() {
   document.getElementById("tabHome").style.display = "none";
   document.getElementById("tabIO").style.display = "none";
   document.getElementById("tabtabledata").style.display = "block";
+
+  document.getElementById("btnModbus").style.display = "block";
+  document.getElementById("btnHome").style.display = "block";
+  document.getElementById("btnIo").style.display = "block";
+  document.getElementById("btntable").style.display = "none";
 }
 function Showfile() {
   document.getElementById("cardmodbus").style.display = "none";

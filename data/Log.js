@@ -44,10 +44,23 @@ function closeModalUnlock() {
         element.style.display = 'none';
       }
     });
+    document.getElementById("cardmodbus").style.display = "none";
+    document.getElementById("cardio").style.display = "none";
+    document.getElementById("cardhome").style.display = "block";
+    document.getElementById("cardshowfile").style.display = "none"
+    document.getElementById("cardshowdata").style.display = "none";
+    document.getElementById("cardaddApp").style.display = "none";
+    document.getElementById("cardtable").style.display = "none";
+  
+    document.getElementById("tabmodbus").style.display = "none";
+    document.getElementById("tabHome").style.display = "block";
+    document.getElementById("tabIO").style.display = "none";
+    document.getElementById("tabtabledata").style.display = "none";
+    document.getElementById("btnHome").style.display = "none";
     changeTab("dashboard");
   }
   function updateUI(height) {
-    // $("body").width($(window).width()-4)
+    $("body").width($(window).width()-4)
     if (height > 0) $('#vplab_divider').height(height)
     $("#tabs").height($(window).height())
     $("#feed_url").height($("#Stationary_chart").height())
