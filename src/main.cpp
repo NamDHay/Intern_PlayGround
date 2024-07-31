@@ -24,6 +24,6 @@ void setup() {
 
 void loop(){
   //Nothing to do here
-  npt.printLocalTime();
-  delay(10000);
+  // npt.printLocalTime();
+  // delay(10000);
 }

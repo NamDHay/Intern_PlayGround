@@ -7,6 +7,7 @@ function openAddCard() {
 function AddCardBody() {
     html += "<div class='col-14 cardproduct'>\
           <Center>\
+          <div class='statecard' id=\"State0_" + id_card + "\" style='position: relative; right: 20px; text-align: right'>state:Stop</div>\
             <h2><span id=\"namecard"+ id_card + "\"></span> </h2>\
             <p class=\"statecard\">ID Card: "+ id_card + "</p>\
             <div class=\"container overflow-hidden text-center\">\
@@ -48,8 +49,8 @@ function AddCardBody() {
                   <div class=\"statecard\" id=\"card"+ id_card + "value6\"></div>\
                 </div>\
                 <div class=\"col-4\"><button class=\"buttonA\" onclick=\"CardSetup_dlg('Edit Parameter',"+ id_card + ")\">Setting</button></div>\
-                <div class=\"col-4\"><button id=\"buttonrun "+ id_card + "\" class=\"buttonA\" onclick='changeState(" + id_card + ")'>Run</button></div>\
-                <div class=\"col-4\"><button id=\"buttonreset "+ id_card + "\" class=\"buttonA\" onclick='changeReset(" + id_card + ")'>Reset</button></div>\
+                <div class=\"col-4\"><button id=\"buttonrun"+ id_card + "\" class=\"buttonA\" onclick='changeState(" + id_card + ")'>Run</button></div>\
+                <div class=\"col-4\"><button id=\"buttonreset"+ id_card + "\" class=\"buttonA\" onclick='changeReset(" + id_card + ")'>Reset</button></div>\
               </div>\
             </Center>\
           </div>\
@@ -65,31 +66,35 @@ function addvaluecard(jsonValue) {
     selectvalue6 = document.getElementById('selectvalue6').value;
     selectvalue7 = document.getElementById('selectvalue7').value;
     var jsontabledata = JSON.parse(jsonValue);// data
-    var jsontableid = JSON.parse(jsontableID);// id
+    // var jsontableid = JSON.parse(jsontableID);// id
 
     var chooseSlave = document.getElementById("selectreg").value;
+    
     if (chooseSlave != "") {
-        for (var j = 0; j < jsontableid.Data[chooseSlave].Data.length; j++) {
-            if (selectvalue1 == jsontableid.Data[chooseSlave].Data[j][0]) {
-                document.getElementById("value1").innerHTML = jsontabledata.Data[chooseSlave].Data[j];
+        var re = document.getElementById('re' + chooseSlave).innerText;
+        var rs = document.getElementById('rs' + chooseSlave).innerText;
+        var length = re - rs + 1;
+        for (var j = 0; j < length; j++) {
+            if (selectvalue1 == Number(rs) + j) {
+                document.getElementById("value1").innerHTML = document.getElementById("value" + chooseSlave + "_" + j).innerText;
             }
-            if (selectvalue2 == jsontableid.Data[chooseSlave].Data[j][0]) {
-                document.getElementById("value2").innerHTML = jsontabledata.Data[chooseSlave].Data[j];
+            if (selectvalue2 == Number(rs) + j) {
+                document.getElementById("value2").innerHTML = document.getElementById("value" + chooseSlave + "_" + j).innerText;
             }
-            if (selectvalue3 == jsontableid.Data[chooseSlave].Data[j][0]) {
-                document.getElementById("value3").innerHTML = jsontabledata.Data[chooseSlave].Data[j];
+            if (selectvalue3 == Number(rs) + j) {
+                document.getElementById("value3").innerHTML = document.getElementById("value" + chooseSlave + "_" + j).innerText;
             }
-            if (selectvalue4 == jsontableid.Data[chooseSlave].Data[j][0]) {
-                document.getElementById("value4").innerHTML = jsontabledata.Data[chooseSlave].Data[j];
+            if (selectvalue4 == Number(rs) + j) {
+                document.getElementById("value4").innerHTML = document.getElementById("value" + chooseSlave + "_" + j).innerText;
             }
-            if (selectvalue5 == jsontableid.Data[chooseSlave].Data[j][0]) {
-                document.getElementById("value5").innerHTML = jsontabledata.Data[chooseSlave].Data[j];
+            if (selectvalue5 == Number(rs) + j) {
+                document.getElementById("value5").innerHTML = document.getElementById("value" + chooseSlave + "_" + j).innerText;
             }
-            if (selectvalue6 == jsontableid.Data[chooseSlave].Data[j][0]) {
-                document.getElementById("value6").innerHTML = jsontabledata.Data[chooseSlave].Data[j];
+            if (selectvalue6 == Number(rs) + j) {
+                document.getElementById("value6").innerHTML = document.getElementById("value" + chooseSlave + "_" + j).innerText;
             }
-            if (selectvalue7 == jsontableid.Data[chooseSlave].Data[j][0]) {
-                document.getElementById("value7").innerHTML = jsontabledata.Data[chooseSlave].Data[j];
+            if (selectvalue7 == Number(rs) + j) {
+                document.getElementById("value7").innerHTML = document.getElementById("value" + chooseSlave + "_" + j).innerText;
             }
         }
     }
@@ -100,6 +105,9 @@ function changeRegOptions(jsonValue) {
     var selectreg = 0;
     var htmlcard = "";
     var htmlselectreg = "";
+    var rs;
+    var re;
+    var length;
     var jsontableid = JSON.parse(jsonValue);
     htmlselectreg += "<option value=\"\">---Select NodeID---</option>";
     for (var i = 0; i < numSlave; i++) {
@@ -116,10 +124,13 @@ function changeRegOptions(jsonValue) {
                 htmlcard += "<option value=\"\"> </option>";
                 htmlcard = "";
             } else {
-                for (var j = 0; j < jsontableid.Data[chooseSlave].Data.length; j++) {
-                    // value = addresstbale[i];
-                    if (jsontableid.Data[chooseSlave].Data[j][0] == null) break;
-                    value = jsontableid.Data[chooseSlave].Data[j][0];
+                rs = document.getElementById('rs' + chooseSlave).innerText;
+                re = document.getElementById('re' + chooseSlave).innerText;
+                length = re - rs + 1;
+                for (var j = 0; j < length; j++) {
+                    
+                    if (Number(rs) + j == null) break;
+                    value = Number(rs) + j;
                     htmlcard += "<option value=" + value + ">" + value + "</option>";
                 }
             }
@@ -136,7 +147,7 @@ function SaveCard() {
     nodeID = jsontableid.Data[document.getElementById("selectreg").value].ID;
     namecard = document.getElementById("input_namecard").value;
     appData[app] = AppID + "," + poss + "," + app + "," + nodeID + "," + netID + "," + namecard + "," + selectvalue1 + "," + selectvalue2 + "," + selectvalue3 + "," + selectvalue4 + "," + selectvalue5 + "," + selectvalue6 + "," + selectvalue7;
-    jsonApp = "{\"Command\":\"App\",\"Data\":[{\"app\":\"" + appData[0] + "\"}";
+    jsonApp = "{\"Command\":\"SaveFile\",\"Filename\":\"Application\",\"Data\":[{\"app\":\"" + appData[0] + "\"}";
     if (app > 0) {
         for (var k = 1; k < (app + 1); k++) {
             jsonApp += ",{\"app\":\"" + appData[k] + "\"}";
@@ -170,7 +181,7 @@ function buildCardJson() {
         selectvalue6 = JSON.parse(jsonAppInput).Data[i].app.split(",")[11];
         selectvalue7 = JSON.parse(jsonAppInput).Data[i].app.split(",")[12];
         appData[i] = AppID + "," + poss + "," + i + "," + nodeID + "," + netID + "," + namecard + "," + selectvalue1 + "," + selectvalue2 + "," + selectvalue3 + "," + selectvalue4 + "," + selectvalue5 + "," + selectvalue6 + "," + selectvalue7;
-        jsonApp = "{\"Command\":\"App\",\"Data\":[{\"app\":\"" + appData[0] + "\"}";
+        jsonApp = "{\"Command\":\"SaveFile\",\"Filename\":\"Application\",\"Data\":[{\"app\":\"" + appData[0] + "\"}";
         if (i > 0) {
             for (var k = 1; k < (app); k++) {
                 jsonApp += ",{\"app\":\"" + appData[k] + "\"}";
@@ -186,30 +197,33 @@ function buildCardJson() {
 function updatevalue() {
     var jsonObj = JSON.parse(jsonAppInput);
     var appLen = jsonObj.Data.length;
-    var jsontableid = JSON.parse(jsontableID);
+    // var jsontableid = JSON.parse(jsontableID);
     for (var i = 0; i < appLen; i++) {
         var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6, value7] = jsonObj.Data[i].app.split(",");
         var chooseSlave = document.getElementById("selectreg").value;
         if (chooseSlave == "") chooseSlave = arrayData[0];
+        var rs = document.getElementById('rs' + chooseSlave).innerText;
+        var re = document.getElementById('re' + chooseSlave).innerText;
+        var length = re - rs + 1;
         var jsontabledata = JSON.parse(jsontableData);
-        for (var j = 0; j < jsontableid.Data[chooseSlave].Data.length; j++) {
-            if (value1 == jsontableid.Data[chooseSlave].Data[j][0]) {
-                document.getElementById("card" + i + "value1").innerHTML = jsontabledata.Data[chooseSlave].Data[j];
+        for (var j = 0; j < length; j++) {
+            if (value1 == Number(rs) + j) {
+                document.getElementById("card" + i + "value1").innerHTML = document.getElementById("value" + chooseSlave + "_" + j).innerText;
             }
-            if (value2 == jsontableid.Data[chooseSlave].Data[j][0]) {
-                document.getElementById("card" + i + "value2").innerHTML = jsontabledata.Data[chooseSlave].Data[j];
+            if (value2 == Number(rs) + j) {
+                document.getElementById("card" + i + "value2").innerHTML = document.getElementById("value" + chooseSlave + "_" + j).innerText;
             }
-            if (value3 == jsontableid.Data[chooseSlave].Data[j][0]) {
-                document.getElementById("card" + i + "value3").innerHTML = jsontabledata.Data[chooseSlave].Data[j];
+            if (value3 == Number(rs) + j) {
+                document.getElementById("card" + i + "value3").innerHTML = document.getElementById("value" + chooseSlave + "_" + j).innerText;
             }
-            if (value4 == jsontableid.Data[chooseSlave].Data[j][0]) {
-                document.getElementById("card" + i + "value4").innerHTML = jsontabledata.Data[chooseSlave].Data[j];
+            if (value4 == Number(rs) + j) {
+                document.getElementById("card" + i + "value4").innerHTML = document.getElementById("value" + chooseSlave + "_" + j).innerText;
             }
-            if (value5 == jsontableid.Data[chooseSlave].Data[j][0]) {
-                document.getElementById("card" + i + "value5").innerHTML = jsontabledata.Data[chooseSlave].Data[j];
+            if (value5 == Number(rs) + j) {
+                document.getElementById("card" + i + "value5").innerHTML = document.getElementById("value" + chooseSlave + "_" + j).innerText;
             }
-            if (value6 == jsontableid.Data[chooseSlave].Data[j][0]) {
-                document.getElementById("card" + i + "value6").innerHTML = jsontabledata.Data[chooseSlave].Data[j];
+            if (value6 == Number(rs) + j) {
+                document.getElementById("card" + i + "value6").innerHTML = document.getElementById("value" + chooseSlave + "_" + j).innerText;
             }
         }
     }

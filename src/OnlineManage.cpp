@@ -171,15 +171,6 @@ void mbAddSlavehandler()
     mbParam.slave[(mbParam.numSlave - 1)].ID = rdoc["Slave"][0]["ID"].as<String>();
     mbParam.slave[(mbParam.numSlave - 1)].ReadAddress.startAddress = rdoc["Slave"][0]["readStart"];
     mbParam.slave[(mbParam.numSlave - 1)].ReadAddress.endAddress = rdoc["Slave"][0]["readEnd"];
-    mbParam.slave[(mbParam.numSlave - 1)].WriteAddress.startAddress = rdoc["Slave"][0]["writeStart"];
-    mbParam.slave[(mbParam.numSlave - 1)].WriteAddress.endAddress = rdoc["Slave"][0]["writeEnd"];
-
-    Serial.println("Node: " + String((mbParam.numSlave - 1)));
-    Serial.println("ID: " + String(mbParam.slave[(mbParam.numSlave - 1)].ID));
-    Serial.println("ReadStart: " + String(mbParam.slave[(mbParam.numSlave - 1)].ReadAddress.startAddress));
-    Serial.println("ReadEnd: " + String(mbParam.slave[(mbParam.numSlave - 1)].ReadAddress.endAddress));
-    Serial.println("WriteStart: " + String(mbParam.slave[(mbParam.numSlave - 1)].WriteAddress.startAddress));
-    Serial.println("WriteEnd: " + String(mbParam.slave[(mbParam.numSlave - 1)].WriteAddress.endAddress));
 
     mbParam.writeSlave();
 }
@@ -283,8 +274,6 @@ void setWifiHandler()
 }
 void editModbusData()
 {
-    // {"Command":"editModbusData","slaveID":"0","address":"6105","length":"1","value":[1]}
-    //{"Command":"editModbusData","slaveID":"0","address":"6105","length":"5","value":[155,2,3,4,5]}
     uint8_t node = rdoc["slaveID"];
     long address = rdoc["address"];
     long length = rdoc["length"];
@@ -292,8 +281,8 @@ void editModbusData()
     for (size_t i = 0; i < length; i++)
     {
         value[i] = rdoc["value"][i];
-        Serial.println("value" + String(i) + ": " + String(value[i]));
     }
+    mbParam.loadTable = false;
     if ((modbusRTU.master == 1) && (mbParam.slave[node].ID.length() < 5))
     {
         while (modbusRTU.write_Multiple_Data(mbParam.slave[node].ID.toInt(),
@@ -309,6 +298,7 @@ void editModbusData()
                                              address,
                                              length) != true)
             ;
+        mbParam.loadTable = true;
     }
 }
 void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
@@ -337,8 +327,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         else if (command == "SlaveArray") // Add slave from WebSocket and write to filesystem
         {
             mbAddSlavehandler();
-            fbDataString = filesystem.readfile("/mbSlave.json");
-            online.notifyClients("{\"Command\":\"LoadFile\",\"Filename\":\"mbSlave\",\"Data\":" + fbDataString + "}");
+            mbParam.loadSlave();
         }
         else if (command == "editModbusData") // Request change data from web server
         {
@@ -373,28 +362,22 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
 void firstwebload()
 {
     String file;
-    // load List file system
     filesystem.ListFile();
 
-    // load slave card
     file = filesystem.readfile("/mbSlave.json");
     Serial.println("{\"Filename\":\"mbSlave\",\"Data\":\"" + file + "}");
     online.notifyClients("{\"Filename\":\"mbSlave\",\"Data\":" + file + "}");
 
-    // load slave table
     file = filesystem.readfile("/TableID.json");
     Serial.println("{\"Filename\":\"TableID\",\"Data\":\"" + file + "}");
     online.notifyClients("{\"Filename\":\"TableID\",\"Data\":" + file + "}");
 
-    // enable load database
     mbParam.loadTable = true;
 
-    // load card application
     file = filesystem.readfile("/Application.json");
     Serial.println("{\"Filename\":\"Application\",\"Data\":\"" + file + "}");
     online.notifyClients("{\"Filename\":\"Application\",\"Data\":" + file + "}");
 
-    // load card product
     file = filesystem.readfile("/DataProduct.json");
     Serial.println("{\"Filename\":\"DataProduct\",\"Data\":\"" + file + "}");
     online.notifyClients("{\"Filename\":\"DataProduct\",\"Data\":" + file + "}");
@@ -412,7 +395,7 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
     case WS_EVT_DISCONNECT:
         Serial.printf("WebSocket client #%u disconnected\n", client->id());
         online.isConnected = false;
-        mbParam.loadTable = true;
+        mbParam.loadTable = false;
         break;
     case WS_EVT_DATA:
         handleWebSocketMessage(arg, data, len);
@@ -451,7 +434,7 @@ void OnlineManage::WebHandle()
 
     server.on("/", HTTP_ANY, [](AsyncWebServerRequest *request)
               {
-        AsyncWebServerResponse *response = request->beginResponse(200, "text/html", filesystem.readfile("/data/index.html"));
+        AsyncWebServerResponse *response = request->beginResponse(200, "text/html", filesystem.readfile("/index.html"));
         request->send(response);
         Serial.println("Served Wifi Config Page"); });
     server.on("/get", HTTP_GET, [](AsyncWebServerRequest *request)
@@ -478,7 +461,6 @@ void OnlineManage::WebHandle()
 
 void TaskOnlineManager(void *pvParameter)
 {
-
     static long startCheckWifiTime = millis();
     static bool setWifi = false;
     static bool isMessageReceived = false;

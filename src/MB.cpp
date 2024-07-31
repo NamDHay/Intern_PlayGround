@@ -121,8 +121,6 @@ void MODBUS_PARAMETER::writeSlave()
         writeDoc["Slave"][i]["id"] = mbParam.slave[i].ID;
         writeDoc["Slave"][i]["rs"] = mbParam.slave[i].ReadAddress.startAddress;
         writeDoc["Slave"][i]["re"] = mbParam.slave[i].ReadAddress.endAddress;
-        writeDoc["Slave"][i]["ws"] = mbParam.slave[i].WriteAddress.startAddress;
-        writeDoc["Slave"][i]["we"] = mbParam.slave[i].WriteAddress.endAddress;
     }
 
     serializeJson(writeDoc, setting);
@@ -133,7 +131,6 @@ void MODBUS_PARAMETER::loadSlave()
     String dataRead = "";
     JsonDocument doc;
     dataRead = filesystem.readfile("/mbSlave.json");
-    Serial.println(dataRead);
     deserializeJson(doc, dataRead);
 
     mbParam.numSlave = doc["numSlave"];
@@ -143,27 +140,6 @@ void MODBUS_PARAMETER::loadSlave()
         mbParam.slave[i].ID = doc["Slave"][i]["id"].as<String>();
         mbParam.slave[i].ReadAddress.startAddress = doc["Slave"][i]["rs"].as<long>();
         mbParam.slave[i].ReadAddress.endAddress = doc["Slave"][i]["re"].as<long>();
-        mbParam.slave[i].WriteAddress.startAddress = doc["Slave"][i]["ws"].as<long>();
-        mbParam.slave[i].WriteAddress.endAddress = doc["Slave"][i]["we"].as<long>();
-    }
-
-    mbParam.writeSlave();
-}
-void MODBUS_PARAMETER::c_to_u16(char *c_arr, uint16_t *u_arr)
-{
-    for (int i = 0; i < 20; i++)
-    {
-        u_arr[i] |= c_arr[2 * i + 1];
-        u_arr[i] = u_arr[i] << 8;
-        u_arr[i] |= c_arr[2 * i];
-    }
-}
-void MODBUS_PARAMETER::u16_to_c(char *c_arr, uint16_t *u_arr)
-{
-    for (int i = 0; i < 20; i++)
-    {
-        c_arr[2 * i + 1] |= u_arr[i] >> 8;
-        c_arr[2 * i] |= u_arr[i];
     }
 }
 /**********************************************END MBPARAM PART**************************************************************/
@@ -193,19 +169,11 @@ void MODBUS_RTU::MasterInit(HardwareSerial *port, unsigned long baud)
     mbRTU.begin(port);
     mbRTU.master();
 }
-void MODBUS_RTU::SlaveInit(HardwareSerial *port, unsigned long baud)
-{
-    modbusRTU.config.port = port;
-    modbusRTU.config.baud = baud;
-    port->begin(baud, SERIAL_8N1);
-    mbRTU.begin(port);
-}
 void MODBUS_RTU::loadSetting()
 {
     String dataRead = "";
     JsonDocument doc;
     dataRead = filesystem.readfile("/mbrtusetting.json");
-    // Serial.println(dataRead);
     deserializeJson(doc, dataRead);
 
     String modbustype = doc["modbustype"].as<String>();
@@ -217,8 +185,10 @@ void MODBUS_RTU::loadSetting()
     modbusRTU.master = (mbmaster == "0") ? 0 : 1;
     modbusRTU.config.baud = baud.toInt();
     modbusRTU.config.port = (serial == "0") ? &Serial1 : &Serial2;
-
-    // modbusRTU.writeSetting();
+    if (modbusRTU.master == 1)
+    {
+        modbusRTU.MasterInit(modbusRTU.config.port, modbusRTU.config.baud);
+    }
 }
 void MODBUS_RTU::writeSetting()
 {
@@ -232,7 +202,6 @@ void MODBUS_RTU::writeSetting()
     writeDoc["mbmaster"] = modbusRTU.master;
 
     serializeJson(writeDoc, setting);
-    Serial.println("JSON: " + setting);
     filesystem.writefile("/mbrtusetting.json", setting, 0);
 }
 bool MODBUS_RTU::read_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t length)
@@ -411,9 +380,6 @@ void MODBUS_TCP::ClientInit()
 {
     mbTCP.client();
 }
-void MODBUS_TCP::ServerInit()
-{
-}
 bool MODBUS_TCP::read_Multiple_Data(IPAddress ID, uint16_t *value, long startAddress, size_t length)
 {
     static uint16_t rstart;
@@ -506,7 +472,6 @@ void MODBUS_TCP::loadSetting()
     String dataRead = "";
     JsonDocument doc;
     dataRead = filesystem.readfile("/mbtcpsetting.json");
-    // Serial.println(dataRead);
     deserializeJson(doc, dataRead);
 
     String modbustype = doc["modbustype"].as<String>();
@@ -523,7 +488,11 @@ void MODBUS_TCP::loadSetting()
     modbusTCP.ethernet.subnet = sn;
     modbusTCP.ethernet.primaryDNS = dns;
 
-    // modbusTCP.writeSetting();
+    if (modbusTCP.client == 1)
+    {
+        modbusTCP.EthernetInit();
+        modbusTCP.ClientInit();
+    }
 }
 void MODBUS_TCP::writeSetting()
 {
@@ -540,7 +509,6 @@ void MODBUS_TCP::writeSetting()
     writeDoc["dns"] = modbusTCP.ethernet.primaryDNS;
 
     serializeJson(writeDoc, setting);
-    Serial.println("JSON: " + setting);
     filesystem.writefile("/mbtcpsetting.json", setting, 0);
 }
 /*********************************************END TCP PART****************************************************************/
@@ -555,13 +523,6 @@ void TaskModbus(void *pvParameter)
     modbusTCP.loadSetting();
     mbParam.loadSlave();
 
-    modbusTCP.EthernetInit();
-
-    modbusRTU.MasterInit(modbusRTU.config.port, modbusRTU.config.baud);
-    modbusTCP.ClientInit();
-
-    static long startUpdateRTUIntervalTime = millis();
-    static long startUpdateTCPIntervalTime = millis();
     static long startUpdateIntervalTime = millis();
     for (;;)
     {

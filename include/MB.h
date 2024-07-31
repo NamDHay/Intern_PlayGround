@@ -21,7 +21,6 @@ class MODBUS_PARAMETER
 public:
     bool loadTable;
     uint8_t typeTable;
-    byte slaveTable;
     uint8_t numSlave;
     struct Address_t
     {
@@ -31,22 +30,13 @@ public:
     struct Slave_t
     {
         uint16_t Data[200];
-        Address_t WriteAddress;
         Address_t ReadAddress;
         String ID;
         bool IsConnected;
     };
     Slave_t slave[5];
-    union data_t
-    {
-        float f;
-        int32_t dw;
-        uint16_t w[2];
-    } write_data;
     void loadSlave();
     void writeSlave();
-    void u16_to_c(char *c_arr, uint16_t *u_arr);
-    void c_to_u16(char *c_arr, uint16_t *u_arr);
 };
 extern MODBUS_PARAMETER mbParam;
 class MODBUS_RTU
@@ -55,8 +45,6 @@ public:
     bool loadTable;
     bool isConnected;
     uint8_t typeTable;
-    byte slaveTable;
-    uint8_t numSlave;
     uint8_t master;
     struct Config_t
     {
@@ -65,7 +53,6 @@ public:
     } config;
 
     void MasterInit(HardwareSerial *port, unsigned long baud);
-    void SlaveInit(HardwareSerial *port, unsigned long baud);
     bool read_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t length);
     bool write_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t length);
     void loadSetting();
@@ -78,8 +65,6 @@ public:
     bool loadTable;
     bool isConnected;
     uint8_t typeTable;
-    byte slaveTable;
-    uint8_t numSlave;
     uint8_t client;
     struct ethernet_t
     {
@@ -93,12 +78,12 @@ public:
     IPAddress str2IP(String str);
     void EthernetInit();
     void ClientInit();
-    void ServerInit();
     bool read_Multiple_Data(IPAddress ID, uint16_t *value, long startAddress, size_t length);
     bool write_Multiple_Data(IPAddress ID, uint16_t *value, long startAddress, size_t length);
     void loadSetting();
     void writeSetting();
 };
+
 void TaskModbus(void *pvParameter);
 
 extern MODBUS_RTU modbusRTU;
