@@ -225,6 +225,7 @@ function changeTab(id) {
     document.getElementById('successModaltext').innerHTML = "Login Admin Successful!";
     setTimeout(function () { modal.hide(); }, 1000);
   }
+  
   function unlockStaffSuccess() {
     var modal = new bootstrap.Modal(document.getElementById('successModal'));
     modal.show();

@@ -356,18 +356,18 @@ function ShowModalCardSet(closefunc) {
     var ProductSet = productJSON.Data[cardid].productset[productID];
     document.getElementById("planSetInput").value = ProductSet;
   
-    var sp = productJSON.Data[cardid].product[productID];
+    // var sp = productJSON.Data[cardid].product[productID];
     // Hiển thị giá trị vừa chọn ra thẻ h3 có cùng ID với cardID
-    console.log("id:" + id);
-    console.log("ProductSet:" + ProductSet);
-    console.log("CyleTime:" + CyleTime);
-    if (sp.length % 2 == 0) {
-      console.log("độ dài chẵn");
-    }
-    else {
-      console.log("độ dài lẻ");
-      sp = sp + " ";
-    }
+    // console.log("id:" + id);
+    // console.log("ProductSet:" + ProductSet);
+    // console.log("CyleTime:" + CyleTime);
+    // if (sp.length % 2 == 0) {
+    //   console.log("độ dài chẵn");
+    // }
+    // else {
+    //   console.log("độ dài lẻ");
+    //   sp = sp + " ";
+    // }
     
     saveSettings(id,document.getElementById("planSetInput").value,3);
     setTimeout(function () { saveSettings(id,char_string_to_word(productJSON.Data[cardid].product[productID]) ,4); }, 1000);
@@ -377,6 +377,7 @@ function ShowModalCardSet(closefunc) {
     saveSettings(id, 0, 7);
     document.getElementById('buttonrun'+id).innerHTML = "Run";
     document.getElementById('State0_'+ id).innerHTML = "state:Stop";
+    SelectProductSuccess();
   }
   // change name card  
   function changeName() {
@@ -527,5 +528,11 @@ function ShowModalCardSet(closefunc) {
     var jsonSave = JSON.stringify(newJsonObj);
     console.log(jsonSave);
     websocket.send(jsonSave);
+  }
+  function SelectProductSuccess() {
+    var modal = new bootstrap.Modal(document.getElementById('successModal'));
+    modal.show();
+    document.getElementById('successModaltext').innerHTML = "Change Product Success";
+    setTimeout(function () { modal.hide(); }, 2000);
   }  
     
