@@ -7,6 +7,8 @@
 
 >[WebSocket](https://github.com/i-softembedded/SourceBase_V1/blob/NamHuy_ModbusRTU/WebSocket.md)
 
+>[PLC](https://github.com/i-softembedded/SourceBase_V1/blob/NamHuy_ModbusRTU/PLC.md)
+
 </span>
 
 
