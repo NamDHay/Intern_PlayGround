@@ -105,7 +105,7 @@ void update_ModbusData_Interval()
     if (mbParam.loadTable == true)
     {
         serializeJson(Doc, fbDataString);
-        Serial.println(fbDataString);
+        // Serial.println(fbDataString);
         online.notifyClients(fbDataString);
     }
 }
@@ -322,6 +322,8 @@ bool MODBUS_RTU::write_Multiple_Data(byte ID, uint16_t *value, long startAddress
 #define ETH_TYPE ETH_PHY_LAN8720
 #define ETH_CLK_MODE ETH_CLOCK_GPIO0_IN
 #define BUZZ 12
+
+
 #define BUZZ_ON digitalWrite(BUZZ, HIGH)
 #define BUZZ_OFF digitalWrite(BUZZ, LOW)
 

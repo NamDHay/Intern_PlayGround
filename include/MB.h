@@ -1,26 +1,14 @@
 #ifndef __MODBUS_RTU_H__
 #define __MODBUS_RTU_H__
 
-#include <SPI.h>
 #include <ETH.h>
 #include <ModbusIP_ESP8266.h>
 #include <ModbusRTU.h>
-
-#define WORD_TYPE 0
-#define COIL_TYPE 1
-#define DWORDS_TYPE 2
-#define FLOAT_TYPE 3
-#define CHAR_TYPE 4
-
-#define CHECKCOIL(CoilGroup, CoilBit) ((((CoilGroup) & (1UL << CoilBit)) == (1UL << CoilBit)) ? 1 : 0)
-#define SETCOIL(CoilGroup, CoilBit) ((CoilGroup) |= (1UL << CoilBit))
-#define CLEARCOIL(CoilGroup, CoilBit) (CoilGroup &= ~(1UL << CoilBit))
 
 class MODBUS_PARAMETER
 {
 public:
     bool loadTable;
-    uint8_t typeTable;
     uint8_t numSlave;
     struct Address_t
     {
@@ -42,9 +30,7 @@ extern MODBUS_PARAMETER mbParam;
 class MODBUS_RTU
 {
 public:
-    bool loadTable;
     bool isConnected;
-    uint8_t typeTable;
     uint8_t master;
     struct Config_t
     {
@@ -62,9 +48,7 @@ public:
 class MODBUS_TCP
 {
 public:
-    bool loadTable;
     bool isConnected;
-    uint8_t typeTable;
     uint8_t client;
     struct ethernet_t
     {

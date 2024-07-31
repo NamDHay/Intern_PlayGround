@@ -278,9 +278,11 @@ void editModbusData()
     long address = rdoc["address"];
     long length = rdoc["length"];
     uint16_t value[20];
+    Serial.println("ID:" + mbParam.slave[node].ID + " | Address: " + String(address) + " | Length: " + String(length));
     for (size_t i = 0; i < length; i++)
     {
         value[i] = rdoc["value"][i];
+        Serial.println("Value " + String(i) + " : " + String(value[i]));
     }
     mbParam.loadTable = false;
     if ((modbusRTU.master == 1) && (mbParam.slave[node].ID.length() < 5))
@@ -454,26 +456,17 @@ void OnlineManage::WebHandle()
     }
     online.wifi_setting.pass = Pass;
     AsyncWebServerResponse *response = request->beginResponse(200, "text/html", mywebsite.Wifi_Config_HTML);
-    request->send(response);
-    bool setWifi = true;
-    xQueueSend(online.qPortalSetting, (void*) &setWifi, 1/portTICK_PERIOD_MS); });
+    request->send(response); });
 }
 
 void TaskOnlineManager(void *pvParameter)
 {
     static long startCheckWifiTime = millis();
-    static bool setWifi = false;
     static bool isMessageReceived = false;
     online.qPortalSetting = xQueueCreate(1, sizeof(bool));
     online.qWifiSetting = xQueueCreate(1, sizeof(bool));
     for (;;)
     {
-        if (xQueueReceive(online.qPortalSetting, (void *)&setWifi, 1 / portTICK_PERIOD_MS) == pdTRUE)
-        {
-            WiFi.begin(online.wifi_setting.ssid, online.wifi_setting.pass);
-            online.writeSetting();
-            setWifi = false;
-        }
         if (xQueueReceive(online.qWifiSetting, (void *)&isMessageReceived, 1 / portTICK_PERIOD_MS) == pdTRUE)
         {
             WiFi.begin(online.wifi_setting.ssid, online.wifi_setting.pass);
