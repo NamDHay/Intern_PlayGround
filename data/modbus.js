@@ -212,7 +212,7 @@ function initData(jsonValue) {
   document.getElementById('re' + (numSlave - 1)).innerHTML = re;
 }
 function loadBoardSlave(jsonValue) {
-  console.log(jsonValue);
+  // console.log(jsonValue);
   var keys = JSON.parse(jsonValue);
   numSlave = keys.Data.Slave.length;
   addSlaveCard();

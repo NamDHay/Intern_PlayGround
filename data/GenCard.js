@@ -246,4 +246,5 @@ function buildcard(jsoninput) {
     }
     daloadvcard = 1;
     updatevalue();
+ 
 }

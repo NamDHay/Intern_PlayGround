@@ -45,6 +45,7 @@ var preferenceslist = [];
 var onUpdate = 0;
 var jsonSlave = "";
 var loadDone = false;
+var loadproduct = 0;
 const selectwifimode = document.getElementById("staticip");
 // select mode wifi
 selectwifimode.addEventListener('change', function handChange(event) {
@@ -87,8 +88,8 @@ function onClose(event) {
 }
 function onMessage(event) {
   var state;
-
   var message = JSON.parse(event.data);
+  // console.log('Message received: ' + event.data);
   if (message.Command == "toggleLed") {
     if (message.Data == "0")
       state = "ON";
@@ -110,7 +111,7 @@ function onMessage(event) {
 
   else if (message.Command == "TableID") {
     jsontableID = document.getElementById("datatableid").value = event.data;
-    console.log(jsontableID);
+    // console.log(jsontableID);
     firstload = 1;
     loading = 0;
     loadTable(jsontableID);
@@ -125,15 +126,21 @@ function onMessage(event) {
       addvaluecard(jsontableData);
     }
     if(daloadvcard) updatevalue();
-    if(loadcard == 1) {buildCardJson();loadcard = 0; }
+    if(loadcard == 1) {
+      buildCardJson();
+      loadcard = 0; 
+      
+    }
   }
   else if(message.Filename == "Application"){
     document.getElementById("jsonApp").value = event.data;
-    console.log(event.data);
+    // console.log(event.data);
+    loadproduct = 1;
+    
   }
   else if(message.Filename == "TableID"){
     jsontableID = document.getElementById("datatableid").value = event.data;
-    console.log(jsontableID);
+    // console.log(jsontableID);
     firstload = 1;
     loading = 0;
     loadTable(jsontableID);
@@ -141,17 +148,16 @@ function onMessage(event) {
     changeRegOptions(jsontableID);
   }
   else if(message.Filename == "DataProduct"){
-    console.log(event.data);
+    // console.log(event.data);
     document.getElementById("dataProduct").value =preferenceslist = event.data;
   }
   else if (message.Filename == "mbSlave" && loadDone == false) {
-    console.log(event.data);
+    // console.log(event.data);
     jsonSlave = document.getElementById("datatabledata").value = event.data;
     loadBoardSlave(event.data);
     genTable();
     loadDone = true;
   }
-
 }
 function onLoad(event) {
   initWebSocket();

@@ -9,7 +9,7 @@ function closeModalUnlock() {
     unlockValue = 1;
     document.getElementById("tennutluu").innerHTML = "Save new staff passwords";
     document.getElementById("roleAccount").innerHTML = "Staff";
-    var ids = ['dashboard', 'settingA', 'features', 'board', 'openbuttonchange', 'name_product', 'wifimode', 'settingBtnKL', 'settingBtnEX', 'btnModbus', 'btntable', 'btnIo','buttonadd'];
+    var ids = ['dashboard', 'settingA', 'features', 'board', 'openbuttonchange', 'name_product', 'wifimode', 'btnModbus', 'btntable', 'btnIo','buttonadd','btnsetting'];
     ids.forEach(function (id) {
       var element = document.getElementById(id);
       if (element) {
@@ -24,7 +24,7 @@ function closeModalUnlock() {
     unlockValue = 2;
     document.getElementById("tennutluu").innerHTML = "Save new admin passwords";
     document.getElementById("roleAccount").innerHTML = "Admin";
-    var ids = ['dashboard', 'settingA', 'features', 'board', 'application', 'console', 'advanced', 'wifi', 'rf', 'ethernet', 'modbus', 'zicon', 'openbuttonchange', 'name_product', 'wifimode', 'settingBtnKL', 'settingBtnEX', 'btnModbus', 'btntable', 'btnIo','buttonadd'];
+    var ids = ['dashboard', 'settingA', 'features', 'board', 'application', 'console', 'advanced', 'wifi', 'rf', 'ethernet', 'modbus', 'zicon', 'openbuttonchange', 'name_product', 'wifimode', 'settingBtnKL', 'settingBtnEX', 'btnModbus', 'btntable', 'btnIo','buttonadd','btnsetting'];
     ids.forEach(function (id) {
       var element = document.getElementById(id);
       if (element) {
@@ -37,7 +37,7 @@ function closeModalUnlock() {
   function LogOut() {
     unlockValue = 0;
     document.getElementById("roleAccount").innerHTML = "User";
-    var ids = ['dashboard', 'settingA', 'features', 'board', 'application', 'console', 'advanced', 'wifi', 'rf', 'ethernet', 'modbus', 'zicon', 'openbuttonchange', 'changePassA', 'name_product', 'wifimode', 'settingBtnKL', 'settingBtnEX', 'btnModbus', 'btntable', 'btnIo','buttonadd'];
+    var ids = ['dashboard', 'settingA', 'features', 'board', 'application', 'console', 'advanced', 'wifi', 'rf', 'ethernet', 'modbus', 'zicon', 'openbuttonchange', 'changePassA', 'name_product', 'wifimode', 'settingBtnKL', 'settingBtnEX', 'btnModbus', 'btntable', 'btnIo','buttonadd','btnsetting'];
     ids.forEach(function (id) {
       var element = document.getElementById(id);
       if (element) {
@@ -57,17 +57,18 @@ function closeModalUnlock() {
     document.getElementById("tabIO").style.display = "none";
     document.getElementById("tabtabledata").style.display = "none";
     document.getElementById("btnHome").style.display = "none";
+
     changeTab("dashboard");
   }
   function updateUI(height) {
-    $("body").width($(window).width()-4)
+    // $("body").width($(window).width()-4)
     if (height > 0) $('#vplab_divider').height(height)
     $("#tabs").height($(window).height())
     $("#feed_url").height($("#Stationary_chart").height())
     $("#feed_url").height($("#Moving_chart").height())
     $("#tab_console").height($(window).height())
-  }
-  function changeTab(id) {
+}
+function changeTab(id) {
     if (!id) return
     $(".a_tab").addClass('hidden_forced')
     $(".nav-link").removeClass('active')
@@ -75,14 +76,14 @@ function closeModalUnlock() {
     $("#tab_" + id).removeClass('hidden_forced')
     updateUI($("#tab_" + id).height());
     // if(id == 'application')loadData()//hardcode
-  
+
     // if (id == 'wifi') build_HTML_lookline_list('wifi', 'wifi_list_data')
     // if (id == 'ethernet') build_HTML_lookline_list('tcp', 'ethernet_list_data')
     // if (id == 'modbus') build_HTML_lookline_list('modbus', 'modbus_list_data')
     // if (id == 'application') build_HTML_lookline_list('application', 'application_list_data')
     // if (id == 'rf') build_HTML_lookline_list('rf', 'rf_list_data')
     // application_list_data
-  }
+}
   function PassSave(id) {
     // try{
     console.log("pass_Save: " + document.getElementById("pass_Save").value);

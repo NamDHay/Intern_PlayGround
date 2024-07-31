@@ -191,14 +191,14 @@ function ShowModalCardSet(closefunc) {
   
   function loaddatasetting(id) {
     console.log("loaddatasetting" + id);
-    var UpdateDataApp = JSON.parse(jsonAppInput);
-    var jsontableid = JSON.parse(jsontableID);
+    var UpdateDataApp = JSON.parse(document.getElementById("jsonApp").value);
+
     var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6, value7] = UpdateDataApp.Data[id].app.split(",");
     document.getElementById("doiten").value = arrayData[5];
   
     var chooseSlave = document.getElementById("selectreg").value;
     if(chooseSlave == "") chooseSlave = UpdateDataApp.Data[id].app.split(",")[0];
-    var jsontabledata = JSON.parse(jsontableData);
+   
     var re = document.getElementById('re' + chooseSlave).innerText;
     var rs = document.getElementById('rs' + chooseSlave).innerText;
     var length = re - rs + 1;
@@ -265,8 +265,7 @@ function ShowModalCardSet(closefunc) {
     else {
       document.getElementById("ProductDataSaveSelect").innerHTML = '';
     }
-    lock[id] = 1;
-    stateID[id] = 1;
+    
   }
   //add product
   function addProduct() {
@@ -370,10 +369,14 @@ function ShowModalCardSet(closefunc) {
       sp = sp + " ";
     }
     
-    saveSettings(cardID,document.getElementById("planSetInput").value,3);
-    setTimeout(function () { saveSettings(cardID,char_string_to_word(productJSON.Data[cardid].product[productID]) ,4); }, 2000);
-    setTimeout(function () { saveSettings(cardID,document.getElementById("TimeIncInput").value,5); }, 4000);
+    saveSettings(id,document.getElementById("planSetInput").value,3);
+    setTimeout(function () { saveSettings(id,char_string_to_word(productJSON.Data[cardid].product[productID]) ,4); }, 1000);
+    setTimeout(function () { saveSettings(id,document.getElementById("TimeIncInput").value,5); }, 2000);
     updatevalue();
+    
+    saveSettings(id, 0, 7);
+    document.getElementById('buttonrun'+id).innerHTML = "Run";
+    document.getElementById('State0_'+ id).innerHTML = "state:Stop";
   }
   // change name card  
   function changeName() {
@@ -419,7 +422,9 @@ function ShowModalCardSet(closefunc) {
     console.log("state id = " + stateID[id]);
     var UpdateDataApp = JSON.parse(jsonApp);
     var arrayData = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6, value7] = UpdateDataApp.Data[id].app.split(",");
-    
+    var RegsAddress = arrayData[12];
+    var rs = document.getElementById('rs' + arrayData[0]).innerText;
+    lock[id] = document.getElementById("value" + arrayData[0] + "_" + (RegsAddress - rs)).innerText;
     if (lock[id] == 0) { stateID[id] = 2; }
     if (lock[id] == 1) { stateID[id] = 1; }
     if(stateID[id]== 0){
@@ -468,6 +473,8 @@ function ShowModalCardSet(closefunc) {
   };
   document.getElementById("ProductDataSaveSelect").onblur = function() {
     console.log("ProductDataSaveSelect: "+document.getElementById("ProductDataSaveSelect").value);
+    if(document.getElementById("ProductDataSaveSelect").value == "0")
+    displaySelectedProduct();
     // saveSettings(cardID,document.getElementById("ProductDataSaveSelect").value,4);
   };
   document.getElementById("TimeIncInput").onblur = function () {
@@ -480,7 +487,7 @@ function ShowModalCardSet(closefunc) {
   };
     
   function saveSettings(id ,value, Address) {
-    var jsonObjRegs = JSON.parse(jsonAppInput);
+    var jsonObjRegs = JSON.parse(document.getElementById("jsonApp").value);
     var vals = [AppID, poss, id_card, nodeID, netID, namecard, value1, value2, value3, value4, value5, value6, value7] = jsonObjRegs.Data[id].app.split(',');
     var RegsAddress = vals[Address+5];
     var jsonObj = JSON.parse(jsontableData); 
@@ -521,3 +528,4 @@ function ShowModalCardSet(closefunc) {
     console.log(jsonSave);
     websocket.send(jsonSave);
   }  
+    
