@@ -256,7 +256,7 @@ function loadTable(jsonValue) {
 var secondload = 0;
 function genTable() {
   var card_table_html = "";
-  var stt = 1;
+  var stt = 0;
   var length;
   var rs;
   var re;
@@ -287,7 +287,7 @@ function genTable() {
       if (i % 2 == 1) {
         card_table_html += "</div><br>";
       }
-      stt = 1;
+      stt = 0;
     }
     document.getElementById("slaveTable").innerHTML = card_table_html;
     for (var m = 0; m < numSlave; m++) {

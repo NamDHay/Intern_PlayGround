@@ -222,3 +222,88 @@ Nếu muốn cài đặt IP tĩnh cho WiFi cần `Enable` cho `STATIC IP`
 
 Sau khi cài đặt xong các thông số cho WiFi, ta ấn nút `Save` thì website sẽ gửi xuống ESP32 để cài đặt.
 
+### ***4. Giao diện cài đặt ModBus***
+Giao diện cài đặt ModBus dùng để cài đặt các thông số gửi xuống ESP32 để nó có thể giao tiếp với PLC thông qua giao tiếp Modbus.
+
+Để vào giao diện cài đặt ModBus ta chọn biểu tượng sau 
+<div style="text-align: center;">
+
+![alt text](image/tabmodbus.png)
+</div>
+
+Sau đó sẽ xuất hiện giao diện cài đặt ModBus. Tiếp đó sẽ chọn vào `MODBUS TYPE` để chọn chế độ hoạt động của Modbus và cài đặt các thông số tương ứng.
+<div style="text-align: center;">
+
+![alt text](image/modbustype.png)
+</div>
+
+**Trong đó:**
+- `RTU` : chạy ở chế độ RTU. Có thể cài đặt thông số `Baud Rate` , chọn `Serial Port` .
+<div style="text-align: center;">
+
+![alt text](image/RTU.png)
+</div>
+
+- `TCP/IP` : chạy ở chế độ TCP/IP. Có thể cài đặt các thông số `Ethernet IP` , `Ethernet Getway` , `Ethernet Subnet` , `Ethernet DNS` , ` TCP Mode` .
+<div style="text-align: center;">
+
+![alt text](image/tcpip.png)
+</div>
+
+- `RTU & TCP/IP` : chạy cả chế độ `RTU` và chế độ `TCP/IP` cùng một lúc. Có thể cài đặt các thông số như: `Baud Rate` , `Serial Port` , `Ethernet IP` , `Ethernet Getway` , `Ethernet Subnet` , `Ethernet DNS` , ` TCP Mode` .
+<div style="text-align: center;">
+
+![alt text](image/rtu_tcp.png)
+</div>
+
+Sau khi cài đặt các thông số cho Modbus thì chọn `ADD` để thêm thiết bị hoạt động. 
+
+Sau đó sẽ xuất hiện giao diện chọn chọn chế độ hoạt động của thiết bị đó
+<div style="text-align: center;">
+
+![alt text](image/slaveconfig.png)
+</div>
+
+**Trong đó:**
+- `RTU` : hoạt động ở chế độ `RTU` . Có thế cài đặt các thông số như `ID` (mỗi thiết bị sẽ có một địa chỉ riêng biệt) , `Start Address` (địa chỉ bắt đầu đọc/ghi), `End Address` (địa chỉ kết thúc đọc/ghi).
+<div style="text-align: center;">
+
+![alt text](image/slaveRTU.png)
+</div>
+
+- `TCP/IP` : hoạt động ở chế độ `TCP/IP` . Có thế cài đặt các thông số như `ID` (mỗi thiết bị sẽ có một địa chỉ riêng biệt) , `Start Address` (địa chỉ bắt đầu đọc/ghi), `End Address` (địa chỉ kết thúc đọc/ghi).
+<div style="text-align: center;">
+
+![alt text](image/slaveTCP.png)
+</div>
+
+### ***5. Giao diện theo dõi thông số (Table Data)***
+
+Giao diện hiển thị các thông số được lưu trong thanh ghi của PLC thông qua giao tiếp Modbus được ESP32 đọc và gửi lên trên website để thuận tiện cho người dùng theo dõi.
+
+Để mở bảng bảng theo dõi ta chọn biểu tượng sau: 
+<div style="text-align: center;">
+
+![alt text](image/tabtable.png)
+</div>
+
+Sau đó sẽ xuất hiện một bảng thông số đọc được từ PLC và gửi lên thông qua ESP32 
+
+<div style="text-align: center;">
+
+![alt text](image/tabledata.png)
+</div>
+
+**Trong đó:**
+- `1`: số thứ tự của bảng
+
+- `2`: địa chỉ IP của thiết bị 
+
+- `3`: địa chỉ thanh ghi đọc từ PLC
+
+- `4`: kiểu dữ liệu 
+
+- `5`: dữ liệu đọc được
+
+- `6`: nút chỉnh sửa dữ liệu trực tiếp trên bảng
+
