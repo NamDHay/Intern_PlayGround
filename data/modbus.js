@@ -471,6 +471,7 @@ function float_to_word(float) {
 function int32ToFloat(int32) {
   let buffer = new ArrayBuffer(4);
   new DataView(buffer).setUint32(0, int32);
+  // new DataView(buffer).setInt32(1, int32);
   return new DataView(buffer).getFloat32(0);
 }
 
@@ -484,9 +485,41 @@ function floatToInt32(float) {
 function word_to_dword(wordArr) {
   return (wordArr[0] | (wordArr[1] << 16));
 }
+function byte_to_dword(byteArr) {
+  return (byteArr[3] | (byteArr[2] << 8) | (byteArr[1] << 16) | (byteArr[0] << 24));
+}
 
 function dword_to_word(dword) {
   wordArr[0] = dword & 0xFFFF;            // Byte thấp
   wordArr[1] = (dword >> 16);    // Byte cao
   return wordArr;
+}
+
+function byte_to_floatB(byte) {
+  var float = ((byte[3]) | (byte[2] <<8) | (byte[1] <<16) | (byte[0] <<24));
+  return int32ToFloat(float);
+}
+function byte_to_floatL(byte) {
+  var float = ((byte[0]) | (byte[1] <<8) | (byte[2] <<16) | (byte[3] <<24));
+  return int32ToFloat(float);
+}
+
+function float_to_byteB(float) {
+  var byteArr = [];
+  let combined = floatToInt32(float);
+  byteArr[3] |= combined & 0xFF;           
+  byteArr[2] |= (combined >> 8) & 0xFF;            
+  byteArr[1] |= (combined >> 16) & 0xFF;            
+  byteArr[0] |= (combined >> 24) & 0xFF;            
+  return byteArr;
+}
+
+function float_to_byteL(float) {
+  var byteArr = [];
+  let combined = floatToInt32(float);
+  byteArr[0] |= combined & 0xFF;           
+  byteArr[1] |= (combined >> 8) & 0xFF;            
+  byteArr[2] |= (combined >> 16) & 0xFF;            
+  byteArr[3] |= (combined >> 24) & 0xFF;            
+  return byteArr;
 }

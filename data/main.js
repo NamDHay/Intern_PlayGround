@@ -108,19 +108,19 @@ function onMessage(event) {
   }
   else if (message.Command == "TableID") {
     jsontableID = document.getElementById("datatableid").value = event.data;
-    console.log(jsontableID);
+    // console.log(jsontableID);
     firstload = 1;
     loading = 0;
     loadTable(jsontableID);
     // changeRegOptions(jsontableID);
   }
   else if (message.Command == "tableData") {
-    console.log(event.data);
+    // console.log(event.data);
     if (loading == 1) {
       jsontableData = event.data;
       loaddata(jsontableData);
       addvaluecard(jsontableData);
-      
+
     }
     if (daloadvcard) updatevalue();
     if (loadcard == 1) { buildCardJson(); loadcard = 0; }
@@ -283,10 +283,10 @@ function buttontoggle() {
   IsConnect = !IsConnect;
 }
 function intervalHandle() {
-  // var array = char_string_to_word("sp4");
-  // console.log(array);
+  // console.log("Little Endian: " + byte_to_floatL(arr)/247);
+  // console.log("Big Endian: " + float_to_byteB(79.2));
+  // console.log("Little Endian: " + float_to_byteL(79.2));
 }
-
 function settingmodbus() {
   document.getElementById("cardmodbus").style.display = "block";
   document.getElementById("cardio").style.display = "none";

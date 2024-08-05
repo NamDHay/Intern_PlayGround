@@ -12,7 +12,7 @@ PLC Delta được chia ra làm 2 dạng chính là dạng khối và dạng Sli
 *DẠNG KHỐI – NGUỒN CẤP 220VAC, KÍCH THƯỚC TO:*
 <CENTER>
 
-![Untitled](/Pictute/DVP-EC3.png)
+![Untitled](/Picture/DVP-EC3.png)
 
 PLC Delta DVP-EC3
 
@@ -22,7 +22,7 @@ Là dòng PLC đáp ứng tất cả các yêu cầu của một PLC cơ bản, 
 
 <CENTER>
 
-![Untitled](/Pictute/DVP-ES2.png)
+![Untitled](/Picture/DVP-ES2.png)
 
 PLC Delta DVP-ES2
 
@@ -34,7 +34,7 @@ Là dòng PLC cao cấp hơn dòng DVP-EC3, có khả năng mở rộng được
 
 <CENTER>
 
-![Untitled](/Pictute/DVP-SS2.png)
+![Untitled](/Picture/DVP-SS2.png)
 
 PLC Delta DVP-SS2
 
@@ -44,7 +44,7 @@ Là dòng PLC đáp ứng tất cả các yêu cầu của một PLC cơ bản, 
 
 <CENTER>
 
-![Untitled](/Pictute/DVP-SX2.png)
+![Untitled](/Picture/DVP-SX2.png)
 
 PLC Delta DVP-SX2
 
@@ -66,3 +66,57 @@ Là dòng PLC cao cấp hơn dòng DVP-SS2, hỗ trợ thêm chức năng phát 
 ***Nhược điểm***
  - Hầu hết những sản phẩm của PLC Delta được gắn mác Made in China. Điều này đã dẫn đến một số vấn đề cơ bản bởi nhiều dự án yêu cầu xuất xứ từ nhóm G7. Hoặc đối với những hàng hóa ngoài Trung Quốc sẽ không đưa vào sử dụng. Đây chính là nhược điểm lớn mà PLC Delta đang đối mặt.
  - So với các hãng lớn thì mức độ ổn định của PLC Delta chưa thực sự tốt. Đôi khi trong quá trình lập trình sẽ gặp một số trường hợp bị đơ hay treo máy. Tuy nhiên đây là vấn đề hiếm gặp. 
+
+## IV. PLC Delta DVP-12SE
+
+<CENTER>
+
+![Untitled](/Picture/DVP-12SE.png)<br>
+PLC Delta DVP-12SE<br>
+</CENTER>
+
+**Thông số chung PLC Delta DVP-SE Series**
+ - Điện áp nguồn cung cấp: 24 Vdc
+ - Bộ nhớ chương trình: 16k bước lệnh
+ - Kết nối truyền thông: Ethernet, RS232/RS485 theo chuẩn chuẩn MODBUS ASCII / RTU
+ - Tích hợp bộ đếm tốc độ cao: 100 Khz
+ - Loại ngõ ra: Relay hoặc Transistor
+ - Phát xung tốc độ cao:  max = 100 KHz
+ - Tổng I/O: 12 (8DI, 4DO)
+
+**Ứng dụng**
+
+PLC Delta DVP-12SE với lợi thế hỗ trợ truyền thông Ethernet nên thường được dùng trong bài toán điều khiển từ xa các dây chuyền sản xuất, tự động hóa tòa nhà, máy in, bình chứa….
+
+**Tài liệu - Phần mềm**
+
+Catalogue: [Download](https://drive.google.com/file/d/0BxSCq_TqrnbaVVB6QzNOWTk2ZmM/view?resourcekey=0-R6ik4BMdb_tlMZWtwYSwTw)<br>
+Instruction Manual: [Download](https://drive.google.com/file/d/0BxSCq_TqrnbabHJwVTA2VU4wTGc/view?resourcekey=0-b5UpXSbNDyOWsgyNghh0QA)<br>
+Duới đây là một số ứng dụng cần thiết cho việc lập trình PLC Delta nói chung và DVP-12SE nói riêng
+
+Đầu tiên là phần mềm [COMMGR](https://downloadcenter.deltaww.com/downloadCenterCounter.aspx?DID=4435&DocPath=1&hl=en-US) để lựa chọn cổng kết nối với thiết bị PLC
+<CENTER>
+
+![Untitled](/Picture/COMMGR.png)<br>
+Phần mềm COMMGR<br>
+![Untitled](/Picture/COMMGRUI.png)<br>
+Giao diện phần mềm COMMGR<br>
+</CENTER>
+
+Để thêm thiết bị ta nhấn nút `Add...` ở góc trên bên phải màn hình. Lúc đó phần mềm sẽ hiển thị ra giao diện như sau
+<CENTER>
+
+![Untitled](/Picture/COMMGR_Driver_Properties.png)<br>
+Giao diện cấu hình cổng kết nối<br>
+</CENTER>
+
+Ở đây mình sử dụng cổng `Ethernet` để kết nối nên ở mục `Connection Setup` ta lựa chọn kiểu kết nối là `Ethernet`.`Ethernet Card` là lựa chọn card của thiết bị kết nối.Sau đó nhấn `Search` để tìm PLC. Chọn thiết bị PLC và nhấn `OK`.
+
+Tiếp theo đây là phần mềm [ISPSoft](https://downloadcenter.deltaww.com/downloadCenterCounter.aspx?DID=40095&DocPath=1&hl=en-US) để lập trình PLC.
+
+<CENTER>
+
+![Untitled](/Picture/ISPSoft.png)<br>
+Phần mềm <br>
+</CENTER>
+

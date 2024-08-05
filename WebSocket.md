@@ -7,7 +7,7 @@
   
 <div style='text-align: center;'>
 
-![Untitled](/Pictute/WebSocketDiagram.png)
+![Untitled](/Picture/WebSocketDiagram.png)
 
 </div>
 
@@ -20,7 +20,7 @@ Dựa trên giao thức `TCP( Tranmission Control Protocol)`, stream socket thi�
 
 <div style='text-align: center;'>
 
-![Untitled](/Pictute/StreamSocket.png)
+![Untitled](/Picture/StreamSocket.png)
 
 </div>
 
@@ -38,7 +38,7 @@ Dựa trên giao thức `UDP( User Datagram Protocol)` việc truyền dữ li�
 
 <div style='text-align: center;'>
 
-![Untitled](/Pictute/DatagramSocket.png)
+![Untitled](/Picture/DatagramSocket.png)
 
 </div>
 

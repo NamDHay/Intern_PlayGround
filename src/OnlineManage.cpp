@@ -14,12 +14,6 @@ const IPAddress local_IP(192, 168, 1, 254);
 const IPAddress gateway(192, 168, 1, 1);
 const IPAddress subnet(255, 255, 0, 0);
 
-const IPAddress localIP(192, 168, 4, 1);      // the IP address the web server, Samsung requires the IP to be in public space
-const IPAddress gatewayIP(192, 168, 4, 1);    // IP address of the network should be the same as the local IP for captive portals
-const IPAddress subnetMask(255, 255, 255, 0); // no need to change: https://avinetworks.com/glossary/subnet-mask/
-
-const String localIPURL = "http://192.168.4.1/"; // a string version of the local IP with http, used for redirecting clients to your webpage
-
 void OnlineManage::Init()
 {
     online.loadSetting();
@@ -43,7 +37,6 @@ void OnlineManage::Init()
         online.Get_AP_IP();
     }
     online.WebSocketInit();
-    online.PortalInit();
     online.WebHandle();
     server.begin();
 }
@@ -142,28 +135,14 @@ void OnlineManage::writeSetting()
     filesystem.writefile("/wfsetting.json", setting, 0);
 }
 
-#define DNS_INTERVAL 30
-DNSServer dnsServer;
-void OnlineManage::PortalInit()
-{
-    dnsServer.setTTL(3600);
-    dnsServer.start(53, "*", WiFi.softAPIP());
-
-    Serial.print("\n");
-    Serial.print("Startup Time:");
-    Serial.println(millis());
-    Serial.print("\n");
-}
-
-void OnlineManage::notifyClients(const String &message)
-{
-    ws.textAll(message);
-}
-
 JsonDocument rdoc;
 JsonDocument wDoc;
 String DataStr = "";
 String fbDataString = "";
+void OnlineManage::notifyClients(const String &message)
+{
+    ws.textAll(message);
+}
 void mbAddSlavehandler()
 {
     mbParam.numSlave++;
@@ -242,6 +221,8 @@ void setModbusHandler()
     }
     modbusRTU.writeSetting();
     modbusTCP.writeSetting();
+    modbusRTU.loadSetting();
+    modbusTCP.loadSetting();
 }
 void setWifiHandler()
 {
@@ -269,6 +250,7 @@ void setWifiHandler()
     online.wifi_setting.staip = staip;
     online.wifi_setting.wmode = wmode;
     online.writeSetting();
+    online.loadSetting();
     bool IsMessage = true;
     xQueueSend(online.qWifiSetting, (void *)&IsMessage, 1 / portTICK_PERIOD_MS);
 }
@@ -367,22 +349,30 @@ void firstwebload()
     filesystem.ListFile();
 
     file = filesystem.readfile("/mbSlave.json");
-    Serial.println("{\"Filename\":\"mbSlave\",\"Data\":\"" + file + "}");
+    Serial.println("{\"Filename\":\"mbSlave\",\"Data\":" + file + "}");
     online.notifyClients("{\"Filename\":\"mbSlave\",\"Data\":" + file + "}");
 
     file = filesystem.readfile("/TableID.json");
-    Serial.println("{\"Filename\":\"TableID\",\"Data\":\"" + file + "}");
+    Serial.println("{\"Filename\":\"TableID\",\"Data\":" + file + "}");
     online.notifyClients("{\"Filename\":\"TableID\",\"Data\":" + file + "}");
 
     mbParam.loadTable = true;
 
     file = filesystem.readfile("/Application.json");
-    Serial.println("{\"Filename\":\"Application\",\"Data\":\"" + file + "}");
+    Serial.println("{\"Filename\":\"Application\",\"Data\":" + file + "}");
     online.notifyClients("{\"Filename\":\"Application\",\"Data\":" + file + "}");
 
     file = filesystem.readfile("/DataProduct.json");
-    Serial.println("{\"Filename\":\"DataProduct\",\"Data\":\"" + file + "}");
+    Serial.println("{\"Filename\":\"DataProduct\",\"Data\":" + file + "}");
     online.notifyClients("{\"Filename\":\"DataProduct\",\"Data\":" + file + "}");
+
+    file = filesystem.readfile("/wfsetting.json");
+    Serial.println("{\"Filename\":\"wfsetting\",\"Data\":" + file + "}");
+    online.notifyClients("{\"Filename\":\"wfsetting\",\"Data\":" + file + "}");
+
+    file = filesystem.readfile("/mbrtusetting.json");
+    Serial.println("{\"Filename\":\"mbrtusetting\",\"Data\":" + file + "}");
+    online.notifyClients("{\"Filename\":\"mbrtusetting\",\"Data\":" + file + "}");
 }
 void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,
              void *arg, uint8_t *data, size_t len)
@@ -414,26 +404,6 @@ const char *SSID_ = "ssid";
 const char *PASS_ = "pass";
 void OnlineManage::WebHandle()
 {
-    server.on("/connecttest.txt", [](AsyncWebServerRequest *request)
-              { request->redirect("http://logout.net"); }); // windows 11 captive portal workaround
-    server.on("/wpad.dat", [](AsyncWebServerRequest *request)
-              { request->send(404); }); // Honestly don't understand what this is but a 404 stops win 10 keep calling this repeatedly and panicking the esp32 :)
-
-    server.on("/generate_204", [](AsyncWebServerRequest *request)
-              { request->redirect(localIPURL); }); // android captive portal redirect
-    server.on("/redirect", [](AsyncWebServerRequest *request)
-              { request->redirect(localIPURL); }); // microsoft redirect
-    server.on("/hotspot-detect.html", [](AsyncWebServerRequest *request)
-              { request->redirect(localIPURL); }); // apple call home
-    server.on("/canonical.html", [](AsyncWebServerRequest *request)
-              { request->redirect(localIPURL); }); // firefox captive portal call home
-    server.on("/success.txt", [](AsyncWebServerRequest *request)
-              { request->send(200); }); // firefox captive portal call home
-    server.on("/chrome-variations/seed", [](AsyncWebServerRequest *request)
-              { request->send(200); }); // chrome captive portal call home
-    server.on("/ncsi.txt", [](AsyncWebServerRequest *request)
-              { request->redirect(localIPURL); }); // windows call home
-
     server.on("/", HTTP_ANY, [](AsyncWebServerRequest *request)
               {
         AsyncWebServerResponse *response = request->beginResponse(200, "text/html", filesystem.readfile("/index.html"));
@@ -463,7 +433,6 @@ void TaskOnlineManager(void *pvParameter)
 {
     static long startCheckWifiTime = millis();
     static bool isMessageReceived = false;
-    online.qPortalSetting = xQueueCreate(1, sizeof(bool));
     online.qWifiSetting = xQueueCreate(1, sizeof(bool));
     for (;;)
     {
@@ -472,19 +441,6 @@ void TaskOnlineManager(void *pvParameter)
             WiFi.begin(online.wifi_setting.ssid, online.wifi_setting.pass);
             isMessageReceived = false;
         }
-        if (millis() - startCheckWifiTime > 1000)
-        {
-            startCheckWifiTime = millis();
-            // if (online.CheckConnect(10) == false)
-            // {
-            //     online.AP_STA_Mode();
-            // }
-            // else
-            // {
-            //     online.AP_Mode();
-            // }
-        }
-        dnsServer.processNextRequest();
         ws.cleanupClients();
     }
 }

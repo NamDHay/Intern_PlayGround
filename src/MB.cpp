@@ -182,12 +182,15 @@ void MODBUS_RTU::loadSetting()
     String serial = doc["serial"].as<String>();
     String mbmaster = doc["mbmaster"].as<String>();
 
-    modbusRTU.master = (mbmaster == "0") ? 0 : 1;
+    modbusRTU.master = (mbmaster == "1") ? 1 : 0;
     modbusRTU.config.baud = baud.toInt();
     modbusRTU.config.port = (serial == "0") ? &Serial1 : &Serial2;
     if (modbusRTU.master == 1)
     {
         modbusRTU.MasterInit(modbusRTU.config.port, modbusRTU.config.baud);
+    }
+    else {
+        modbusRTU.MasterInit();
     }
 }
 void MODBUS_RTU::writeSetting()
@@ -484,7 +487,7 @@ void MODBUS_TCP::loadSetting()
     String dns = doc["dns"].as<String>();
     String mbclient = doc["mbclient"].as<String>();
 
-    modbusTCP.client = (mbclient == "0") ? 0 : 1;
+    modbusTCP.client = (mbclient == "1") ? 1 : 0;
     modbusTCP.ethernet.ipAdress = ethip;
     modbusTCP.ethernet.gateway = gw;
     modbusTCP.ethernet.subnet = sn;

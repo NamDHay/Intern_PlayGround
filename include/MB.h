@@ -1,6 +1,6 @@
 #ifndef __MODBUS_RTU_H__
 #define __MODBUS_RTU_H__
-
+#include <Arduino.h>
 #include <ETH.h>
 #include <ModbusIP_ESP8266.h>
 #include <ModbusRTU.h>
@@ -38,7 +38,7 @@ public:
         HardwareSerial *port;
     } config;
 
-    void MasterInit(HardwareSerial *port, unsigned long baud);
+    void MasterInit(HardwareSerial *port = &Serial2, unsigned long baud = 9600);
     bool read_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t length);
     bool write_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t length);
     void loadSetting();

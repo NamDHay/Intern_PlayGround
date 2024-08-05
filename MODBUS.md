@@ -35,7 +35,7 @@ TCP phải được thiết lập kết nối trước khi truyền dữ liệu,
 
 <div style='text-align: center;'>
 
-![Untitled](/Pictute/ModbusDataFrame.png)
+![Untitled](/Picture/ModbusDataFrame.png)
 
 </div>
 
@@ -81,7 +81,7 @@ Byte thứ hai được `Master` gửi đi là `Function code`. Con số này ch
 
 <div style='text-align: center;'>
 
-![Untitled](/Pictute/ModbusDataFrame.png)
+![Untitled](/Picture/ModbusDataFrame.png)
 
 </div>
 
