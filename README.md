@@ -301,9 +301,68 @@ Sau đó sẽ xuất hiện một bảng thông số đọc được từ PLC v�
 
 - `3`: địa chỉ thanh ghi đọc từ PLC
 
-- `4`: kiểu dữ liệu 
+- `4`: hiển thị kiểu dữ liệu. Có thể thay đổi kiểu dữ liệu khác như: `WORD` , `CHAR` , `COIL` , `DWORD` , `FLOAT` .
 
 - `5`: dữ liệu đọc được
 
 - `6`: nút chỉnh sửa dữ liệu trực tiếp trên bảng
+### ***6. Giao diện cài đặt thẻ theo dõi thông số***
+Giao diện dùng để cài đặt các thông số cần theo dõi lên thẻ. Để mở giao diện cần nhấn vào biểu tượng
+<div style="text-align: center;">
 
+![alt text](image/logocard.png)
+</div>
+
+Sau đó sẽ xuất hiện giao diện để có thể chọn các thông số cần theo dõi từ các thanh ghi của PLC.
+<div style="text-align: center;">
+
+![alt text](image/addcard.png)
+</div>
+
+***Trong đó:***
+- `1` : nhập tên của thẻ.
+- `2` : lựa chọn địa chỉ ID của thiết bị cần theo dõi.
+<div style="text-align: center;">
+
+![alt text](image/selectnodeid.png)
+</div>
+
+- `3` : sau khi lựa chọn thiết bị thì nó sẽ xuất hiện các thanh ghi tương ứng của thiết bị đó.
+<div style="text-align: center;">
+
+![alt text](image/selectreg.png)
+</div>
+
+- `4` : giá trị được lưu trong thanh ghi.
+<div style="text-align: center;">
+
+![alt text](image/valuereg.png)
+</div>
+
+### ***7. Giao diện hiển thị thẻ (Home)***
+Giao diện hiển thị các thẻ theo dõi sau khi được thêm vào và có thể hiển thị, theo dõi cùng lúc nhiều thẻ khác nhau. Trên thẻ gồm các thông số như: `Plan` , `Result` , `PlanSet/ResultSet` , `Name Product` , `Cycle Time` , `Total Plan` và 3 nút nhấn : `Settings` , ` Run/Stop` , `Reset` , và trạng thái của thiết bị `state: Run/Stop` . 
+
+Để có thể cài đặt và chỉnh sửa các thông số cần nhấn vào nút `Setting` trên thẻ.
+<div style="text-align: center;">
+
+![alt text](image/btnsetting.png)
+</div>
+
+Sau đó màn hình sẽ xuất hiện giao diện cài đặt 
+<div style="text-align: center;">
+
+![alt text](image/editparameter.png)
+</div>
+
+***Trong đó:***
+- Có thể đổi tên thiết bị ở `Change name` .
+
+- Có thể thay đổi các thông số trực tiếp trên thẻ sau đó sẽ được lưu lại và gửi xuống PLC.
+
+- Có thể thay đổi sản phẩm theo dõi ở `Product` .
+<div style="text-align: center;">
+
+![alt text](image/selectproduct.png)
+</div>
+
+- Có thể thêm sản phẩm mới ở `Add Product` .
