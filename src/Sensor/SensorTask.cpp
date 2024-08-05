@@ -1,5 +1,6 @@
-#include <SICK.h>
-#include <OnlineManage.h>
+#include <header.h>
+#include <OnlineManage/OnlineManage.h>
+#include <Sensor/SICK.h>
 
 // GLOBAL VARIABLES
 String OD2000 = "{\"iolink\":{\"valid\":true,\"value\":[252,35,116,55,247,3]},\"iqValue\":true}";
@@ -67,41 +68,6 @@ void getWTM10LValue(String JsonString)
     Serial.println(JsonString);
     online.notifyClients(JsonString);
 }
-
-float SICK_SENSOR::getByte2IntValue(byte *arr, uint16_t zeroPos, int8_t scale, uint8_t length)
-{
-    int Measurement_value = 0;
-    for (byte i = 0; i < length; i++)
-    {
-        Measurement_value |= (((uint32_t)arr[i]) << (8 * (length - i - 1)));
-    }
-    float relativeData = Measurement_value * pow(10, scale);
-    float absoluteData = relativeData + zeroPos;
-    return absoluteData;
-}
-float SICK_SENSOR::getByte2FloatValue(byte *arr, uint16_t zeroPos, int8_t scale, uint8_t length)
-{
-    union type_t
-    {
-        float f;
-        uint32_t u;
-    } Measurement_value;
-    Measurement_value.u = 0;
-    for (byte i = 0; i < length; i++)
-    {
-        Measurement_value.u |= (((uint32_t)arr[i]) << (8 * (length - i - 1)));
-    }
-    float relativeData = Measurement_value.f * pow(10, scale);
-    float absoluteData = relativeData + zeroPos;
-    return absoluteData;
-}
-
-#ifdef MPB10_SICK
-float SICK_SENSOR::magnitudeCal(float x, float y, float z)
-{
-    return sqrt(x * x + y * y + z * z);
-}
-#endif // MPB10_SICK
 
 void TaskSICKSensor(void *pvParameter)
 {

@@ -30,7 +30,7 @@ extern MODBUS_PARAMETER mbParam;
 class MODBUS_RTU
 {
 public:
-    bool isConnected;
+    bool isConnect;
     uint8_t master;
     struct Config_t
     {
@@ -43,12 +43,14 @@ public:
     bool write_Multiple_Data(byte ID, uint16_t *value, long startAddress, size_t length);
     void loadSetting();
     void writeSetting();
+    void task();
+    uint8_t slave();
 };
 
 class MODBUS_TCP
 {
 public:
-    bool isConnected;
+    bool isConnect;
     uint8_t client;
     struct ethernet_t
     {
@@ -66,6 +68,9 @@ public:
     bool write_Multiple_Data(IPAddress ID, uint16_t *value, long startAddress, size_t length);
     void loadSetting();
     void writeSetting();
+    void task();
+    bool connect(IPAddress address);
+    bool isConnected(IPAddress address);
 };
 
 void TaskModbus(void *pvParameter);

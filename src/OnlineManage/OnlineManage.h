@@ -1,5 +1,6 @@
 #ifndef __ONLINE_MANAGE_H__
 #define __ONLINE_MANAGE_H__
+#include <header.h>
 
 #include <WiFiMulti.h>
 #include <ArduinoJson.h>
@@ -10,14 +11,11 @@
 #define soft_ap_ssid "ESP32-AP-Connect"
 #define soft_ap_password "12345678"
 
-#define UPDATE_INTERVAL_MS 500
-#define WIFI_STATUS_INTERVAL 2000
 class OnlineManage
 {
 private:
 public:
     bool isConnected = false;
-    QueueHandle_t qWifiSetting;
     String header;
     struct wifi_setting_t
     {
@@ -41,11 +39,9 @@ public:
     void loadSetting();
     void writeSetting();
 
-    void WebHandle();
     void WebSocketInit();
     void notifyClients(const String &message);
 };
-
 extern OnlineManage online;
 
 void TaskOnlineManager(void *pvParameter);

@@ -1,7 +1,7 @@
-#include <File_System.h>
-#include <Arduino.h>
+#include <header.h>
+#ifdef CONFIG_USE_FILE_SYSTEM
+#include <FileSystem/FileSystem.h>
 #include <ArduinoJson.h>
-#include <OnlineManage.h>
 void FFS::Init()
 {
     if (!SPIFFS.begin(true))
@@ -45,7 +45,7 @@ bool FFS::deletefile(String filename)
     return SPIFFS.remove(filename);
 }
 
-void FFS::ListFile()
+String FFS::ListFile()
 {
     JsonDocument fileDoc;
     JsonArray dataArray;
@@ -67,5 +67,7 @@ void FFS::ListFile()
     }
     serializeJson(fileDoc, showfile);
     Serial.println(showfile);
-    online.notifyClients(showfile);
+    return showfile;
 }
+
+#endif //CONFIG_USE_FILE_SYSTEM

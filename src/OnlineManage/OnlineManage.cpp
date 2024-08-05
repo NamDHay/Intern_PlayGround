@@ -1,9 +1,8 @@
-#include <OnlineManage.h>
-#include <MB.h>
-#include <HTML.h>
-#include <File_System.h>
-#include <time.h>
-#include <string.h>
+#include <Header.h>
+#include <OnlineManage/OnlineManage.h>
+#include <Communication/MB.h>
+#include <OnlineManage/HTML.h>
+#include <FileSystem/FileSystem.h>
 
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
@@ -17,8 +16,6 @@ const IPAddress subnet(255, 255, 0, 0);
 void OnlineManage::Init()
 {
     online.loadSetting();
-    Serial.print("Connecting to ");
-    Serial.println(online.wifi_setting.ssid);
     online.AP_STA_Mode();
     if (online.CheckConnect(500))
     {
@@ -36,9 +33,6 @@ void OnlineManage::Init()
         online.AP_Mode();
         online.Get_AP_IP();
     }
-    online.WebSocketInit();
-    online.WebHandle();
-    server.begin();
 }
 void OnlineManage::AP_Mode()
 {
@@ -251,8 +245,7 @@ void setWifiHandler()
     online.wifi_setting.wmode = wmode;
     online.writeSetting();
     online.loadSetting();
-    bool IsMessage = true;
-    xQueueSend(online.qWifiSetting, (void *)&IsMessage, 1 / portTICK_PERIOD_MS);
+    online.Init();
 }
 void editModbusData()
 {
@@ -402,7 +395,7 @@ void OnlineManage::WebSocketInit()
 
 const char *SSID_ = "ssid";
 const char *PASS_ = "pass";
-void OnlineManage::WebHandle()
+void WebHandle()
 {
     server.on("/", HTTP_ANY, [](AsyncWebServerRequest *request)
               {
@@ -431,16 +424,12 @@ void OnlineManage::WebHandle()
 
 void TaskOnlineManager(void *pvParameter)
 {
-    static long startCheckWifiTime = millis();
-    static bool isMessageReceived = false;
-    online.qWifiSetting = xQueueCreate(1, sizeof(bool));
+    online.Init();
+    online.WebSocketInit();
+    WebHandle();
+    server.begin();
     for (;;)
     {
-        if (xQueueReceive(online.qWifiSetting, (void *)&isMessageReceived, 1 / portTICK_PERIOD_MS) == pdTRUE)
-        {
-            WiFi.begin(online.wifi_setting.ssid, online.wifi_setting.pass);
-            isMessageReceived = false;
-        }
         ws.cleanupClients();
     }
 }

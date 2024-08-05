@@ -1,5 +1,7 @@
+#include <header.h>
+#ifdef CONFIG_USE_NPT_TIME
 #include <WiFi.h>
-#include <NPTTime.h>
+#include <OnlineManage/NPTTime.h>
 
 NPT npt;
 
@@ -30,3 +32,4 @@ void NPT::printLocalTime(void)
   Serial.print(timeMin);  Serial.print(" : ");
   Serial.print(timeSec);  Serial.print("\r\n");
 }
+#endif

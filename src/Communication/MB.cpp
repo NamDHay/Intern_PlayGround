@@ -1,114 +1,15 @@
 #include "Arduino.h"
-#include <OnlineManage.h>
-#include <MB.h>
+#include <OnlineManage/OnlineManage.h>
+#include <Communication/MB.h>
 #include <ArduinoJson.h>
-#include <File_System.h>
-
+#include <FileSystem/FileSystem.h>
+#define UPDATE_INTERVAL_MS 500
 #define RTU_MAX_RW 30
 #define TCP_MAX_RW 99
-
-#define PLC_MAX_CHAR 40
 
 ModbusRTU mbRTU;
 ModbusIP mbTCP;
 
-int getIpBlock(int index, String str)
-{
-    char separator = '.';
-    int found = 0;
-    int strIndex[] = {0, -1};
-    int maxIndex = str.length() - 1;
-
-    for (int i = 0; i <= maxIndex && found <= index; i++)
-    {
-        if (str.charAt(i) == separator || i == maxIndex)
-        {
-            found++;
-            strIndex[0] = strIndex[1] + 1;
-            strIndex[1] = (i == maxIndex) ? i + 1 : i;
-        }
-    }
-
-    return found > index ? str.substring(strIndex[0], strIndex[1]).toInt() : 0;
-}
-IPAddress MODBUS_TCP::str2IP(String str)
-{
-    IPAddress ret(getIpBlock(0, str), getIpBlock(1, str), getIpBlock(2, str), getIpBlock(3, str));
-    return ret;
-}
-void update_ModbusData_Interval()
-{
-    JsonDocument Doc;
-    String fbDataString = "";
-    long count = 0;
-    size_t lenght;
-    Doc["Command"] = "tableData";
-    for (byte i = 0; i < mbParam.numSlave; i++)
-    {
-        lenght = mbParam.slave[i].ReadAddress.endAddress - mbParam.slave[i].ReadAddress.startAddress + 1;
-        Doc["Data"][i]["ID"] = mbParam.slave[i].ID;
-        if ((modbusRTU.master == 1) && (mbParam.slave[i].ID.length() < 5))
-        {
-            if (!mbRTU.slave())
-            {
-                while (modbusRTU.read_Multiple_Data(mbParam.slave[i].ID.toInt(),
-                                                    (uint16_t *)&mbParam.slave[i].Data,
-                                                    mbParam.slave[i].ReadAddress.startAddress,
-                                                    lenght) != true)
-                    ;
-                if (modbusRTU.isConnected == true)
-                {
-                    Doc["Data"][i]["connect"] = 1;
-                }
-                else
-                {
-                    Doc["Data"][i]["connect"] = 0;
-                    continue;
-                }
-            }
-            else
-            {
-                mbRTU.task();
-                continue;
-            }
-            mbRTU.task();
-        }
-        else if ((modbusTCP.client == 1) && (mbParam.slave[i].ID.length() > 5))
-        {
-            if (mbTCP.isConnected(modbusTCP.str2IP(mbParam.slave[i].ID)))
-            {
-                Doc["Data"][i]["connect"] = 1;
-                while (modbusTCP.read_Multiple_Data(modbusTCP.str2IP(mbParam.slave[i].ID),
-                                                    (uint16_t *)&mbParam.slave[i].Data,
-                                                    mbParam.slave[i].ReadAddress.startAddress,
-                                                    lenght) != true)
-                    ;
-            }
-            else
-            {
-                mbTCP.task();
-                mbTCP.connect(modbusTCP.str2IP(mbParam.slave[i].ID));
-                Doc["Data"][i]["connect"] = 0;
-                continue;
-            }
-            mbTCP.task();
-        }
-        if (online.isConnected == true)
-        {
-            for (byte j = 0; j < lenght; j++)
-            {
-                Doc["Data"][i]["Data"][j] = mbParam.slave[i].Data[j];
-            }
-            count = 0;
-        }
-    }
-    if (mbParam.loadTable == true)
-    {
-        serializeJson(Doc, fbDataString);
-        // Serial.println(fbDataString);
-        online.notifyClients(fbDataString);
-    }
-}
 /*********************************************START MBPARAM PART**************************************************************/
 void MODBUS_PARAMETER::writeSlave()
 {
@@ -152,12 +53,11 @@ bool cb(Modbus::ResultCode event, uint16_t transactionId, void *data) // Callbac
         // Serial.print("Request result: 0x");
         // Serial.println(event, HEX);
         // Serial.print("No Connection");
-        modbusRTU.isConnected = false;
+        modbusRTU.isConnect = false;
     }
     else
     {
-        // Serial.print("Connection");
-        modbusRTU.isConnected = true;
+        modbusRTU.isConnect = true;
     }
     return true;
 }
@@ -189,7 +89,8 @@ void MODBUS_RTU::loadSetting()
     {
         modbusRTU.MasterInit(modbusRTU.config.port, modbusRTU.config.baud);
     }
-    else {
+    else
+    {
         modbusRTU.MasterInit();
     }
 }
@@ -314,6 +215,14 @@ bool MODBUS_RTU::write_Multiple_Data(byte ID, uint16_t *value, long startAddress
     }
     return false;
 }
+void MODBUS_RTU::task()
+{
+    mbRTU.task();
+}
+uint8_t MODBUS_RTU::slave()
+{
+    return mbRTU.slave();
+}
 /**********************************************END RTU PART***************************************************************/
 
 /*********************************************START TCP PART**************************************************************/
@@ -324,11 +233,6 @@ bool MODBUS_RTU::write_Multiple_Data(byte ID, uint16_t *value, long startAddress
 #define ETH_MDIO_PIN 18
 #define ETH_TYPE ETH_PHY_LAN8720
 #define ETH_CLK_MODE ETH_CLOCK_GPIO0_IN
-#define BUZZ 12
-
-
-#define BUZZ_ON digitalWrite(BUZZ, HIGH)
-#define BUZZ_OFF digitalWrite(BUZZ, LOW)
 
 static bool eth_connected = false;
 void WiFiEvent(WiFiEvent_t event)
@@ -516,9 +420,117 @@ void MODBUS_TCP::writeSetting()
     serializeJson(writeDoc, setting);
     filesystem.writefile("/mbtcpsetting.json", setting, 0);
 }
+void MODBUS_TCP::task()
+{
+    mbTCP.task();
+}
+bool MODBUS_TCP::connect(IPAddress address)
+{
+    return mbTCP.connect(address);
+}
+bool MODBUS_TCP::isConnected(IPAddress address)
+{
+    return mbTCP.isConnected(address);
+}
 /*********************************************END TCP PART****************************************************************/
 
 /*********************************************START MODBUS TASK***********************************************************/
+int getIpBlock(int index, String str)
+{
+    char separator = '.';
+    int found = 0;
+    int strIndex[] = {0, -1};
+    int maxIndex = str.length() - 1;
+
+    for (int i = 0; i <= maxIndex && found <= index; i++)
+    {
+        if (str.charAt(i) == separator || i == maxIndex)
+        {
+            found++;
+            strIndex[0] = strIndex[1] + 1;
+            strIndex[1] = (i == maxIndex) ? i + 1 : i;
+        }
+    }
+
+    return found > index ? str.substring(strIndex[0], strIndex[1]).toInt() : 0;
+}
+IPAddress MODBUS_TCP::str2IP(String str)
+{
+    IPAddress ret(getIpBlock(0, str), getIpBlock(1, str), getIpBlock(2, str), getIpBlock(3, str));
+    return ret;
+}
+void update_ModbusData_Interval()
+{
+    JsonDocument Doc;
+    String fbDataString = "";
+    long count = 0;
+    size_t lenght;
+    Doc["Command"] = "tableData";
+    for (byte i = 0; i < mbParam.numSlave; i++)
+    {
+        lenght = mbParam.slave[i].ReadAddress.endAddress - mbParam.slave[i].ReadAddress.startAddress + 1;
+        Doc["Data"][i]["ID"] = mbParam.slave[i].ID;
+        if ((modbusRTU.master == 1) && (mbParam.slave[i].ID.length() < 5))
+        {
+            if (!modbusRTU.slave())
+            {
+                while (modbusRTU.read_Multiple_Data(mbParam.slave[i].ID.toInt(),
+                                                    (uint16_t *)&mbParam.slave[i].Data,
+                                                    mbParam.slave[i].ReadAddress.startAddress,
+                                                    lenght) != true)
+                    ;
+                if (modbusRTU.isConnect == true)
+                {
+                    Doc["Data"][i]["connect"] = 1;
+                }
+                else
+                {
+                    Doc["Data"][i]["connect"] = 0;
+                    continue;
+                }
+            }
+            else
+            {
+                modbusRTU.task();
+                continue;
+            }
+            modbusRTU.task();
+        }
+        else if ((modbusTCP.client == 1) && (mbParam.slave[i].ID.length() > 5))
+        {
+            if (modbusTCP.isConnected(modbusTCP.str2IP(mbParam.slave[i].ID)))
+            {
+                Doc["Data"][i]["connect"] = 1;
+                while (modbusTCP.read_Multiple_Data(modbusTCP.str2IP(mbParam.slave[i].ID),
+                                                    (uint16_t *)&mbParam.slave[i].Data,
+                                                    mbParam.slave[i].ReadAddress.startAddress,
+                                                    lenght) != true)
+                    ;
+            }
+            else
+            {
+                modbusTCP.task();
+                modbusTCP.connect(modbusTCP.str2IP(mbParam.slave[i].ID));
+                Doc["Data"][i]["connect"] = 0;
+                continue;
+            }
+            modbusTCP.task();
+        }
+        if (online.isConnected == true)
+        {
+            for (byte j = 0; j < lenght; j++)
+            {
+                Doc["Data"][i]["Data"][j] = mbParam.slave[i].Data[j];
+            }
+            count = 0;
+        }
+    }
+    if (mbParam.loadTable == true)
+    {
+        serializeJson(Doc, fbDataString);
+        online.notifyClients(fbDataString);
+    }
+}
 void TaskModbus(void *pvParameter)
 {
     String dataRead = "";
