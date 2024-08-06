@@ -19,7 +19,7 @@ function gencard_ODOD2000(valuesensor){
 
         document.getElementById("addcard").innerHTML = html;
     }
-    document.getElementById("cardvalueOD2000").innerHTML = valuesensor +"mm";
+    document.getElementById("cardvalueOD2000").innerHTML = (valuesensor).toFixed(2) +"mm";
 
 }
 function gencard_WTM10L(valuesensor){
@@ -42,7 +42,7 @@ function gencard_WTM10L(valuesensor){
         </div><br></br>";
         document.getElementById("addcard").innerHTML = html;
     }
-    document.getElementById("cardvalueWTM10L").innerHTML = valuesensor +"mm";
+    document.getElementById("cardvalueWTM10L").innerHTML = (valuesensor).toFixed(2) +"mm";
 }
 function gencard_MPB10(valuesensor){
     loadcard_MPB10++;
@@ -82,8 +82,8 @@ function gencard_MPB10(valuesensor){
                 </div><br></br>";
         document.getElementById("addcard").innerHTML = html;      
     }
-    document.getElementById("cardvalue1").innerHTML = valuesensor[0] +"°";
-    document.getElementById("cardvalue2").innerHTML = valuesensor[1] +"°";
-    document.getElementById("cardvalue3").innerHTML = valuesensor[2] +"°";
-    document.getElementById("cardvalue4").innerHTML = valuesensor[3] +"°C";
+    document.getElementById("cardvalue1").innerHTML = (valuesensor[3]*180/3.14).toFixed(2) +"°";
+    document.getElementById("cardvalue2").innerHTML = (valuesensor[2]*180/3.14).toFixed(2) +"°";
+    document.getElementById("cardvalue3").innerHTML = (valuesensor[1]*180/3.14).toFixed(2) +"°";
+    document.getElementById("cardvalue4").innerHTML = (valuesensor[0]).toFixed(2) +"°C";
 }

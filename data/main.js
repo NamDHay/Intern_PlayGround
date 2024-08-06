@@ -202,20 +202,17 @@ function onMessage(event) {
   if(message.OD2000 != null){
     valueOD2000 = message.OD2000.value;
     console.log(message.OD2000.value);
-    // gencard_ODOD2000();
-    // document.getElementById("addcard").innerHTML = html;
+    // gencard_ODOD2000(valueOD2000);
   }
   if(message.WTM10L != null){
     valueWTM10L = message.WTM10L.value;
     console.log(message.WTM10L.value);
-    // gencard_WTM10L();
-    // document.getElementById("addcard").innerHTML = html;
+    // gencard_WTM10L(valueWTM10L);
   }
   if(message.MPB10 != null){
     valueMPB10L = message.MPB10.value;
     console.log(message.MPB10.value);
-    // gencard_MPB10();
-    // document.getElementById("addcard").innerHTML = html;
+    // gencard_MPB10(valueMPB10L);
   }
   }catch(e){
     console.log(e);
@@ -447,6 +444,11 @@ function Showfile() {
   document.getElementById("tabIO").style.display = "none";
   document.getElementById("tabtabledata").style.display = "none";
 
+  document.getElementById("btnModbus").style.display = "block";
+  document.getElementById("btnHome").style.display = "block";
+  document.getElementById("btnIo").style.display = "block";
+  document.getElementById("btntable").style.display = "block";
+
 }
 function TabShowData() {
   document.getElementById("cardmodbus").style.display = "none";
@@ -461,6 +463,11 @@ function TabShowData() {
   document.getElementById("tabHome").style.display = "none";
   document.getElementById("tabIO").style.display = "none";
   document.getElementById("tabtabledata").style.display = "none";
+  
+  document.getElementById("btnModbus").style.display = "block";
+  document.getElementById("btnHome").style.display = "block";
+  document.getElementById("btnIo").style.display = "block";
+  document.getElementById("btntable").style.display = "block";
 }
 function AddCard() {
   document.getElementById("cardmodbus").style.display = "none";
