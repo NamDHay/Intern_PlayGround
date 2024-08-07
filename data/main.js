@@ -77,7 +77,7 @@ function intervalHandle() {
   var jsonOD2000 = "{\"OD2000\":{\"value\":65.21464539}}";
   var jsonparseOD2000 = JSON.parse(jsonOD2000);
   gencard_ODOD2000(jsonparseOD2000.OD2000.value);
-  var jsonMPB10 = "{\"MPB10\":{\"value\":[33,0.196717024,0.141381785,0.13805677]}}";
+  var jsonMPB10 = "{\"MPB10\":{\"value\":[33.25,0.196717024,0.141381785,0.13805677]}}";
   var jsonparseMPB10 = JSON.parse(jsonMPB10);
   gencard_MPB10(jsonparseMPB10.MPB10.value);
   

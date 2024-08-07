@@ -85,5 +85,6 @@ function gencard_MPB10(valuesensor){
     document.getElementById("cardvalue1").innerHTML = (valuesensor[3]*180/3.14).toFixed(2) +"°";
     document.getElementById("cardvalue2").innerHTML = (valuesensor[2]*180/3.14).toFixed(2) +"°";
     document.getElementById("cardvalue3").innerHTML = (valuesensor[1]*180/3.14).toFixed(2) +"°";
-    document.getElementById("cardvalue4").innerHTML = (valuesensor[0]).toFixed(2) +"°C";
+    // document.getElementById("cardvalue4").innerHTML = (valuesensor[0]).toFixed(2) +"°C";
+    document.getElementById("cardvalue4").innerHTML = parseFloat(valuesensor[0]) +"°C";
 }

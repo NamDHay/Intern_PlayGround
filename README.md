@@ -365,4 +365,18 @@ Sau đó màn hình sẽ xuất hiện giao diện cài đặt
 ![alt text](image/selectproduct.png)
 </div>
 
-- Có thể thêm sản phẩm mới ở `Add Product` .
+- Có thể thêm sản phẩm mới ở `Add Product` sau khi thêm thông số `Plan/Result set` và `Cycle Time`.
+
+- Có thể xem các tất cả các sản phẩm ở mục `Show` . Trong đó có thể chỉnh sửa hoặc xóa sản phẩm. 
+<div style="text-align: center;">
+
+![alt text](image/showproduct.png)
+</div>
+
+- Có thể chỉnh sửa `Name Product` , `Plan/Result set` và `Cycle Time` khi nhấn vào nút `Edit` .
+<div style="text-align: center;">
+
+![alt text](image/editproduct.png)
+</div>
+
+### ***8. Giao diện theo dõi FileSystem***
