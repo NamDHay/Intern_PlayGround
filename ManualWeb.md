@@ -380,3 +380,45 @@ Sau đó màn hình sẽ xuất hiện giao diện cài đặt
 </div>
 
 ### ***8. Giao diện theo dõi FileSystem***
+Giao diện có thể theo dõi được tên các `FileSystem` và dung lượng của mỗi `FileSystem` . Ngoài ra, trên giao diện cũng hiển thị dung lượng tổng của bộ nhớ có thể lưu các `FileSystem` và cũng dung lượng còn trống.
+
+Để mở giao diện ta ấn vào nút sau:
+<div style="text-align: center;">
+
+![alt text](image/logofilesystem.png)
+</div>
+
+Sau đó trên màn hình sẽ xuất hiện giao diện để theo dõi các thông số của `FileSystem` .
+<div style="text-align: center;">
+
+![alt text](image/filesystem.png)
+</div>
+
+### ***9. Giao diện lưu trữ và chỉnh sửa các chuỗi JSON của hệ thống***
+Trong giao diện có thể xem và chỉnh sửa các thông số của chuỗi JSON, sau đó cập nhật lại và hiển thị ra các thông số vừa thay đổi ra các giao diện theo dõi khác. Giao diện này chỉ có `Admin` mới có thể vào được.
+
+Để mở giao diện ta ấn vào các nút sau:
+<div style="text-align: center;">
+
+![alt text](image/logoeditjson.png)
+</div>
+
+Sau đó màn hình sẽ xuất hiện giao diện gồm các `TextBox` để hiển thị các chuỗi JSON
+ping
+<div style="text-align: center;">
+
+![alt text](image/json1.png)
+</div>
+<div style="text-align: center;">
+
+![alt text](image/json2.png)
+</div>
+
+***Trong đó mỗi `TextBox` đề có 4 nút thực hiện các năng như:***
+- `Load` : gửi tín hiệu xuống `ESP32` sau đó `ESP32` sẽ gửi chuỗi `JSON` đã được lưu trong `FileSystem` lên và hiển thị ở `TextBox` .
+
+- `Reload` : quay lại chuỗi `JSON` ban đầu được lưu trong `FileSystem` .
+
+- `Save` : gửi chuỗi `JSON` xuống `ESP32` sau đó sẽ được `ESP32` lưu vào `FileSystem` .
+
+- `Test` : hiển thị các thông số vừa chỉnh sửa ra giao diện tương ứng nhưng chưa lưu chuỗi `JSON` xuống `ESP32` .

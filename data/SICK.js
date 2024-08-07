@@ -1,7 +1,7 @@
 function gencard_ODOD2000(valuesensor){
     loadcardOD2000++;
     if(loadcardOD2000 == 1){
-        html = "<div class='col-14 cardproduct'>\
+        html += "<div class='col-14 cardproduct'>\
         <Center>\
             <h2><span>OD2000</span> </h2>\
             <div class=\"container overflow-hidden text-center\">\
