@@ -2,11 +2,12 @@
 #define __ONLINE_MANAGE_H__
 #include <header.h>
 
-#include <WiFiMulti.h>
+#include <WiFi.h>
 #include <ArduinoJson.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <DNSServer.h>
+#include <MQTT.h>
 
 #define soft_ap_ssid "ESP32-AP-Connect"
 #define soft_ap_password "12345678"
@@ -38,6 +39,8 @@ public:
 
     void loadSetting();
     void writeSetting();
+
+    void WebHandle();
 
     void WebSocketInit();
     void notifyClients(const String &message);

@@ -9,9 +9,7 @@
 #include <Sensor/SICK.h>
 #include <OnlineManage/OnlineManage.h>
 #include <OnlineManage/NPTTime.h>
-#include <Sensor/SensorTask.h>
 
-FFS filesystem;
 OnlineManage online;
 MODBUS_RTU modbusRTU;
 MODBUS_TCP modbusTCP;
@@ -21,9 +19,9 @@ void setup()
 {
   Serial.begin(115200);
   filesystem.Init();
-  xTaskCreatePinnedToCore(TaskSICKSensor, "TaskSICKSensor", 5000, NULL, 3, NULL, 1);
+  online.Init();
   xTaskCreatePinnedToCore(TaskOnlineManager, "TaskOnlineManager", 5000, NULL, 3, NULL, 1);
-  xTaskCreatePinnedToCore(TaskModbus, "TaskModbusRTU", 10000, NULL, 3, NULL, 1);
+  xTaskCreatePinnedToCore(TaskModbus, "TaskModbusRTU", 5000, NULL, 2, NULL, 1);
 }
 
 void loop()

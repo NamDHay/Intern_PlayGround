@@ -73,9 +73,9 @@ public:
     bool isConnected(IPAddress address);
 };
 
-void TaskModbus(void *pvParameter);
-
 extern MODBUS_RTU modbusRTU;
 extern MODBUS_TCP modbusTCP;
+
+void TaskModbus(void *pvParameter);
 
 #endif //__MODBUS_RTU_H__

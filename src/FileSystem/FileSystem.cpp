@@ -2,6 +2,7 @@
 #ifdef CONFIG_USE_FILE_SYSTEM
 #include <FileSystem/FileSystem.h>
 #include <ArduinoJson.h>
+FFS filesystem;
 void FFS::Init()
 {
     if (!SPIFFS.begin(true))

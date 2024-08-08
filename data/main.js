@@ -1,5 +1,7 @@
+
 //global variables
-var gateway = `ws://192.168.1.254/ws`;
+// var gateway = `ws://192.168.1.254/ws`;
+var gateway = `ws://192.168.0.88/ws`;
 var loadcard = 0;
 var loading = 0;
 var websocket;
@@ -15,7 +17,12 @@ var jsontableID = "";
 var jsontableData = "";
 var AppID = 0;
 var appData = [];
-var poss = 0;
+var typecard;
+var distance = 0;
+var x = 0;
+var y = 0;
+var z = 0;
+var temperature = 0;
 var app = 0;
 var nodeID;
 var netID = 0;
@@ -43,7 +50,35 @@ var preferenceslist = [];
 var onUpdate = 0;
 var jsonSlave = "";
 var loadDone = false;
+var loadproduct = 0;
+const intervalId = setInterval(intervalHandle, 1000);
+function intervalHandle() {
+  // var json_output;
+  // if (IsConnect == true) {
+  //   json_output = "{'Command':'toggleLed'}";
+  //   console.log(json_output);
+  //   websocket.send(json_output);
 
+  //   document.getElementById('input1').innerHTML = io_array[0];
+  //   document.getElementById('input2').innerHTML = io_array[1];
+  //   document.getElementById('input3').innerHTML = io_array[2];
+  //   document.getElementById('input4').innerHTML = io_array[3];
+  //   document.getElementById('output1').innerHTML = io_array[4];
+  //   document.getElementById('output2').innerHTML = io_array[5];
+  //   document.getElementById('output3').innerHTML = io_array[6];
+  //   document.getElementById('output4').innerHTML = io_array[7];
+
+  // var jsonOD2000 = "{\"OD2000\":{\"value\":65.21464539}}";
+  // var jsonparseOD2000 = JSON.parse(jsonOD2000);
+  // gencard_ODOD2000(jsonparseOD2000.OD2000.value);
+  // var jsonMPB10 = "{\"MPB10\":{\"value\":[33,0.196717024,0.141381785,0.13805677]}}";
+  // var jsonparseMPB10 = JSON.parse(jsonMPB10);
+  // gencard_MPB10(jsonparseMPB10.MPB10.value);
+
+  // var jsonWTM10L = "{\"WTM10L\":{\"value\":183}}";
+  // var jsonparseWTM10L = JSON.parse(jsonWTM10L);
+  // gencard_WTM10L(jsonparseWTM10L.WTM10L.value);
+}
 const selectwifimode = document.getElementById("staticip");
 // select mode wifi
 selectwifimode.addEventListener('change', function handChange(event) {
@@ -58,7 +93,7 @@ selectwifimode.addEventListener('change', function handChange(event) {
     document.getElementById("wifimode").innerHTML = Enable;
   }
 });
-const intervalId = setInterval(intervalHandle, 1000);
+
 window.addEventListener('beforeunload', () => clearInterval(intervalId));
 window.addEventListener('load', onLoad);
 function getReadings() {
@@ -86,75 +121,103 @@ function onClose(event) {
 }
 function onMessage(event) {
   var state;
-  // try {
-  var message = JSON.parse(event.data);
-  if (message.Command == "toggleLed") {
-    if (message.Data == "0")
-      state = "ON";
-    else state = "OFF";
-    console.log(state);
-    document.getElementById('state').innerHTML = state;
-  }
-  else if (message.Command == "getIO") { }
+  try {
+    var message = JSON.parse(event.data);
+    // console.log(message);
+    // console.log('Message received: ' + event.data);
+    if (message.Command == "toggleLed") {
+      if (message.Data == "0")
+        state = "ON";
+      else state = "OFF";
+      console.log(state);
+      document.getElementById('state').innerHTML = state;
+    }
+    else if (message.Command == "getIO") { }
 
-  else if (message.Command == "settingWifi") {
-    alert("Setting Done");
-  }
-  else if (message.Command == "settingModbus") {
-    alert("Completed setting!!!");
-  }
-  else if (message.Command == "ListFile") {
-    tablefile(event.data);
-  }
-  else if (message.Command == "TableID") {
-    jsontableID = document.getElementById("datatableid").value = event.data;
-    // console.log(jsontableID);
-    firstload = 1;
-    loading = 0;
-    loadTable(jsontableID);
-    // changeRegOptions(jsontableID);
-  }
-  else if (message.Command == "tableData") {
-    // console.log(event.data);
-    if (loading == 1) {
-      jsontableData = event.data;
-      loaddata(jsontableData);
-      addvaluecard(jsontableData);
+    else if (message.Command == "settingWifi") {
+      alert("Setting Done");
+    }
+    else if (message.Command == "settingModbus") {
+      alert("Completed setting!!!");
+    }
+    else if (message.Command == "ListFile") {
+      tablefile(event.data);
+    }
+
+    else if (message.Command == "TableID") {
+      jsontableID = document.getElementById("datatableid").value = event.data;
+      // console.log(jsontableID);
+      firstload = 1;
+      loading = 0;
+      loadTable(jsontableID);
+
+      changeRegOptions(jsontableID);
+    }
+    else if (message.Command == "tableData") {
+      console.log(event.data);
+      if (loading == 1) {
+        jsontableData = event.data;
+        loaddata(jsontableData);
+        addvaluecard(jsontableData);
+      }
+      if (daloadvcard) updatevalue();
+      if (loadcard == 1) {
+        buildCardJson();
+        loadcard = 0;
+
+      }
+    }
+    else if (message.Filename == "Application") {
+      document.getElementById("jsonApp").value = event.data;
+      // console.log(event.data);
+      loadproduct = 1;
 
     }
-    if (daloadvcard) updatevalue();
-    if (loadcard == 1) { buildCardJson(); loadcard = 0; }
-  }
-  if (message.Filename == "Application") {
-    document.getElementById("jsonApp").value = event.data;
+    else if (message.Filename == "TableID") {
+      jsontableID = document.getElementById("datatableid").value = event.data;
+      // console.log(jsontableID);
+      firstload = 1;
+      loading = 0;
+      loadTable(jsontableID);
+      loadcard = 1;
+      changeRegOptions(jsontableID);
+    }
+    else if (message.Filename == "DataProduct") {
+      // console.log(event.data);
+      document.getElementById("dataProduct").value = preferenceslist = event.data;
+    }
+    else if (message.Filename == "mbSlave" && loadDone == false) {
+      // console.log(event.data);
+      jsonSlave = document.getElementById("datatabledata").value = event.data;
+      loadBoardSlave(event.data);
+      genTable();
+      loadDone = true;
+    }
+    var key = Object.keys(message);
+    if (key == "OD2000") {
+      gencard_ODOD2000(message);
+    }
+    if (key == "WTM10L") {
+      gencard_WTM10L(message);
+    }
+    if (key == "MPB10") {
+      gencard_MPB10(message);
+    }
+    if (key == "CSS") {
+      gencard_CSS(message);
+    }
+    if (key == "PBS") {
+      gencard_PBS(message);
+    }
+  } catch (e) {
+    console.log(e);
     console.log(event.data);
-  }
-  else if (message.Filename == "TableID") {
-    jsontableID = document.getElementById("datatableid").value = event.data;
-    console.log(jsontableID);
-    firstload = 1;
-    loading = 0;
-    loadTable(jsontableID);
-    loadcard = 1;
-    changeRegOptions(jsontableID);
-  }
-  else if (message.Filename == "DataProduct") {
-    console.log(event.data);
-    document.getElementById("dataProduct").value = preferenceslist = event.data;
-  }
-  else if (message.Filename == "mbSlave" && loadDone == false) {
-    console.log(event.data);
-    jsonSlave = document.getElementById("datatabledata").value = event.data;
-    loadBoardSlave(event.data);
-    genTable();
-    loadDone = true;
   }
 }
-
 function onLoad(event) {
   initWebSocket();
   initButton();
-  showlogin();
+  // LoadData();
 }
 function io_ChangeState1() {
   io_array[4] = !io_array[4];
@@ -282,11 +345,8 @@ function ReloadJsonTableData() {
 function buttontoggle() {
   IsConnect = !IsConnect;
 }
-function intervalHandle() {
-  // console.log("Little Endian: " + byte_to_floatL(arr)/247);
-  // console.log("Big Endian: " + float_to_byteB(79.2));
-  // console.log("Little Endian: " + float_to_byteL(79.2));
-}
+
+
 function settingmodbus() {
   document.getElementById("cardmodbus").style.display = "block";
   document.getElementById("cardio").style.display = "none";
@@ -300,6 +360,12 @@ function settingmodbus() {
   document.getElementById("tabHome").style.display = "none";
   document.getElementById("tabIO").style.display = "none";
   document.getElementById("tabtabledata").style.display = "none";
+
+  document.getElementById("btnModbus").style.display = "none";
+  document.getElementById("btnHome").style.display = "block";
+  document.getElementById("btnIo").style.display = "block";
+  document.getElementById("btntable").style.display = "block";
+
 
 }
 function settingio() {
@@ -316,6 +382,10 @@ function settingio() {
   document.getElementById("tabIO").style.display = "block";
   document.getElementById("tabtabledata").style.display = "none";
 
+  document.getElementById("btnModbus").style.display = "block";
+  document.getElementById("btnHome").style.display = "block";
+  document.getElementById("btnIo").style.display = "none";
+  document.getElementById("btntable").style.display = "block";
 }
 function Home() {
   document.getElementById("cardmodbus").style.display = "none";
@@ -330,7 +400,12 @@ function Home() {
   document.getElementById("tabHome").style.display = "block";
   document.getElementById("tabIO").style.display = "none";
   document.getElementById("tabtabledata").style.display = "none";
+  document.getElementById("btnHome").style.display = "none";
 
+  document.getElementById("btnModbus").style.display = "block";
+  document.getElementById("btnHome").style.display = "none";
+  document.getElementById("btnIo").style.display = "block";
+  document.getElementById("btntable").style.display = "block";
 }
 function TabTableData() {
   document.getElementById("cardmodbus").style.display = "none";
@@ -345,6 +420,11 @@ function TabTableData() {
   document.getElementById("tabHome").style.display = "none";
   document.getElementById("tabIO").style.display = "none";
   document.getElementById("tabtabledata").style.display = "block";
+
+  document.getElementById("btnModbus").style.display = "block";
+  document.getElementById("btnHome").style.display = "block";
+  document.getElementById("btnIo").style.display = "block";
+  document.getElementById("btntable").style.display = "none";
 }
 function Showfile() {
   document.getElementById("cardmodbus").style.display = "none";
@@ -360,6 +440,11 @@ function Showfile() {
   document.getElementById("tabIO").style.display = "none";
   document.getElementById("tabtabledata").style.display = "none";
 
+  document.getElementById("btnModbus").style.display = "block";
+  document.getElementById("btnHome").style.display = "block";
+  document.getElementById("btnIo").style.display = "block";
+  document.getElementById("btntable").style.display = "block";
+
 }
 function TabShowData() {
   document.getElementById("cardmodbus").style.display = "none";
@@ -374,6 +459,11 @@ function TabShowData() {
   document.getElementById("tabHome").style.display = "none";
   document.getElementById("tabIO").style.display = "none";
   document.getElementById("tabtabledata").style.display = "none";
+
+  document.getElementById("btnModbus").style.display = "block";
+  document.getElementById("btnHome").style.display = "block";
+  document.getElementById("btnIo").style.display = "block";
+  document.getElementById("btntable").style.display = "block";
 }
 function AddCard() {
   document.getElementById("cardmodbus").style.display = "none";

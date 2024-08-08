@@ -14233,7 +14233,7 @@
       }
     }
   </style>
-  <title>WIFI SETTING</title>
+  <title>IoT TEAM</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon">
 </head>
@@ -14490,25 +14490,30 @@
             Data</a>
         </li>
       </ul>
-      <ul class="navbar-nav" style="height: 40px;">
-        <li class="nav-item dropdown" style="position: absolute; right: 0px;">
-          <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            <svg class="bi" width="24" height="24">
-              <use xlink:href="#gear_fill_icon"></use>
-            </svg>
-          </a>
-          <a class="navbar-nav" id="buttonadd" style="position: absolute; right: 70px;top: 9px; display:none;"
+      <ul class="navbar-nav navbar-right" style="height: 40px;">
+        <li class="nav-item">
+          <a class="navbar-nav" id="buttonadd" style="position: absolute; right: 23px;top: -15px; display:none;"
             role="button" data-bs-toggle="modal" aria-expanded="false">
             <svg class="bi" width="30" height="30">
               <use xlink:href="#icon-add"></use>
             </svg>
           </a>
-          <a class="navbar-nav" id="buttonlog" style="position: absolute; right: 120px;top: 9px;" role="button"
+          <a class="navbar-nav" id="buttonlog" style="position: absolute; right: 23px;top: -55px;" role="button"
             data-bs-toggle="modal" aria-expanded="false">
             <svg class="bi" width="30" height="30">
               <use xlink:href="#icon-person"></use>
             </svg>
           </a>
+        </li>
+      </ul>
+      <ul class="navbar-nav" style="height: 40px;">
+        <li class="nav-item dropdown" style="position: absolute; right: 0px; top: 20px;">
+          <a class="nav-link dropdown-toggle" id="btnsetting" style="display:none;" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <svg class="bi" width="24" height="24">
+              <use xlink:href="#gear_fill_icon"></use>
+            </svg>
+          </a>
+          
           <ul class="dropdown-menu" style="background-color: #143642; margin-left: -350px;">
             <li class="nav-item d-flex flex-row">
               <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#settingModalNV"
@@ -14571,10 +14576,7 @@
   <!-- Tab Home -->
   <div id="cardhome" class="contentcuataosss" style="display: block;">
     <Center>
-
       <div id="addcard"></div>
-
-
     </Center>
   </div>
 
@@ -14789,13 +14791,26 @@
         </div>
         <div style="padding: 10px;" class="state">
           <div>Name: <input type="text" class="state" id="input_namecard" size="15" placeholder="Name Card"></div><br>
+          <!-- <div class="row gx-2">
+            <div class="col-8 ">Select Card: </div>
+            <div class="col">
+              <div><select id="selectcard" class="state">
+                <option value="">--Select Card--</option>
+                <option value="0">PLC OEE</option>
+                <option value="1">OD2000</option>
+                <option value="2">WTM10L</option>
+                <option value="3">MPB10</option>
+              </select></div>
+            </div>
+          </div><br> -->
           <div class="row gx-2">
             <div class="col-8 ">Select NodeID: </div>
             <div class="col">
               <div><select id="selectreg" class="state"></select></div>
             </div>
           </div><br>
-
+        <!-- PLC Card -->
+        <div id="plc" style="display:block;">
           <div class="row gx-2">
             <div class="col">Plan: </div>
             <div class="col"><span id="value1" class="state"> Value </span></div>
@@ -14811,13 +14826,13 @@
           </div><br>
 
           <div class="row gx-2">
-            <div class="col">Plan set: </div>
+            <div class="col">PlanSet / ResultSet: </div>
             <div class="col"><span id="value3" class="state"> Value </span></div>
             <div class="col"><select id="selectvalue3" class="state"></select></div>
           </div><br>
 
           <div class="row gx-2">
-            <div class="col">Result set: </div>
+            <div class="col">Name Product: </div>
             <div class="col"><span id="value4" class="state"> Value </span></div>
             <div class="col"><select id="selectvalue4" class="state"></select></div>
           </div><br>
@@ -14839,7 +14854,55 @@
             <div class="col"><span id="value7" class="state"> Value </span></div>
             <div class="col"><select id="selectvalue7" class="state"></select></div>
           </div><br>
+        </div>
+        <!-- OD2000 -->
+        <div id="od2000" style="display:none;">
+          <div class="row gx-2">
+            <!-- <div class="col">Distance: </div>
+            <div class="col"><span id="value1" class="state"> Value </span></div>
+            <div class="col">
+              <div><select id="selectvalue1" class="state"></select></div>
+            </div> -->
+          </div><br>
+        </div>
+        <!-- WTM Distance -->
+        <div id="wtmdistance" style="display:none;">
+          <div class="row gx-2">
+            <!-- <div class="col">Distance: </div>
+            <div class="col"><span id="value1" class="state"> Value </span></div>
+            <div class="col">
+              <div><select id="selectvalue1" class="state"></select></div>
+            </div> -->
+          </div><br>
+        </div>
+        <!-- WTM XYZ -->
+        <div id="wtmxyz" style="display:none;">
+          <!-- <div class="row gx-2">
+            <div class="col">X: </div>
+            <div class="col"><span id="value1" class="state"> Value </span></div>
+            <div class="col">
+              <div><select id="selectvalue1" class="state"></select></div>
+            </div>
+          </div><br>
 
+          <div class="row gx-2">
+            <div class="col">Y: </div>
+            <div class="col"><span id="value2" class="state"> Value </span></div>
+            <div class="col"><select id="selectvalue2" class="state"></select></div>
+          </div><br>
+
+          <div class="row gx-2">
+            <div class="col">Z: </div>
+            <div class="col"><span id="value3" class="state"> Value </span></div>
+            <div class="col"><select id="selectvalue3" class="state"></select></div>
+          </div><br>
+
+          <div class="row gx-2">
+            <div class="col">Temperature: </div>
+            <div class="col"><span id="value4" class="state"> Value </span></div>
+            <div class="col"><select id="selectvalue4" class="state"></select></div>
+          </div><br> -->
+        </div>
           <Center><span><button id="buttonsavecard" class="button">SAVE</button></span></Center>
         </div>
       </div>
@@ -15277,6 +15340,7 @@
   <script src="./GenCard.js"></script>
   <script src="./DataProduct.js"></script>
   <script src="./Log.js"></script>
+  <script src="./SICK.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </body>
 

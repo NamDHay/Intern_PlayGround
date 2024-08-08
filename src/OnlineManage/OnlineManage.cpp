@@ -3,7 +3,7 @@
 #include <Communication/MB.h>
 #include <OnlineManage/HTML.h>
 #include <FileSystem/FileSystem.h>
-
+#include <Sensor/SICK.h>
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
 
@@ -19,12 +19,13 @@ void OnlineManage::Init()
     online.AP_STA_Mode();
     if (online.CheckConnect(500))
     {
-        if (!WiFi.config(local_IP, gateway, subnet))
-        {
-            Serial.println("STA Failed to configure");
-        }
+        // if (!WiFi.config(local_IP, gateway, subnet))
+        // {
+        //     Serial.println("STA Failed to configure");
+        // }
         Serial.print("Connected!\n");
         online.Get_STA_IP();
+        online.isConnected = true;
     }
     else
     {
@@ -32,7 +33,11 @@ void OnlineManage::Init()
         Serial.println("Change to AP_Mode\n");
         online.AP_Mode();
         online.Get_AP_IP();
+        online.isConnected = false;
     }
+    online.WebSocketInit();
+    online.WebHandle();
+    server.begin();
 }
 void OnlineManage::AP_Mode()
 {
@@ -58,6 +63,8 @@ void OnlineManage::AP_STA_Mode()
 {
     String ssid = "I-Soft";
     String pwk = "i-soft@2023";
+    // String ssid = "Hoc Bai Di";
+    // String pwk = "thangnamcobo";
     WiFi.mode(WIFI_AP_STA);
     WiFi.softAP(soft_ap_ssid, soft_ap_password);
     // WiFi.begin(online.wifi_setting.ssid, online.wifi_setting.pass);
@@ -130,9 +137,9 @@ void OnlineManage::writeSetting()
 }
 
 JsonDocument rdoc;
-JsonDocument wDoc;
 String DataStr = "";
 String fbDataString = "";
+/*********************************************START WEBSOCKET**************************************************************/
 void OnlineManage::notifyClients(const String &message)
 {
     ws.textAll(message);
@@ -332,14 +339,14 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         }
         else if (command == "ListFile") // Request List file
         {
-            filesystem.ListFile();
+            online.notifyClients(filesystem.ListFile());
         }
     }
 }
 void firstwebload()
 {
     String file;
-    filesystem.ListFile();
+    online.notifyClients(filesystem.ListFile());
 
     file = filesystem.readfile("/mbSlave.json");
     Serial.println("{\"Filename\":\"mbSlave\",\"Data\":" + file + "}");
@@ -392,14 +399,17 @@ void OnlineManage::WebSocketInit()
     ws.onEvent(onEvent);
     server.addHandler(&ws);
 }
+/*********************************************END WEBSOCKET****************************************************************/
+
+/*********************************************START HTTP HANDLE****************************************************************/
 
 const char *SSID_ = "ssid";
 const char *PASS_ = "pass";
-void WebHandle()
+void OnlineManage::WebHandle()
 {
     server.on("/", HTTP_ANY, [](AsyncWebServerRequest *request)
               {
-        AsyncWebServerResponse *response = request->beginResponse(200, "text/html", filesystem.readfile("/index.html"));
+        AsyncWebServerResponse *response = request->beginResponse(200, "text/html", mywebsite.Wifi_Config_HTML);
         request->send(response);
         Serial.println("Served Wifi Config Page"); });
     server.on("/get", HTTP_GET, [](AsyncWebServerRequest *request)
@@ -418,18 +428,132 @@ void WebHandle()
         Pass = "khong co SSID";
     }
     online.wifi_setting.pass = Pass;
+    online.Init();
     AsyncWebServerResponse *response = request->beginResponse(200, "text/html", mywebsite.Wifi_Config_HTML);
     request->send(response); });
 }
+/*********************************************END HTTP HANDLE****************************************************************/
+
+/*********************************************START MQTT****************************************************************/
+WiFiClient net;
+MQTTClient client;
+void connect()
+{
+    Serial.print("\nconnecting...");
+    while (!client.connect("TheSICKGuy", "mqtt-user-01", "MtTP5WBlYy3CSaRL9c_s4VFQ"))
+    // while (!client.connect("arduino", "public", "public"))
+    {
+        Serial.print(".");
+        delay(1000);
+    }
+
+    Serial.println("\nconnected!");
+    client.subscribe("isoft/node 11/sick1");
+    client.subscribe("isoft/node 11/sick2");
+    client.subscribe("isoft/node 11/sick4");
+    client.subscribe("isoft/node 12/sick1");
+    // client.subscribe("kanzsp052");
+    // client.subscribe("/hello");
+    // client.subscribe("/test/asd");
+}
+void messageReceived(String &topic, String &payload)
+{
+    float *fArr;
+    uint16_t *uArr;
+    JsonDocument sdoc;
+    String JsonString = "";
+    Serial.println("incoming: " + topic + " - " + payload);
+
+    if (topic == "isoft/node 11/sick1")
+    {
+        fArr = sickSensor.getOD2000Value(payload);
+        for (byte i = 0; i < 3; i++)
+        {
+            sdoc["OD2000"]["value"][i] = fArr[i];
+        }
+    }
+    else if (topic == "isoft/node 11/sick2")
+    {
+        uArr = sickSensor.getWTM10LValue(payload);
+        for (byte i = 0; i < 3; i++)
+        {
+            sdoc["WTM10L"]["value"][i] = uArr[i];
+        }
+    }
+    else if (topic == "isoft/node 11/sick4")
+    {
+        // uArr = sickSensor.getCSSValue(JsonString);
+        // for (byte i = 0; i < 6; i++)
+        // {
+        //     sdoc["CSS"]["value"][i] = uArr[i];
+        // }
+
+        fArr = sickSensor.getPBSValue(payload);
+        for (byte i = 0; i < 3; i++)
+        {
+            sdoc["PBS"]["value"][i] = fArr[i];
+        }
+    }
+    else if (topic == "isoft/node 12/sick1")
+    {
+        fArr = sickSensor.getMPB10Value(payload);
+        for (byte i = 0; i < 4; i++)
+        {
+            sdoc["MPB10"]["value"][i] = fArr[i];
+        }
+    }
+    else if (topic == "isoft/node 12/sick2")
+    {
+        fArr = sickSensor.getMPB10Value(payload);
+        for (byte i = 0; i < 4; i++)
+        {
+            sdoc["MPB10"]["value"][i] = fArr[i];
+        }
+    }
+    serializeJson(sdoc, JsonString);
+    if (online.isConnected == true)
+        online.notifyClients(JsonString);
+    return;
+}
+void MQTTInit()
+{
+    // client.begin("public.cloud.shiftr.io", net);
+    client.begin("vm01.i-soft.com.vn", 11883, net);
+    client.onMessage(messageReceived);
+    connect();
+}
+/*********************************************END MQTT****************************************************************/
 
 void TaskOnlineManager(void *pvParameter)
 {
-    online.Init();
-    online.WebSocketInit();
-    WebHandle();
-    server.begin();
+    float *fArr;
+    JsonDocument sdoc;
+    String JsonString = "";
+    String message = "{\"iolink\":{\"valid\": true,\"time\": 1723111884,\"value\":[66,44,0,0,63,156,53,93,63,231,62,217,63,202,8,12,0,0,0,192]},\"iqValue\": false}";
+    long lastMillis = millis();
+    MQTTInit();
     for (;;)
     {
+        if (!client.connected())
+        {
+            Serial.println("connect");
+            connect();
+        }
+        // publish a message roughly every second.
+        if (millis() - lastMillis > 1000)
+        {
+            lastMillis = millis();
+            fArr = sickSensor.getMPB10Value(message);
+            for (byte i = 0; i < 4; i++)
+            {
+                sdoc["MPB10"]["value"][i] = fArr[i];
+            }
+            serializeJson(sdoc, JsonString);
+            if (online.isConnected == true)
+                online.notifyClients(JsonString);
+        }
         ws.cleanupClients();
+        client.loop();
+        vTaskDelay(10 / portTICK_PERIOD_MS);
     }
 }
